@@ -30,15 +30,3 @@
   --radius-card: 1rem;
   --shadow-card: 0 2px 10px 0 rgb(0 0 0 / 0.06);
 }
-
-.text-primary {
-  color: var(--color-primary);
-}
-
-.bg-primary {
-  background-color: var(--color-primary);
-}
-
-.border-primary {
-  border-color: var(--color-primary);
-}

@@ -19,15 +19,6 @@ import { RouterModule } from '@angular/router';
       >
         NokAir
       </a>
-
-      <button
-        class="layout-sidebar-anchor p-link z-2"
-        type="button"
-        (click)="anchor()"
-        aria-label="Toggle sidebar"
-      >
-        <i class="pi pi-arrow-left"></i>
-      </button>
     </div>
 
     <div #menuContainer class="layout-menu-container">
@@ -77,12 +68,5 @@ export class AppSidebar {
         }, 300);
       }
     }
-  }
-
-  anchor() {
-    this.layoutService.layoutState.update((state) => ({
-      ...state,
-      anchored: !state.anchored,
-    }));
   }
 }

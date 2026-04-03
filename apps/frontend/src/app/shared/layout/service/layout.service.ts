@@ -43,13 +43,13 @@ interface MenuChangeEvent {
 export class LayoutService {
   _config: layoutConfig = {
     ripple: false,
-    preset: 'Nora',
-    primary: 'sky',
+    preset: 'Aura',
+    primary: 'yellow',
     inputStyle: 'outlined',
-    surface: 'stone',
+    surface: 'slate',
     darkTheme: false,
     menuMode: 'horizontal',
-    menuTheme: 'primaryColor',
+    menuTheme: 'colorScheme',
     lang: 'th',
   };
 

@@ -37,15 +37,6 @@ import { TooltipModule } from 'primeng/tooltip';
 
     <div class="topbar-end">
       <ul class="topbar-menu">
-        <!-- <li id="dashboard-manual-entry" class="ml-3">
-          <p-button
-            icon="pi pi-book"
-            rounded
-            pTooltip="Read the manual"
-            tooltipPosition="bottom"
-            (onClick)="onManualReadClick()"
-          ></p-button>
-        </li> -->
         <li id="dashboard-theme-config">
           <p-button
             icon="pi pi-palette"
@@ -57,7 +48,7 @@ import { TooltipModule } from 'primeng/tooltip';
         </li>
         <li class="topbar-profile">
           <p-button
-            icon="pi pi-user !text-2xl text-primary"
+            icon="pi pi-user !text-2xl text-theme"
             rounded
             (onClick)="onProfileButtonClick()"
           ></p-button>
