@@ -1,0 +1,9 @@
+@use './assets/layout/layout';
+@use '../../../libs/ui/styles/fonts-poppins';
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@import 'primeicons/primeicons.css';
+@import '../../../libs/ui/styles/theme.css';

@@ -11,13 +11,13 @@ import {
   Signal,
 } from '@angular/core';
 import { FormsModule } from '@angular/forms';
-import { $t, updatePreset, updateSurfacePalette } from '@primeng/themes';
-import Aura from '@primeng/themes/aura';
-import Lara from '@primeng/themes/lara';
-import Nora from '@primeng/themes/nora';
+import { updatePreset, updateSurfacePalette, usePreset } from '@primeuix/themes';
+import Aura from '@primeuix/themes/aura';
+import Lara from '@primeuix/themes/lara';
+import Nora from '@primeuix/themes/nora';
 import { PrimeNG } from 'primeng/config';
 import { SelectButtonModule } from 'primeng/selectbutton';
-import { LayoutService } from '../../layout/service/layout.service';
+import { LayoutService } from '../service/layout.service';
 import { Router } from '@angular/router';
 import { DrawerModule } from 'primeng/drawer';
 import { ToggleSwitchModule } from 'primeng/toggleswitch';
@@ -641,14 +641,15 @@ export class AppConfigurator implements OnInit {
       preset: event,
     }));
     const preset = presets[event as KeyOfType<typeof presets>];
+    usePreset(preset, this.getPresetExt());
+
     const surfacePalette = this.surfaces.find(
       (s) => s.name === this.selectedSurfaceColor(),
     )?.palette;
-    $t()
-      .preset(preset)
-      .preset(this.getPresetExt())
-      .surfacePalette(surfacePalette)
-      .use({ useDefaultOptions: true });
+
+    if (surfacePalette) {
+      updateSurfacePalette(surfacePalette);
+    }
     this.persistLayoutConfig();
   }
 
