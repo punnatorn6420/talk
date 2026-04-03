@@ -28,7 +28,7 @@ export const appConfig: ApplicationConfig = {
   providers: [
     MessageService,
     ConfirmationService,
-    provideAppInitializer(loadProfileInitializer),
+    // provideAppInitializer(loadProfileInitializer),
     provideBrowserGlobalErrorListeners(),
     provideRouter(appRoutes),
     provideAnimationsAsync(),
