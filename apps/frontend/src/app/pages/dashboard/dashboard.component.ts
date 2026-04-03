@@ -4,6 +4,7 @@ import { Button } from 'primeng/button';
 
 @Component({
   selector: 'app-dashboard',
+  standalone: true,
   templateUrl: './dashboard.component.html',
   styleUrl: './dashboard.component.scss',
   imports: [Button],
