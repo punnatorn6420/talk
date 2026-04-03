@@ -1,0 +1,31 @@
+@font-face {
+  font-family: 'DB Ozone X';
+  font-style: normal;
+  font-weight: 400;
+  src: url('../fonts/DB-Ozone-X-Li-v3.2-2.woff') format('woff');
+}
+
+@font-face {
+  font-family: 'DB Ozone X';
+  font-style: normal;
+  font-weight: 500;
+  src: url('../fonts/DB-Ozone-X-v3.2-2.woff') format('woff');
+}
+
+@font-face {
+  font-family: 'DB Ozone X';
+  font-style: normal;
+  font-weight: 600;
+  src: url('../fonts/DB-Ozone-X-Med-v3.2-2.woff') format('woff');
+}
+
+@font-face {
+  font-family: 'DB Ozone X';
+  font-style: normal;
+  font-weight: 700;
+  src: url('../fonts/DB-Ozone-X-Bd-v3.2-2.woff') format('woff');
+}
+
+body {
+  font-family: 'DB Ozone X', sans-serif;
+}

@@ -1,0 +1,16 @@
+<section class="welcome-card">
+  <p class="eyebrow">Welcome</p>
+  <h2>NokAir Free Voucher Admin Portal</h2>
+  <p>
+    Dashboard ถูกตั้งให้เป็นหน้า landing สำหรับต้อนรับผู้ใช้งาน
+    และใช้เป็นจุดเริ่มต้นไปยังโมดูลจัดการหลัก
+  </p>
+</section>
+
+<section class="shortcut-grid">
+  <a *ngFor="let item of shortcuts" [routerLink]="item.link" class="shortcut-card">
+    <h3>{{ item.title }}</h3>
+    <p>{{ item.description }}</p>
+    <span>Open module →</span>
+  </a>
+</section>
