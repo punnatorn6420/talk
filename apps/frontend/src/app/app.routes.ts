@@ -11,8 +11,7 @@ export const appRoutes: Route[] = [
       { path: '', redirectTo: 'dashboard', pathMatch: 'full' },
       {
         path: '',
-        loadChildren: () =>
-          import('../app/pages/pages.module').then((m) => m.PagesModule),
+        loadChildren: () => import('../app/pages/pages.routes'),
       },
     ],
   },
