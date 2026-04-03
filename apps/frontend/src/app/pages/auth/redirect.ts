@@ -1,4 +1,4 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, inject } from '@angular/core';
 import { ActivatedRoute, Router } from '@angular/router';
 import { AuthService } from '../../service/auth.service';
 import { CommonModule } from '@angular/common';
@@ -19,22 +19,22 @@ import { finalize } from 'rxjs';
     ProgressBarModule,
     CoreModule,
   ],
-  template: `<p-progressBar
-    *ngIf="loading"
-    [mode]="'indeterminate'"
-    [style]="{ height: '6px' }"
-    styleClass="fixed top-0 left-0 w-full h-1 progress-bar"
-  />`,
+  template: `@if (loading) {
+    <p-progressBar
+      [mode]="'indeterminate'"
+      [style]="{ height: '6px' }"
+      class="fixed top-0 left-0 w-full h-1 progress-bar"
+    />
+  }`,
 })
 export class Redirect extends SubscriptionDestroyer implements OnInit {
   loading = true;
+  private route = inject(ActivatedRoute);
+  private router = inject(Router);
+  private auth = inject(AuthService);
+  private messageService = inject(MessageService);
 
-  constructor(
-    private route: ActivatedRoute,
-    private router: Router,
-    private auth: AuthService,
-    private messageService: MessageService,
-  ) {
+  constructor() {
     super();
   }
 
