@@ -8,7 +8,7 @@ import { AuthService } from '../../../service/auth.service';
 import { environment } from '../../../../environments/environment';
 
 @Component({
-  selector: '[app-profilesidebar]',
+  selector: 'app-profilesidebar',
   imports: [ButtonModule, DrawerModule, BadgeModule, CommonModule],
   template: `
     <p-drawer
@@ -94,7 +94,9 @@ import { environment } from '../../../../environments/environment';
             label="Sign Out"
             class="w-full p-button-danger p-button-outlined mt-8 !py-4"
             (click)="onLogout()"
-          ></button>
+          >
+            Sign Out
+          </button>
         </ul>
       </div>
     </p-drawer>

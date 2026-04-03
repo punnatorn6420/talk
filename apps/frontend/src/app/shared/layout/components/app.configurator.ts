@@ -11,7 +11,11 @@ import {
   Signal,
 } from '@angular/core';
 import { FormsModule } from '@angular/forms';
-import { updatePreset, updateSurfacePalette, usePreset } from '@primeuix/themes';
+import {
+  updatePreset,
+  updateSurfacePalette,
+  usePreset,
+} from '@primeuix/themes';
 import Aura from '@primeuix/themes/aura';
 import Lara from '@primeuix/themes/lara';
 import Nora from '@primeuix/themes/nora';

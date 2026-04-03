@@ -3,7 +3,6 @@ import { RouterModule } from '@angular/router';
 import { CommonModule } from '@angular/common';
 import { StyleClassModule } from 'primeng/styleclass';
 import { LayoutService } from '../../layout/service/layout.service';
-import { AppBreadcrumb } from './app.breadcrumb';
 import { InputTextModule } from 'primeng/inputtext';
 import { ButtonModule } from 'primeng/button';
 import { IconFieldModule } from 'primeng/iconfield';
@@ -17,7 +16,6 @@ import { TooltipModule } from 'primeng/tooltip';
     RouterModule,
     CommonModule,
     StyleClassModule,
-    AppBreadcrumb,
     InputTextModule,
     ButtonModule,
     IconFieldModule,

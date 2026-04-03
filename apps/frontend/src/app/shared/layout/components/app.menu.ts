@@ -1,17 +1,19 @@
 import { Component, inject, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { RouterModule } from '@angular/router';
-import { AppMenuitem } from './app.menuitem';
 import { PermissionService } from '../../../service/permission.service';
+import { AppMenuitem } from './app.menuitem';
 
 @Component({
   selector: 'app-menu',
   standalone: true,
-  imports: [CommonModule, AppMenuitem, RouterModule],
+  imports: [CommonModule, RouterModule, AppMenuitem],
   template: `<ul class="layout-menu">
     @for (item of model; track $index; let i = $index) {
       @if (!item.separator) {
-        <li app-menuitem [item]="item" [index]="i" [root]="true"></li>
+        <li>
+          <app-menuitem [item]="item" [index]="i" [root]="true"></app-menuitem>
+        </li>
       }
       @if (item.separator) {
         <li class="menu-separator"></li>

@@ -28,7 +28,7 @@ import { RippleModule } from 'primeng/ripple';
 import { LayoutService } from '../../layout/service/layout.service';
 
 @Component({
-  selector: '[app-menuitem]',
+  selector: 'app-menuitem',
   standalone: true,
   imports: [CommonModule, RouterModule, RippleModule, TooltipModule],
   template: `
@@ -103,13 +103,13 @@ import { LayoutService } from '../../layout/service/layout.service';
           (@children.done)="onSubmenuAnimated($event)"
         >
           @for (child of item.items; track $index) {
-            <li
-              app-menuitem
-              [item]="child"
-              [index]="$index"
-              [parentKey]="key"
-              [class]="child['badgeClass']"
-            ></li>
+            <li [class]="child['badgeClass']">
+              <app-menuitem
+                [item]="child"
+                [index]="$index"
+                [parentKey]="key"
+              ></app-menuitem>
+            </li>
           }
         </ul>
       }

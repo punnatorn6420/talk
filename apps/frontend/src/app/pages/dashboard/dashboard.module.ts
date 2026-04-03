@@ -7,10 +7,8 @@ import { PrimeNgModule } from '../../shared/prime-ng.module';
 import { ConfirmationService } from 'primeng/api';
 import { SkeletonLoadingModule } from '../../shared/skeleton-loading/skeleton-loading.module';
 import { CoreModule } from '../../shared/core/core.module';
-import { DashboardComponent } from './dashboard.component';
 
 @NgModule({
-  declarations: [DashboardComponent],
   imports: [
     CommonModule,
     FormsModule,
