@@ -33,21 +33,6 @@ export class AppMenu implements OnInit {
         icon: 'pi pi-home',
         routerLink: ['/admin/dashboard'],
       },
-      {
-        label: 'Organizations',
-        icon: 'pi pi-building',
-        routerLink: ['/admin/organizations'],
-      },
-      {
-        label: 'Campaigns',
-        icon: 'pi pi-megaphone',
-        routerLink: ['/admin/campaigns'],
-      },
-      {
-        label: 'Voucher Batches',
-        icon: 'pi pi-ticket',
-        routerLink: ['/admin/voucher-batches'],
-      },
     ];
 
     void this.permissionService;
