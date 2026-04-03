@@ -3,12 +3,11 @@ import { CommonModule } from '@angular/common';
 import { RouterModule } from '@angular/router';
 import { AppMenuitem } from './app.menuitem';
 import { PermissionService } from '../../../service/permission.service';
-import { PrimeNgModule } from '../../prime-ng.module';
 
 @Component({
   selector: 'app-menu',
   standalone: true,
-  imports: [CommonModule, AppMenuitem, RouterModule, PrimeNgModule],
+  imports: [CommonModule, AppMenuitem, RouterModule],
   template: `<ul class="layout-menu">
     @for (item of model; track $index; let i = $index) {
       @if (!item.separator) {

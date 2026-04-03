@@ -28,7 +28,8 @@ import { RippleModule } from 'primeng/ripple';
 import { LayoutService } from '../../layout/service/layout.service';
 
 @Component({
-  selector: 'app-menuitem',
+  selector: '[app-menuitem]',
+  standalone: true,
   imports: [CommonModule, RouterModule, RippleModule, TooltipModule],
   template: `
     <ng-container>
