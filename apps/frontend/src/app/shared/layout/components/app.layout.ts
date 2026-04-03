@@ -12,20 +12,28 @@ import { AppTopbar } from './app.topbar';
 import { AppSidebar } from './app.sidebar';
 import { LayoutService } from '../../layout/service/layout.service';
 import { AppConfigurator } from './app.configurator';
+import { AppProfileSidebar } from './app.profilesidebar';
 
 @Component({
   selector: 'app-layout',
   standalone: true,
-  imports: [CommonModule, RouterModule, AppConfigurator],
+  imports: [
+    CommonModule,
+    RouterModule,
+    AppConfigurator,
+    AppSidebar,
+    AppTopbar,
+    AppProfileSidebar,
+  ],
   template: `<div class="layout-container" [ngClass]="containerClass">
-    <div app-sidebar></div>
+    <app-sidebar></app-sidebar>
     <div class="layout-content-wrapper">
-      <div app-topbar></div>
+      <app-topbar></app-topbar>
       <div class="layout-content">
         <router-outlet></router-outlet>
       </div>
     </div>
-    <div app-profilesidebar></div>
+    <app-profilesidebar></app-profilesidebar>
     <app-configurator></app-configurator>
     <div class="layout-mask animate-fadein"></div>
   </div> `,
