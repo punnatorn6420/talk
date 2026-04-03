@@ -3,7 +3,9 @@
     <p class="text-xs font-semibold uppercase tracking-[0.2em] text-slate-500">
       Talk to CEO
     </p>
-    <h2 class="mt-2 text-2xl font-bold text-slate-900">CEO Message Dashboard</h2>
+    <h2 class="mt-2 text-2xl font-bold text-slate-900">
+      CEO Message Dashboard
+    </h2>
     <p class="mt-2 text-sm text-slate-600">
       Mockup หน้านี้รองรับ flow ส่งข้อความหา CEO, ติดตามสถานะว่าอ่านแล้ว และดู
       reply ล่าสุด
@@ -12,11 +14,15 @@
     <div class="mt-5 grid gap-3 md:grid-cols-3">
       <div class="rounded-xl bg-amber-50 p-4">
         <p class="text-xs text-amber-700">Sent</p>
-        <p class="text-2xl font-semibold text-amber-900">{{ getStatusCount('SENT') }}</p>
+        <p class="text-2xl font-semibold text-amber-900">
+          {{ getStatusCount('SENT') }}
+        </p>
       </div>
       <div class="rounded-xl bg-sky-50 p-4">
         <p class="text-xs text-sky-700">Read</p>
-        <p class="text-2xl font-semibold text-sky-900">{{ getStatusCount('READ') }}</p>
+        <p class="text-2xl font-semibold text-sky-900">
+          {{ getStatusCount('READ') }}
+        </p>
       </div>
       <div class="rounded-xl bg-emerald-50 p-4">
         <p class="text-xs text-emerald-700">Replied</p>
@@ -29,20 +35,43 @@
 
   <section class="grid gap-6 xl:grid-cols-[420px_1fr]">
     <p-card header="ส่งเรื่องหา CEO">
-      <form [formGroup]="messageForm" class="space-y-4" (ngSubmit)="submitMessage()">
+      <form
+        [formGroup]="messageForm"
+        class="space-y-4"
+        (ngSubmit)="submitMessage()"
+      >
         <div class="space-y-2">
-          <label class="block text-sm text-slate-700">ชื่อผู้ส่ง</label>
-          <input pInputText formControlName="senderName" class="w-full" placeholder="เช่น Somchai A." />
+          <label for="senderName" class="block text-sm text-slate-700"
+            >ชื่อผู้ส่ง</label
+          >
+          <input
+            id="senderName"
+            pInputText
+            formControlName="senderName"
+            class="w-full"
+            placeholder="เช่น Somchai A."
+          />
         </div>
 
         <div class="space-y-2">
-          <label class="block text-sm text-slate-700">หัวข้อเรื่อง</label>
-          <input pInputText formControlName="subject" class="w-full" placeholder="ระบุหัวข้อที่ต้องการแจ้ง" />
+          <label for="subject" class="block text-sm text-slate-700"
+            >หัวข้อเรื่อง</label
+          >
+          <input
+            id="subject"
+            pInputText
+            formControlName="subject"
+            class="w-full"
+            placeholder="ระบุหัวข้อที่ต้องการแจ้ง"
+          />
         </div>
 
         <div class="space-y-2">
-          <label class="block text-sm text-slate-700">รายละเอียด</label>
+          <label for="detail" class="block text-sm text-slate-700"
+            >รายละเอียด</label
+          >
           <textarea
+            id="detail"
             pInputTextarea
             rows="5"
             formControlName="detail"
@@ -51,7 +80,12 @@
           ></textarea>
         </div>
 
-        <p-button type="submit" label="กดส่งถึง CEO" icon="pi pi-send" [fluid]="true"></p-button>
+        <p-button
+          type="submit"
+          label="กดส่งถึง CEO"
+          icon="pi pi-send"
+          [fluid]="true"
+        ></p-button>
       </form>
     </p-card>
 
@@ -67,7 +101,9 @@
             >
               <div class="flex items-start justify-between gap-3">
                 <div>
-                  <p class="font-semibold text-slate-900">{{ message.subject }}</p>
+                  <p class="font-semibold text-slate-900">
+                    {{ message.subject }}
+                  </p>
                   <p class="mt-1 text-xs text-slate-500">
                     จาก {{ message.senderName }} •
                     {{ message.postedAt | date: 'dd/MM/yyyy HH:mm' }}
@@ -78,7 +114,9 @@
                   [value]="message.status"
                 ></p-tag>
               </div>
-              <p class="mt-2 line-clamp-2 text-sm text-slate-600">{{ message.detail }}</p>
+              <p class="mt-2 text-sm text-slate-600">
+                {{ message.detail }}
+              </p>
             </button>
           }
         </div>
@@ -89,7 +127,9 @@
           <div class="space-y-4">
             <div>
               <p class="text-xs text-slate-500">Subject</p>
-              <p class="font-semibold text-slate-900">{{ selectedMessage.subject }}</p>
+              <p class="font-semibold text-slate-900">
+                {{ selectedMessage.subject }}
+              </p>
             </div>
 
             <div class="rounded-xl bg-slate-50 p-4 text-sm text-slate-700">
@@ -100,7 +140,9 @@
 
             <div>
               <p class="text-xs text-slate-500">CEO Reply</p>
-              <div class="mt-2 rounded-xl bg-emerald-50 p-4 text-sm text-emerald-900">
+              <div
+                class="mt-2 rounded-xl bg-emerald-50 p-4 text-sm text-emerald-900"
+              >
                 {{ selectedMessage.ceoReply || 'ยังไม่มีการตอบกลับจาก CEO' }}
               </div>
             </div>
