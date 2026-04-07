@@ -8,6 +8,16 @@
 @import 'primeicons/primeicons.css';
 @import '../../../libs/ui/styles/theme.css';
 
+:root {
+  color-scheme: light;
+}
+
+html,
+body {
+  background-color: var(--surface-ground);
+  color: var(--text-color);
+}
+
 .text-theme {
   color: var(--primary-color);
 }

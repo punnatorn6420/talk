@@ -111,6 +111,8 @@ export class LayoutService {
   private initialized = false;
 
   constructor() {
+    this.enforceDocumentLightMode();
+
     effect(() => {
       const config = this.layoutConfig();
       if (config) {
@@ -164,10 +166,18 @@ export class LayoutService {
   toggleDarkMode(config?: layoutConfig): void {
     const _config = config || this.layoutConfig();
     if (_config.darkTheme) {
-      document.documentElement.classList.add('app-dark');
-    } else {
-      document.documentElement.classList.remove('app-dark');
+      this.layoutConfig.update((state) => ({
+        ...state,
+        darkTheme: false,
+      }));
     }
+    this.enforceDocumentLightMode();
+  }
+
+  private enforceDocumentLightMode(): void {
+    document.documentElement.classList.remove('app-dark', 'dark');
+    document.body.classList.remove('dark');
+    document.documentElement.style.colorScheme = 'light';
   }
 
   private onTransitionEnd() {
