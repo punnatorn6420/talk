@@ -1,5 +1,6 @@
 import { CommonModule, Location } from '@angular/common';
 import {
+  ChangeDetectorRef,
   ChangeDetectionStrategy,
   Component,
   OnInit,
@@ -38,6 +39,7 @@ export class MessageAdminDetailComponent implements OnInit {
   private readonly messageApi = inject(_MessageService);
   private readonly toast = inject(MessageService);
   private readonly location = inject(Location);
+  private readonly cdr = inject(ChangeDetectorRef);
 
   loading = false;
   replying = false;
@@ -64,17 +66,33 @@ export class MessageAdminDetailComponent implements OnInit {
 
     this.messageApi
       .getMessageThreadById(id)
-      .pipe(finalize(() => (this.loading = false)))
+      .pipe(
+        finalize(() => {
+          this.loading = false;
+          this.cdr.markForCheck();
+        }),
+      )
       .subscribe({
         next: (res) => {
-          this.mail = res.data ?? null;
+          this.mail = res.data || null;
           this.replyText = this.mail?.reply ?? '';
+
+          if (!this.mail) {
+            this.toast.add({
+              severity: 'warn',
+              summary: 'Not found',
+              detail: `Message ${id} was not found.`,
+            });
+            this.cdr.markForCheck();
+            return;
+          }
 
           this.messageApi.putReadMessageThread(id).subscribe({
             error: () => {
               // ignore read error silently
             },
           });
+          this.cdr.markForCheck();
         },
         error: () => {
           this.toast.add({
@@ -82,6 +100,7 @@ export class MessageAdminDetailComponent implements OnInit {
             summary: 'Load failed',
             detail: 'Unable to load message detail.',
           });
+          this.cdr.markForCheck();
         },
       });
   }
@@ -100,6 +119,7 @@ export class MessageAdminDetailComponent implements OnInit {
         summary: 'Reply required',
         detail: 'Please enter a reply message.',
       });
+      this.cdr.markForCheck();
       return;
     }
 
@@ -123,6 +143,7 @@ export class MessageAdminDetailComponent implements OnInit {
             repliedAt: new Date().toISOString(),
             status: 'replied',
           };
+          this.cdr.markForCheck();
         },
         error: () => {
           this.toast.add({
@@ -130,6 +151,7 @@ export class MessageAdminDetailComponent implements OnInit {
             summary: 'Send failed',
             detail: 'Unable to send reply.',
           });
+          this.cdr.markForCheck();
         },
       });
   }
