@@ -1,1 +1,288 @@
-<app-mail-app></app-mail-app>
+<!-- <app-mail-app></app-mail-app> -->
+
+<div class="h-full min-h-screen bg-white text-slate-700">
+  <div class="flex h-full min-h-screen bg-white">
+    <aside
+      class="hidden w-[200px] shrink-0 border-r border-slate-200 bg-white lg:flex lg:flex-col"
+    >
+      <div class="border-b border-slate-200 px-6 py-5">
+        <h2 class="text-[15px] font-semibold tracking-[-0.02em] text-slate-900">
+          Mails
+        </h2>
+      </div>
+
+      <div class="px-3 py-4">
+        <div class="mb-5">
+          <p
+            class="mb-2 px-3 text-[10px] font-semibold uppercase tracking-[0.08em] text-slate-400"
+          >
+            Menu
+          </p>
+          <ul class="space-y-1">
+            @for (item of menuItems; track item) {
+              <li>
+                <button
+                  type="button"
+                  pRipple
+                  class="flex h-[40px] w-full items-center gap-2.5 rounded-xl px-3 text-left transition-all"
+                  [class]="
+                    item.active
+                      ? 'bg-emerald-500 text-white shadow-sm'
+                      : 'text-slate-500 hover:bg-slate-50'
+                  "
+                >
+                  <i [class]="item.icon + ' text-[11px]'"></i>
+
+                  <span class="flex-1 text-[12px] font-semibold">
+                    {{ item.label }}
+                  </span>
+                  @if (item.count !== undefined) {
+                    <span
+                      class="inline-flex h-5 min-w-5 items-center justify-center rounded-md px-1.5 text-[10px] font-semibold"
+                      [class]="
+                        item.active
+                          ? 'bg-white text-emerald-600'
+                          : 'bg-slate-100 text-slate-500'
+                      "
+                    >
+                      {{ item.count }}
+                    </span>
+                  }
+                </button>
+              </li>
+            }
+          </ul>
+        </div>
+        <div class="mx-3 my-4 h-px bg-slate-200"></div>
+        <div>
+          <p
+            class="mb-2 px-3 text-[10px] font-semibold uppercase tracking-[0.08em] text-slate-400"
+          >
+            Categories
+          </p>
+
+          <ul class="space-y-1">
+            @for (item of categoryItems; track item) {
+              <li>
+                <button
+                  type="button"
+                  pRipple
+                  class="flex h-[40px] w-full items-center gap-2.5 rounded-xl px-3 text-left text-slate-500 transition hover:bg-slate-50"
+                >
+                  <i [class]="item.icon + ' text-[11px]'"></i>
+
+                  <span class="flex-1 text-[12px] font-semibold">
+                    {{ item.label }}
+                  </span>
+
+                  @if (item.count !== undefined) {
+                    <span
+                      class="inline-flex h-5 min-w-5 items-center justify-center rounded-md bg-slate-100 px-1.5 text-[10px] font-semibold text-slate-500"
+                    >
+                      {{ item.count }}
+                    </span>
+                  }
+                </button>
+              </li>
+            }
+          </ul>
+        </div>
+      </div>
+    </aside>
+
+    <section class="flex min-w-0 flex-1 flex-col bg-white">
+      <div class="border-b border-slate-200 px-3 py-3 md:px-4">
+        <div class="flex items-center justify-between gap-3">
+          <div class="relative w-full max-w-[340px]">
+            <i
+              class="pi pi-search pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-[12px] text-slate-400"
+            ></i>
+            <input
+              pInputText
+              [(ngModel)]="search"
+              type="text"
+              placeholder="Search mail"
+              class="w-full !rounded-xl !border-slate-300 !pl-9 !pr-3 !text-[12px] !shadow-none"
+            />
+          </div>
+
+          <button
+            aria-label="Compose New"
+            pButton
+            type="button"
+            icon="pi pi-plus"
+            label="Compose New"
+            class="hidden md:inline-flex"
+            styleClass="!h-[38px] !rounded-xl !border !border-slate-300 !bg-white !px-3 !text-[12px] !font-medium !text-slate-600 !shadow-none hover:!bg-slate-50"
+            severity="secondary"
+          ></button>
+        </div>
+      </div>
+
+      <div class="min-w-0 flex-1 overflow-x-auto overflow-y-auto">
+        <table class="w-full min-w-[900px] border-collapse">
+          <thead class="bg-white">
+            <tr class="border-b border-slate-200">
+              <th class="w-[44px] px-3 py-2.5 text-left">
+                <p-checkbox
+                  binary="true"
+                  [ngModel]="false"
+                  (onChange)="toggleAll($event)"
+                ></p-checkbox>
+              </th>
+
+              <th
+                class="w-[190px] px-2 py-2.5 text-left text-[12px] font-semibold text-slate-700"
+              >
+                From
+              </th>
+
+              <th
+                class="w-[80px] px-2 py-2.5 text-left text-[12px] font-semibold text-slate-700"
+              >
+                Time
+              </th>
+
+              <th
+                class="px-2 py-2.5 text-left text-[12px] font-semibold text-slate-700"
+              >
+                Message
+              </th>
+
+              <th class="w-[96px] px-2 py-2.5"></th>
+              <th class="w-[84px] px-2 py-2.5"></th>
+            </tr>
+          </thead>
+
+          <tbody>
+            @for (mail of filteredMails; track trackByMail($index, mail)) {
+              <tr
+                class="border-b border-slate-200 transition hover:bg-slate-50/40"
+              >
+                <td class="px-3 py-3 align-middle">
+                  <p-checkbox
+                    binary="true"
+                    [(ngModel)]="mail.selected"
+                  ></p-checkbox>
+                </td>
+
+                <td class="px-2 py-3 align-middle">
+                  <div
+                    class="flex items-center gap-2.5"
+                    [class]="mail.faded ? 'opacity-60' : ''"
+                  >
+                    <div
+                      class="relative flex h-8 w-8 shrink-0 items-center justify-center overflow-hidden rounded-lg text-[10px] font-medium text-slate-600"
+                      [class]="mail.avatarBg || 'bg-slate-100'"
+                    >
+                      @if (mail.avatar) {
+                        <img
+                          [src]="mail.avatar"
+                          [alt]="mail.from"
+                          class="h-full w-full object-cover"
+                        />
+                      }
+
+                      @if (!mail.avatar) {
+                        {{ mail.initials }}
+                      }
+
+                      @if (mail.unread) {
+                        <span
+                          class="absolute -right-0.5 -top-0.5 h-2 w-2 rounded-full border-2 border-white bg-red-500"
+                        ></span>
+                      }
+                    </div>
+
+                    <span
+                      class="truncate text-[12px] font-medium leading-5"
+                      [class]="mail.faded ? 'text-slate-500' : 'text-slate-800'"
+                    >
+                      {{ mail.from }}
+                    </span>
+                  </div>
+                </td>
+
+                <td
+                  class="px-2 py-3 align-middle text-[11px]"
+                  [class]="mail.faded ? 'text-slate-400' : 'text-slate-500'"
+                >
+                  {{ mail.time }}
+                </td>
+
+                <td class="px-2 py-3 align-middle">
+                  <div
+                    class="flex max-w-[560px] items-center gap-2"
+                    [class]="mail.faded ? 'opacity-60' : ''"
+                  >
+                    <span
+                      class="max-w-[260px] shrink-0 truncate text-[12px]"
+                      [class]="mail.faded ? 'text-slate-600' : 'text-slate-800'"
+                    >
+                      {{ mail.subject }}
+                    </span>
+
+                    <span class="truncate text-[12px] text-slate-400">
+                      {{ mail.preview }}
+                    </span>
+                  </div>
+                </td>
+
+                <td class="px-2 py-3 align-middle">
+                  <p-tag
+                    [value]="mail.category"
+                    styleClass="!rounded-lg !bg-slate-100 !px-2.5 !py-1 !text-[10px] !font-semibold !text-slate-600 !shadow-none"
+                  ></p-tag>
+                </td>
+
+                <td class="px-2 py-3 align-middle">
+                  <div class="flex items-center justify-end gap-0.5">
+                    <button
+                      type="button"
+                      pRipple
+                      class="flex h-7 w-7 items-center justify-center rounded-md text-slate-400 transition hover:bg-slate-100"
+                      (click)="toggleStar(mail)"
+                    >
+                      <i
+                        class="pi text-[10px]"
+                        [class]="
+                          mail.starred
+                            ? 'pi-star-fill text-slate-500'
+                            : 'pi-star text-slate-400'
+                        "
+                      ></i>
+                    </button>
+
+                    <button
+                      type="button"
+                      pRipple
+                      class="flex h-7 w-7 items-center justify-center rounded-md text-slate-400 transition hover:bg-slate-100"
+                      (click)="toggleBookmark(mail)"
+                    >
+                      <i
+                        [class]="
+                          'pi text-[10px] ' +
+                          (mail.bookmarked
+                            ? 'pi-bookmark-fill text-slate-500'
+                            : 'pi-bookmark text-slate-400')
+                        "
+                      ></i>
+                    </button>
+
+                    <button
+                      type="button"
+                      pRipple
+                      class="flex h-7 w-7 items-center justify-center rounded-md text-slate-400 transition hover:bg-slate-100"
+                    >
+                      <i class="pi pi-ellipsis-v text-[10px]"></i>
+                    </button>
+                  </div>
+                </td>
+              </tr>
+            }
+          </tbody>
+        </table>
+      </div>
+    </section>
+  </div>
+</div>

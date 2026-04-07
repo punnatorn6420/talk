@@ -13,15 +13,6 @@ import { Mail } from './mail';
   standalone: true,
   imports: [ButtonModule, RippleModule, RouterModule, CommonModule],
   template: `<div>
-    <button
-      pButton
-      pRipple
-      label="Compose New"
-      class="mb-8 w-full"
-      outlined
-      [routerLink]="'/admin/messages/compose/'"
-      aria-label="Compose New Mail"
-    ></button>
     <div class="overflow-auto">
       <ul
         class="flex flex-row md:flex-col gap-1 md:gap-2 list-none m-0 p-0 overflow-auto"
