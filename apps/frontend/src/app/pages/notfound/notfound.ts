@@ -45,7 +45,7 @@ import { environment } from '../../../environments/environment';
           There is nothing here
         </p>
         <p-button (click)="goToDashboard()" severity="warn" raised
-          >Go to Dashboard</p-button
+          >Go to Message Center</p-button
         >
       </div>
     </div>

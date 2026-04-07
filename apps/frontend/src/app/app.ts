@@ -9,5 +9,5 @@ import { AppShellComponent } from './app-shell.component';
   styleUrl: './app.css',
 })
 export class App {
-  protected title = 'frontend';
+  protected title = 'NokAir ExecConnect';
 }
