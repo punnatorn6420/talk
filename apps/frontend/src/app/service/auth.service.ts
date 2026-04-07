@@ -1,7 +1,7 @@
 import { Injectable, inject } from '@angular/core';
-import { BehaviorSubject, firstValueFrom, Observable } from 'rxjs';
+import { BehaviorSubject, Observable } from 'rxjs';
 import { HttpClient } from '@angular/common/http';
-import { IUserInfo } from '../types/auth.model';
+import { IUserInfo, IUserRole } from '../types/auth.model';
 import { environment } from '../../environments/environment';
 import { IResponse } from '../types/response.model';
 import { HttpService } from './http.service';
@@ -50,24 +50,20 @@ export class AuthService {
     return this.https.get(`${environment.endpoint}v1/get-profile-user`, true);
   }
 
-  loadProfile(): Promise<void> {
-    const token = sessionStorage.getItem('bearerToken');
-    if (!token) {
-      if (!location.href.startsWith(environment.portal_client)) {
-        location.replace(environment.portal_client);
-      }
-      return Promise.resolve();
-    }
-    return firstValueFrom(this.getUserProfile()).then(
-      (res) => {
-        this.currentUserSubject.next(res.data ?? null);
-      },
-      () => {
-        this.currentUserSubject.next(null);
-        if (!location.href.startsWith(environment.portal_client)) {
-          location.replace(environment.portal_client);
-        }
-      },
-    );
+  loadProfile() {
+    this.currentUserSubject.next({
+      id: 14,
+      objectId: '93834fe2-c75b-4276-a7d7-6a1d9ba2e29c',
+      firstName: 'Punnatorn',
+      lastName: 'Yimpong',
+      email: 'Punnatorn.Yim@nokair.co.th',
+      jobTitle: 'Front-End Development',
+      department: 'HQ',
+      active: true,
+      roles: [IUserRole.User],
+      team: '',
+      createdAt: '2025-08-08T14:30:29',
+      modifiedAt: '2025-08-08T14:30:29',
+    });
   }
 }
