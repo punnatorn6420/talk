@@ -6,7 +6,7 @@ import { filter, Subscription } from 'rxjs';
 import { ButtonModule } from 'primeng/button';
 import { RippleModule } from 'primeng/ripple';
 import { CommonModule } from '@angular/common';
-import { Mail } from './mail';
+import { IMail } from './mail';
 
 @Component({
   selector: 'app-mail-sidebar',
@@ -89,7 +89,7 @@ export class MailSidebarComponent implements OnDestroy {
       });
   }
 
-  getBadgeValues(data: Mail[]) {
+  getBadgeValues(data: IMail[]) {
     const inbox = [],
       starred = [],
       spam = [],
@@ -101,31 +101,8 @@ export class MailSidebarComponent implements OnDestroy {
     for (let i = 0; i < data.length; i++) {
       const mail = data[i];
 
-      if (
-        !mail.archived &&
-        !mail.trash &&
-        !mail.spam &&
-        !Object.prototype.hasOwnProperty.call(mail, 'sent')
-      ) {
+      if (!Object.prototype.hasOwnProperty.call(mail, 'sent')) {
         inbox.push(mail);
-      }
-      if (mail.starred && !mail.archived && !mail.trash) {
-        starred.push(mail);
-      }
-      if (mail.spam && !mail.archived && !mail.trash) {
-        spam.push(mail);
-      }
-      if (mail.important && !mail.archived && !mail.trash) {
-        important.push(mail);
-      }
-      if (mail.archived && !mail.trash) {
-        archived.push(mail);
-      }
-      if (mail.trash) {
-        trash.push(mail);
-      }
-      if (mail.sent && !mail.archived && !mail.trash) {
-        sent.push(mail);
       }
     }
 

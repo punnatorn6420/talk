@@ -1,9 +1,8 @@
 import { Component } from '@angular/core';
 import { MessageService } from 'primeng/api';
 import { MailService } from './ui/service/mail.service';
-import { Tag } from 'primeng/tag';
-import { Checkbox } from 'primeng/checkbox';
 import { FormsModule } from '@angular/forms';
+import { MailAppComponent } from './ui';
 
 interface MailMenuItem {
   label: string;
@@ -39,7 +38,7 @@ interface MailItem {
 @Component({
   selector: 'app-messages-admin-view',
   standalone: true,
-  imports: [Tag, Checkbox, FormsModule],
+  imports: [FormsModule, MailAppComponent],
   templateUrl: './messages-admin-view.component.html',
   styleUrl: './messages-admin-view.component.scss',
   providers: [MessageService, MailService],
