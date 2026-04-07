@@ -294,6 +294,7 @@ if (app.Environment.IsDevelopment())
     app.UseSwaggerUI(c =>
     {
         c.SwaggerEndpoint("/TalkToCeo-api-spec.json", "Talk to CEO API V1");
+        c.SwaggerEndpoint("/TalkToCeo-user-api-spec.json", "Talk to CEO User API V1");
         c.RoutePrefix = string.Empty;
     });
 }
