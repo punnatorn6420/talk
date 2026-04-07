@@ -1,0 +1,32 @@
+{
+  "type": "object",
+  "properties": {
+    "id": {
+      "type": "integer",
+      "description": "Unique identifier of the role",
+      "example": 1
+    },
+    "roleName": {
+      "type": "string",
+      "description": "Name of the role",
+      "example": "Admin"
+    },
+    "active": {
+      "type": "boolean",
+      "description": "Whether the role is active",
+      "example": true
+    },
+    "createdAt": {
+      "type": "string",
+      "format": "date-time",
+      "description": "Role creation timestamp",
+      "example": "2025-06-02T14:28:50.065216"
+    },
+    "lastUpdate": {
+      "type": "string",
+      "format": "date-time",
+      "description": "Last updated timestamp",
+      "example": "2025-06-02T14:28:50.065216"
+    }
+  }
+}

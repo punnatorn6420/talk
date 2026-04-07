@@ -1,0 +1,22 @@
+{
+    "type": "object",
+    "required": [
+        "subject",
+        "detail"
+    ],
+    "properties": {
+        "subject": {
+            "type": "string"
+        },
+        "detail": {
+            "type": "string"
+        },
+        "status": {
+            "type": "string",
+            "enum": [
+                "draft",
+                "send"
+            ]
+        }
+    }
+}

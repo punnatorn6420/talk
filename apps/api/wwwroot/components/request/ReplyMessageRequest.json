@@ -1,0 +1,11 @@
+{
+    "type": "object",
+    "required": [
+        "reply"
+    ],
+    "properties": {
+        "reply": {
+            "type": "string"
+        }
+    }
+}

@@ -1,0 +1,534 @@
+{
+    "openapi": "3.0.1",
+    "info": {
+        "version": "1.0.0",
+        "title": "Talk to CEO API",
+        "description": "Talk to CEO internal communication API specification",
+        "contact": {
+            "name": "TalkToCeo Platform Team",
+            "email": "platform@company.com"
+        }
+    },
+    "servers": [
+        {
+            "url": "/v1",
+            "description": "Production server"
+        },
+        {
+            "url": "/v1",
+            "description": "Staging server"
+        }
+    ],
+    "components": {
+        "securitySchemes": {
+            "BearerAuth": {
+                "type": "http",
+                "scheme": "bearer",
+                "bearerFormat": "JWT"
+            }
+        },
+        "parameters": {
+            "client_id": {
+                "name": "client_id",
+                "description": "Client application id",
+                "in": "header",
+                "required": true,
+                "schema": {
+                    "type": "string"
+                }
+            },
+            "client_secret": {
+                "name": "client_secret",
+                "description": "Client application secret",
+                "in": "header",
+                "required": true,
+                "schema": {
+                    "type": "string"
+                }
+            },
+            "messageId": {
+                "name": "id",
+                "in": "path",
+                "required": true,
+                "schema": {
+                    "type": "integer"
+                }
+            }
+        },
+        "schemas": {
+            "CreateMessageRequest": {
+                "$ref": "./components/request/CreateMessageRequest.json"
+            },
+            "ReplyMessageRequest": {
+                "$ref": "./components/request/ReplyMessageRequest.json"
+            },
+            "MessageResponse": {
+                "$ref": "./components/response/MessageResponse.json"
+            },
+            "SuccessResponse": {
+                "$ref": "./components/response/SuccessResponse.json"
+            },
+            "UnauthorizedResponse": {
+                "$ref": "./components/response/UnauthorizedResponse.json"
+            },
+            "InvalidTokenResponse": {
+                "$ref": "./components/response/InvalidTokenResponse.json"
+            },
+            "InvalidRequestSchema": {
+                "$ref": "./components/response/InvalidRequestSchema.json"
+            },
+            "InvalidRequestResponse": {
+                "$ref": "./components/response/InvalidRequestResponse.json"
+            }
+        }
+    },
+    "paths": {
+        "/messages": {
+            "post": {
+                "summary": "Create message to CEO",
+                "operationId": "createMessageAsync",
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "parameters": [
+                    {
+                        "$ref": "#/components/parameters/client_id"
+                    },
+                    {
+                        "$ref": "#/components/parameters/client_secret"
+                    }
+                ],
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "$ref": "#/components/schemas/CreateMessageRequest"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "201": {
+                        "description": "Message created successfully",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/SuccessResponse"
+                                }
+                            }
+                        }
+                    },
+                    "400": {
+                        "description": "Invalid JSON payload",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object"
+                                },
+                                "example": {
+                                    "message": "Invalid search criteria"
+                                }
+                            }
+                        }
+                    },
+                    "500": {
+                        "description": "Internal server error",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object"
+                                },
+                                "example": {
+                                    "correlationId": "ABCD1234-1234-1234-1234-1234567890AB",
+                                    "error": {
+                                        "code": "E0001",
+                                        "userMessage": "Please contact support",
+                                        "developerMessage": "An unexpected error occurred"
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            "get": {
+                "summary": "Get all messages (CEO view)",
+                "operationId": "getAllMessagesAsync",
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "parameters": [
+                    {
+                        "$ref": "#/components/parameters/client_id"
+                    },
+                    {
+                        "$ref": "#/components/parameters/client_secret"
+                    },
+                    {
+                        "name": "keyword",
+                        "in": "query",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    {
+                        "name": "pageNumber",
+                        "in": "query",
+                        "schema": {
+                            "type": "integer",
+                            "default": 1
+                        }
+                    },
+                    {
+                        "name": "pageSize",
+                        "in": "query",
+                        "schema": {
+                            "type": "integer",
+                            "default": 25
+                        }
+                    },
+                    {
+                        "name": "sortField",
+                        "in": "query",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    {
+                        "name": "ascending",
+                        "in": "query",
+                        "schema": {
+                            "type": "boolean",
+                            "default": true
+                        }
+                    },
+                    {
+                        "name": "searchStartDate",
+                        "in": "query",
+                        "schema": {
+                            "type": "string",
+                            "format": "date-time"
+                        }
+                    },
+                    {
+                        "name": "searchEndDate",
+                        "in": "query",
+                        "schema": {
+                            "type": "string",
+                            "format": "date-time"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Messages retrieved successfully",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "array",
+                                    "items": {
+                                        "$ref": "#/components/schemas/MessageResponse"
+                                    }
+                                }
+                            }
+                        }
+                    },
+                    "500": {
+                        "description": "Internal server error",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object"
+                                },
+                                "example": {
+                                    "correlationId": "ABCD1234-1234-1234-1234-1234567890AB",
+                                    "error": {
+                                        "code": "E0001",
+                                        "userMessage": "Please contact support",
+                                        "developerMessage": "An unexpected error occurred"
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            "put": {
+                "summary": "Update message",
+                "operationId": "updateMessageAsync",
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "parameters": [
+                    {
+                        "$ref": "#/components/parameters/client_id"
+                    },
+                    {
+                        "$ref": "#/components/parameters/client_secret"
+                    }
+                ],
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "$ref": "#/components/schemas/CreateMessageRequest"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "Message updated successfully",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/SuccessResponse"
+                                }
+                            }
+                        }
+                    },
+                    "403": {
+                        "description": "Invalid request parameters",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/InvalidRequestResponse"
+                                }
+                            }
+                        }
+                    },
+                    "404": {
+                        "description": "Message not found"
+                    },
+                    "500": {
+                        "description": "Internal server error",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object"
+                                },
+                                "example": {
+                                    "correlationId": "ABCD1234-1234-1234-1234-1234567890AB",
+                                    "error": {
+                                        "code": "E0001",
+                                        "userMessage": "Please contact support",
+                                        "developerMessage": "An unexpected error occurred"
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/messages/{id}": {
+            "get": {
+                "summary": "Get message detail",
+                "operationId": "getMessageDetailAsync",
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "parameters": [
+                    {
+                        "$ref": "#/components/parameters/client_id"
+                    },
+                    {
+                        "$ref": "#/components/parameters/client_secret"
+                    },
+                    {
+                        "$ref": "#/components/parameters/messageId"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Message detail retrieved successfully",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/MessageResponse"
+                                }
+                            }
+                        }
+                    },
+                    "404": {
+                        "description": "Message not found"
+                    }
+                }
+            },
+            "delete": {
+                "summary": "Delete message",
+                "operationId": "deleteMessageAsync",
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "parameters": [
+                    {
+                        "$ref": "#/components/parameters/client_id"
+                    },
+                    {
+                        "$ref": "#/components/parameters/client_secret"
+                    },
+                    {
+                        "$ref": "#/components/parameters/messageId"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Message deleted successfully",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/SuccessResponse"
+                                }
+                            }
+                        }
+                    },
+                    "403": {
+                        "description": "Invalid request parameters",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/InvalidRequestResponse"
+                                }
+                            }
+                        }
+                    },
+                    "404": {
+                        "description": "Message not found"
+                    }
+                }
+            }
+        },
+        "/messages/{id}/reply": {
+            "put": {
+                "summary": "Reply message (CEO only)",
+                "operationId": "replyMessageAsync",
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "parameters": [
+                    {
+                        "$ref": "#/components/parameters/client_id"
+                    },
+                    {
+                        "$ref": "#/components/parameters/client_secret"
+                    },
+                    {
+                        "$ref": "#/components/parameters/messageId"
+                    }
+                ],
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "$ref": "#/components/schemas/ReplyMessageRequest"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "The reply have been successfully retrieved",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/SuccessResponse"
+                                }
+                            }
+                        }
+                    },
+                    "403": {
+                        "description": "Invalid request parameters",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/InvalidRequestResponse"
+                                }
+                            }
+                        }
+                    },
+                    "404": {
+                        "description": "Message not found"
+                    }
+                }
+            }
+        },
+        "/messages/{id}/read": {
+            "put": {
+                "summary": "Update status",
+                "operationId": "updateStatusAsync",
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "parameters": [
+                    {
+                        "$ref": "#/components/parameters/client_id"
+                    },
+                    {
+                        "$ref": "#/components/parameters/client_secret"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Status updated successfully",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/SuccessResponse"
+                                }
+                            }
+                        }
+                    },
+                    "400": {
+                        "description": "Invalid JSON payload",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object"
+                                },
+                                "example": {
+                                    "message": "Invalid search criteria"
+                                }
+                            }
+                        }
+                    },
+                    "500": {
+                        "description": "Internal server error",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object"
+                                },
+                                "example": {
+                                    "correlationId": "ABCD1234-1234-1234-1234-1234567890AB",
+                                    "error": {
+                                        "code": "E0001",
+                                        "userMessage": "Please contact support",
+                                        "developerMessage": "An unexpected error occurred"
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    }
+}

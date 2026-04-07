@@ -1,0 +1,13 @@
+{
+  "type": "object",
+  "properties": {
+    "accessToken": {
+      "type": "string",
+      "description": "The new access token issued after refresh."
+    },
+    "expiresIn": {
+      "type": "integer",
+      "description": "Access token expiry time in seconds."
+    }
+  }
+}
