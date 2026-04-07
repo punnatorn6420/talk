@@ -1,6 +1,7 @@
 using System;
 using Microsoft.EntityFrameworkCore;
 using NokAir.TalkToCeo.Shared.Entities.TalkToCeo;
+using NokAir.TalkToCeo.Shared.Enums;
 
 namespace NokAir.TalkToCeo.Shared.Repositories
 {
@@ -58,6 +59,7 @@ namespace NokAir.TalkToCeo.Shared.Repositories
             int pageNumber,
             int pageSize,
             bool ascending,
+            bool excludeDraft,
             DateTimeOffset? searchStartDate,
             DateTimeOffset? searchEndDate,
             string? userIdFilter)
@@ -95,6 +97,13 @@ namespace NokAir.TalkToCeo.Shared.Repositories
             {
                 query = query.Where(x =>
                         x.UserId == int.Parse(userIdFilter));
+            }
+
+            if (excludeDraft)
+            {
+                query =
+                    query.Where(x =>
+                        x.Status != ActionStatus.Draft);
             }
 
             // sorting
