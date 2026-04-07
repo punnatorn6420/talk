@@ -1,5 +1,6 @@
 using System.Globalization;
 using System.Net;
+using System.Reflection;
 using System.Text;
 using System.Text.Json.Serialization;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
@@ -169,26 +170,32 @@ builder.Services.AddCors(options =>
             .AllowAnyMethod();
     });
 });
-builder.Services.AddControllers().AddJsonOptions(options =>
-    {
-        options.JsonSerializerOptions.Converters
-            .Add(new JsonStringEnumConverter());
-    });
 
 // Add services to the container.
 // Learn more about configuring OpenAPI at https://aka.ms/aspnet/openapi
 
 builder.Services.AddAuthorization();
-builder.Services.AddControllers();
+builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen(c =>
 {
     c.SwaggerDoc("v1", new OpenApiInfo
     {
-        Title = "Talk to CEO API",
+        Title = "Nok Voucher API",
         Version = "v1",
-        Description = "Talk to CEO API",
+        Description = "Nok Voucher Web API",
     });
+
+    var xmlFilename = $"{Assembly.GetExecutingAssembly().GetName().Name}.xml";
+    var xmlPath = Path.Combine(AppContext.BaseDirectory, xmlFilename);
+
+    var xmlExists = File.Exists(xmlPath);
+
+    if (xmlExists)
+    {
+        c.IncludeXmlComments(xmlPath);
+    }
 });
+
 
 // Add Localization and set resource path
 builder.Services.AddLocalization();
@@ -284,25 +291,57 @@ builder.Services.AddAuthorization(options =>
 
 var app = builder.Build();
 
-
-
 // Configure the HTTP request pipeline.
 if (app.Environment.IsDevelopment())
 {
     app.UseDeveloperExceptionPage();
-    app.UseSwagger();
+    // app.UseSwagger();
     app.UseSwaggerUI(c =>
     {
-        c.SwaggerEndpoint("/TalkToCeo-api-spec.json", "Talk to CEO API V1");
-        c.SwaggerEndpoint("/TalkToCeo-user-api-spec.json", "Talk to CEO User API V1");
+        // Add all YAML files in the wwwroot folder
+        c.SwaggerEndpoint("/TalkToCeo-api-spec.json", "Talk To CEO API");
+        c.SwaggerEndpoint("/TalkToCeo-users-api-spec.json", "Talk To CEO Users API");
         c.RoutePrefix = string.Empty;
     });
 }
 
+// Middleware to handle 401 errors
+app.Use(async (context, next) =>
+{
+    await next();
+
+    if (context.Response.StatusCode == 401 && !context.Response.HasStarted)
+    {
+        context.Response.ContentType = "application/json";
+        var response = new NokAir.Shared.Api.Responses.Dtos.InHouse.MessageResponseDto("The provided JWT token is invalid. Please check the token and try again.");
+
+        // Use serialization library to convert object to JSON string
+        await context.Response.WriteAsync(JsonConvert.SerializeObject(response));
+    }
+});
+
+// Middleware to handle 404 errors
+app.Use(async (context, next) =>
+{
+    await next();
+
+    if (context.Response.StatusCode == 404 && !context.Response.HasStarted)
+    {
+        context.Response.ContentType = "application/json";
+        var response = new NokAir.Shared.Api.Responses.Dtos.InHouse.MessageResponseDto("No endpoint found. Please check the URL and try again.");
+
+        // Use serialization library to convert object to JSON string
+        await context.Response.WriteAsync(JsonConvert.SerializeObject(response));
+    }
+});
+
 app.UseStaticFiles();
+app.UseRouting();
+// Configure the HTTP request pipeline.
 app.UseMiddleware<JwtMiddleware>();
 app.UseHttpsRedirection();
 app.UseCors("AllowClient");
+app.UseAuthentication();
 app.UseAuthorization();
 app.MapControllers();
 app.Run();

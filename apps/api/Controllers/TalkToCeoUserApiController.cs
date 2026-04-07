@@ -10,14 +10,14 @@ using NokAir.Core.Exceptions;
 
 namespace NokAir.TalkToCeo.api.Controllers
 {
-    public class TalkToCeoUserApiControllerController : TalkToCeoUserApiControllerControllerBase
+    public class TalkToCeoUserApiController : TalkToCeoUserApiControllerBase
     {
 
         public readonly IUsersService<UserDto> usersService;
         public readonly IRoleService roleService;
         public readonly IJwtTalkToCeo jwtTalkToCeoService;
 
-        public TalkToCeoUserApiControllerController(
+        public TalkToCeoUserApiController(
             IResponseFactory apiResponseFactory,
             IUsersService<UserDto> usersService,
             IRoleService roleService,
