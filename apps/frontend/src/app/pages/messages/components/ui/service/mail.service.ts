@@ -1,5 +1,4 @@
-import { HttpClient } from '@angular/common/http';
-import { Injectable, inject } from '@angular/core';
+import { Injectable } from '@angular/core';
 import { BehaviorSubject } from 'rxjs';
 import { Mail } from '../mail';
 
@@ -10,19 +9,6 @@ export class MailService {
   private mails = new BehaviorSubject<Mail[]>(this._mails);
 
   mails$ = this.mails.asObservable();
-
-  private http = inject(HttpClient);
-
-  constructor() {
-    this.http
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      .get<any>('/demo/data/mail.json')
-      .toPromise()
-      .then((res) => res.data as Mail[])
-      .then((data) => {
-        this.updateMails(data);
-      });
-  }
 
   updateMails(data: Mail[]) {
     this._mails = data;
