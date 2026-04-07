@@ -2,16 +2,18 @@ export enum IUserRole {
   Admin = 'Admin',
   User = 'User',
 }
+
 export interface IUserInfo {
-  userId: string;
-  email: string;
+  id: number;
+  objectId: string;
   firstName: string;
   lastName: string;
+  email: string;
   jobTitle: string;
   department: string;
+  active: boolean;
+  roles: IUserRole[];
+  team: string;
   createdAt: string;
   modifiedAt: string;
-  active: boolean;
-  team: string;
-  roles: IUserRole[];
 }

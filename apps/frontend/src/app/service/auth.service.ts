@@ -1,7 +1,7 @@
 import { Injectable, inject } from '@angular/core';
-import { BehaviorSubject, firstValueFrom, Observable } from 'rxjs';
+import { BehaviorSubject, Observable, of } from 'rxjs';
 import { HttpClient } from '@angular/common/http';
-import { IUserInfo } from '../types/auth.model';
+import { IUserInfo, IUserRole } from '../types/auth.model';
 import { environment } from '../../environments/environment';
 import { IResponse } from '../types/response.model';
 import { HttpService } from './http.service';
@@ -47,27 +47,42 @@ export class AuthService {
   }
 
   getUserProfile(): Observable<IResponse<IUserInfo>> {
-    return this.https.get(`${environment.endpoint}v1/get-profile-user`, true);
+    return of({
+      correlationId: 'mock-correlation-id',
+      status: 'SUCCESS',
+      data: this.buildMockProfile(),
+    });
   }
 
   loadProfile(): Promise<void> {
-    const token = sessionStorage.getItem('bearerToken');
-    if (!token) {
-      if (!location.href.startsWith(environment.portal_client)) {
-        location.replace(environment.portal_client);
-      }
-      return Promise.resolve();
+    this.currentUserSubject.next(this.buildMockProfile());
+    return Promise.resolve();
+  }
+
+  private buildMockProfile(): IUserInfo {
+    const urlRole = new URLSearchParams(location.search).get('role');
+    if (urlRole) {
+      sessionStorage.setItem('mockRole', urlRole);
     }
-    return firstValueFrom(this.getUserProfile()).then(
-      (res) => {
-        this.currentUserSubject.next(res.data ?? null);
-      },
-      () => {
-        this.currentUserSubject.next(null);
-        if (!location.href.startsWith(environment.portal_client)) {
-          location.replace(environment.portal_client);
-        }
-      },
-    );
+
+    const activeRole = (
+      sessionStorage.getItem('mockRole') || 'User'
+    ).toLowerCase();
+    const role = activeRole === 'admin' ? IUserRole.Admin : IUserRole.User;
+
+    return {
+      id: 1,
+      objectId: '93834fe2-c75b-4276-a7d7-6a1d9ba2e29c',
+      firstName: 'Punnatorn',
+      lastName: 'Yimpong',
+      email: 'Punnatorn.Yim@nokair.co.th',
+      jobTitle: 'Front-End Development',
+      department: 'HQ',
+      active: true,
+      roles: [role],
+      team: '',
+      createdAt: '2025-06-10T15:40:50',
+      modifiedAt: '2025-06-10T15:40:50',
+    };
   }
 }

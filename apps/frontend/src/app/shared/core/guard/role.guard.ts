@@ -30,7 +30,7 @@ export class RoleGuard implements CanMatch, CanActivate {
   private waitAndEvaluate(fnName?: string): Observable<boolean | UrlTree> {
     return this.permissionService.userReady$().pipe(
       map(() => this.evaluateSync(fnName)),
-      catchError(() => of(this.router.parseUrl('/admin/dashboard'))),
+      catchError(() => of(this.router.parseUrl('/admin/messages'))),
     );
   }
 
@@ -48,7 +48,7 @@ export class RoleGuard implements CanMatch, CanActivate {
           life: 4000,
         });
       });
-      return this.router.parseUrl('/admin/dashboard');
+      return this.router.parseUrl('/admin/messages');
     }
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const allowed: boolean = (this.permissionService as any)[fnName]();
@@ -62,6 +62,6 @@ export class RoleGuard implements CanMatch, CanActivate {
         life: 4000,
       });
     });
-    return this.router.parseUrl('/admin/dashboard');
+    return this.router.parseUrl('/admin/messages');
   }
 }
