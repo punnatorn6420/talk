@@ -53,6 +53,7 @@ namespace NokAir.TalkToCeo.Shared.Repositories
             int pageSize,
             bool ascending,
             DateTimeOffset? searchStartDate,
-            DateTimeOffset? searchEndDate);
+            DateTimeOffset? searchEndDate,
+            string? userIdFilter);
     }
 }
