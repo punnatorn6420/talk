@@ -300,7 +300,7 @@ if (app.Environment.IsDevelopment())
     {
         // Add all YAML files in the wwwroot folder
         c.SwaggerEndpoint("/TalkToCeo-api-spec.json", "Talk To CEO API");
-        c.SwaggerEndpoint("/TalkToCeo-users-api-nswag.json", "Talk To CEO Users API");
+        c.SwaggerEndpoint("/TalkToCeo-users-api-spec.json", "Talk To CEO Users API");
         c.RoutePrefix = string.Empty;
     });
 }
