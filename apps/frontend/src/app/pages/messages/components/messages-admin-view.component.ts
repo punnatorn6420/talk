@@ -1,5 +1,6 @@
 import { CommonModule } from '@angular/common';
 import {
+  ChangeDetectorRef,
   ChangeDetectionStrategy,
   Component,
   OnInit,
@@ -58,6 +59,7 @@ export class MessagesAdminViewComponent implements OnInit {
   private readonly messageApi = inject(_MessageService);
   private readonly toast = inject(MessageService);
   private readonly router = inject(Router);
+  private readonly cdr = inject(ChangeDetectorRef);
 
   mails: IMail[] = [];
   totalCount = 0;
@@ -93,12 +95,17 @@ export class MessagesAdminViewComponent implements OnInit {
 
     this.messageApi
       .getMessageCriteria(this.params)
-      .pipe(finalize(() => (this.loading = false)))
+      .pipe(
+        finalize(() => {
+          this.loading = false;
+          this.cdr.markForCheck();
+        }),
+      )
       .subscribe({
         next: (res) => {
           this.mails = res.data?.items ?? [];
           this.totalCount = res.data?.totalCount ?? 0;
-          console.log('Loaded mails:', this.mails);
+          this.cdr.markForCheck();
         },
         error: () => {
           this.toast.add({
@@ -106,6 +113,7 @@ export class MessagesAdminViewComponent implements OnInit {
             summary: 'Load failed',
             detail: 'Unable to load messages.',
           });
+          this.cdr.markForCheck();
         },
       });
   }
@@ -129,7 +137,7 @@ export class MessagesAdminViewComponent implements OnInit {
   }
 
   openMail(mail: IMail): void {
-    this.router.navigate(['/messages', mail.id]);
+    this.router.navigate(['/admin/messages', mail.id]);
   }
 
   getPreview(mail: IMail): string {
