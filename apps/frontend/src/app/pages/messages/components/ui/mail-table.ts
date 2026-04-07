@@ -276,7 +276,7 @@ export class MailTableComponent implements OnInit {
   }
 
   onRowSelect(id: number) {
-    this.router.navigate(['/apps/mail/detail/', id]);
+    this.router.navigate(['/admin/messages/detail/', id]);
   }
 
   onStar(event: Event, id: number) {
