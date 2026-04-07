@@ -34,6 +34,26 @@ namespace NokAir.TalkToCeo.Shared.Dtos
         public ActionStatus Status { get; set; }
 
         /// <summary>
+        /// Gets or sets the email address of the user who sent the message. This information is important for contacting the user and for tracking the origin of the message. The Email property is a string that stores the user's email address, allowing for easy identification and communication with the message sender.
+        /// </summary>
+        public string Email { get; set; } = string.Empty;
+
+        /// <summary>
+        /// Gets or sets the job title of the user who sent the message. This information provides context about the user's role within the organization and can be useful for understanding the perspective from which the message was sent. The JobTitle property is a string that stores the user's job title, allowing for easy identification of the user's position within the company.
+        /// </summary>
+        public string JobTitle { get; set; } = string.Empty;
+
+        /// <summary>
+        /// Gets or sets the department of the user who sent the message. This information provides additional context about the user's role within the organization and can be useful for understanding the perspective from which the message was sent. The Department property is a string that stores the user's department, allowing for easy identification of the user's organizational unit within the company.
+        /// </summary>
+        public string Department { get; set; } = string.Empty;
+
+        /// <summary>
+        /// Gets or sets the full name of the user who sent the message. This information provides a complete identification of the user and can be useful for addressing the user in communications. The FullName property is a string that stores the user's full name, allowing for easy identification of the message sender.
+        /// </summary>
+        public string FullName { get; set; } = string.Empty;
+
+        /// <summary>
         /// Gets or sets the date and time when the message was posted. This timestamp is crucial for tracking when the message was created and can be used for sorting, filtering, and displaying the message in chronological order. The PostedAt property is of type DateTime, which allows it to store both the date and time information accurately.
         /// </summary>
         public DateTime PostedAt { get; set; }

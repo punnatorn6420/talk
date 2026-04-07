@@ -5,7 +5,7 @@ namespace NokAir.TalkToCeo.Shared.Services
 {
     public interface IMessageService
     {
-        Task<MessageResponseDto> CreateAsync(CreateMessageRequestDto dto);
+        Task CreateAsync(CreateMessageRequestDto dto);
 
         Task<List<MessageResponseDto>> GetAllAsync();
 
@@ -26,6 +26,7 @@ namespace NokAir.TalkToCeo.Shared.Services
             int pageSize,
             bool ascending,
             DateTimeOffset? searchStartDate,
-            DateTimeOffset? searchEndDate);
+            DateTimeOffset? searchEndDate,
+            string? userIdFilter);
     }
 }
