@@ -1,5 +1,3 @@
-# ER Diagram - Talk to CEO (Mermaid)
-
 ```mermaid
 erDiagram
 	USER {
@@ -38,20 +36,11 @@ erDiagram
 		datetime read_at
 		datetime replied_at
 	}
-	MESSAGE_HISTORY {
-		int id PK
-		int message_id FK
-		string action
-		int user_id FK
-		datetime action_at
-		string note
-	}
+
 	USER ||--o{ MESSAGE : "creates >"
-	USER ||--o{ MESSAGE_HISTORY : "performs >"
 	ROLE ||--o{ USER : "has >"
 	ROLE ||--o{ ROLE_PRIVILEGE : "has >"
 	PRIVILEGE ||--o{ ROLE_PRIVILEGE : "in >"
-	MESSAGE ||--o{ MESSAGE_HISTORY : "has >"
 	USER ||--o{ MESSAGE : "as CEO replies >"
 	MESSAGE ||--|{ USER : "created_by >"
 	MESSAGE ||--|{ USER : "ceo_id >"

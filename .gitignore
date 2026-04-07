@@ -46,3 +46,21 @@ Thumbs.db
 .angular
 
 __screenshots__/
+
+# Visual Studio
+.vs
+*.user
+*.suo
+*.cache
+*.pdb
+*.obj
+*.log
+*.vspscc
+*.vssscc
+*.dbmdl
+*.bak
+*.backup
+*.BLOB
+**/obj
+**/bin
+**/dist

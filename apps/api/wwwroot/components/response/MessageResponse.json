@@ -1,0 +1,26 @@
+{
+    "type": "object",
+    "properties": {
+        "id": {
+            "type": "integer"
+        },
+        "subject": {
+            "type": "string"
+        },
+        "detail": {
+            "type": "string"
+        },
+        "status": {
+            "type": "string"
+        },
+        "postedAt": {
+            "type": "string",
+            "format": "date-time"
+        },
+        "repliedAt": {
+            "type": "string",
+            "format": "date-time",
+            "nullable": true
+        }
+    }
+}
