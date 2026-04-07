@@ -5,7 +5,7 @@
 export const environment = {
   production: false,
   environment: 'UAT',
-  endpoint: 'localhost:8080/',
+  endpoint: 'http://localhost:5220/',
   portal_client: 'https://uat-portal.nokair.com/',
   // environment: 'Prod',
   // endpoint: '',
