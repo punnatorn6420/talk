@@ -66,7 +66,7 @@ export class AuthService {
     }
 
     const activeRole = (
-      sessionStorage.getItem('mockRole') || 'User'
+      sessionStorage.getItem('mockRole') || 'Admin'
     ).toLowerCase();
     const role = activeRole === 'admin' ? IUserRole.Admin : IUserRole.User;
 
