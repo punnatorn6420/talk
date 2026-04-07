@@ -17,7 +17,7 @@ namespace NokAir.TalkToCeo.Shared.Services
             this.repository = repository;
         }
 
-        public async Task<MessageResponseDto> CreateAsync(CreateMessageRequestDto dto)
+        public async Task CreateAsync(CreateMessageRequestDto dto)
         {
             var entity = new Messages
             {
@@ -25,21 +25,13 @@ namespace NokAir.TalkToCeo.Shared.Services
                 Detail = dto.Detail,
                 PostedAt = DateTime.Now,
                 Status = dto.Status,
-                UserId = 999999,
+                UserId = dto.UserId,
                 CreatedAt = DateTime.Now,
                 ModifiedAt = DateTime.Now,
-                CreatedBy = "Api",
-                ModifiedBy = "Api"
+                CreatedBy = dto.UserName,
+                ModifiedBy = dto.UserName
             };
-
-            var result = await repository.AddMessageAsync(entity);
-
-            return new MessageResponseDto
-            {
-                Id = result.Id,
-                Subject = result.Subject,
-                Message = result.Detail
-            };
+            await repository.AddMessageAsync(entity);
         }
 
         public async Task<List<MessageResponseDto>> GetAllAsync()
@@ -74,6 +66,10 @@ namespace NokAir.TalkToCeo.Shared.Services
                 CreatedAt = message.CreatedAt,
                 ModifiedAt = message.ModifiedAt,
                 RepliedAt = message.RepliedAt ?? DateTime.MinValue,
+                Email = message.User.Email,
+                JobTitle = message.User.JobTitle,
+                Department = message.User.Department,
+                FullName = $"{message.User.FirstName} {message.User.LastName}"
             };
         }
 
@@ -99,7 +95,7 @@ namespace NokAir.TalkToCeo.Shared.Services
             entity.Detail = dto.Detail;
             entity.Status = dto.Status;
             entity.ModifiedAt = DateTime.Now;
-            entity.ModifiedBy = "Api";
+            entity.ModifiedBy = dto.UserName;
 
             await repository.UpdateAsync(entity);
 
@@ -145,7 +141,8 @@ namespace NokAir.TalkToCeo.Shared.Services
             int pageSize,
             bool ascending,
             DateTimeOffset? searchStartDate,
-            DateTimeOffset? searchEndDate)
+            DateTimeOffset? searchEndDate,
+            string? userIdFilter)
         {
             var messages =
                 await repository.FindMessagesCriteriaAsync(
@@ -155,7 +152,8 @@ namespace NokAir.TalkToCeo.Shared.Services
                     pageSize,
                     ascending,
                     searchStartDate,
-                    searchEndDate);
+                    searchEndDate,
+                    userIdFilter);
 
             var result = new MessageResponseListDto
             {
@@ -173,7 +171,11 @@ namespace NokAir.TalkToCeo.Shared.Services
                         ModifiedBy = x.ModifiedBy,
                         CreatedAt = x.CreatedAt,
                         ModifiedAt = x.ModifiedAt,
-                        RepliedAt = x.RepliedAt ?? DateTime.MinValue
+                        RepliedAt = x.RepliedAt ?? DateTime.MinValue,
+                        Email = x.User.Email,
+                        JobTitle = x.User.JobTitle,
+                        Department = x.User.Department,
+                        FullName = $"{x.User.FirstName} {x.User.LastName}"
                     })
                     .ToList()
             };

@@ -40,7 +40,9 @@ namespace NokAir.TalkToCeo.Shared.Repositories
         /// <inheritdoc/>
         public async Task<Messages?> FindMessageByIdAsync(int id)
         {
-            return await dbContext.Messages.FindAsync(id);
+            return await dbContext.Messages
+                .Include(x => x.User)
+                .FirstOrDefaultAsync(x => x.Id == id);
         }
 
         /// <inheritdoc/>
@@ -57,10 +59,13 @@ namespace NokAir.TalkToCeo.Shared.Repositories
             int pageSize,
             bool ascending,
             DateTimeOffset? searchStartDate,
-            DateTimeOffset? searchEndDate)
+            DateTimeOffset? searchEndDate,
+            string? userIdFilter)
         {
             var query =
-                dbContext.Messages.AsQueryable();
+                dbContext.Messages
+                    .Include(x => x.User)
+                    .AsQueryable();
 
             // keyword search
             if (!string.IsNullOrWhiteSpace(keyword))
@@ -86,6 +91,12 @@ namespace NokAir.TalkToCeo.Shared.Repositories
                         x.PostedAt <= searchEndDate.Value);
             }
 
+            if (!string.IsNullOrEmpty(userIdFilter))
+            {
+                query = query.Where(x =>
+                        x.UserId == int.Parse(userIdFilter));
+            }
+
             // sorting
             query =
                 sortField?.ToLower() switch
@@ -107,8 +118,8 @@ namespace NokAir.TalkToCeo.Shared.Repositories
             // paging
             query =
                 query
-                .Skip((pageNumber - 1) * pageSize)
-                .Take(pageSize);
+                    .Skip((pageNumber - 1) * pageSize)
+                    .Take(pageSize);
 
             return await query.ToListAsync();
         }
