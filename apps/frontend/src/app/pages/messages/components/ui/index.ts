@@ -6,6 +6,7 @@ import { MessageService } from 'primeng/api';
 import { MailService } from './service/mail.service';
 
 @Component({
+  selector: 'app-mail-app',
   standalone: true,
   imports: [ToastModule, MailSidebarComponent, RouterModule],
   template: `
