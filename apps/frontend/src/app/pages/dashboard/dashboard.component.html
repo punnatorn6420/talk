@@ -1,14 +1,17 @@
 <div class="space-y-6">
   <section class="rounded-2xl bg-white p-6 shadow-sm">
     <p class="text-xs font-semibold uppercase tracking-[0.2em] text-slate-500">
-      Talk to CEO
+      Executive Inbox
     </p>
     <h2 class="mt-2 text-2xl font-bold text-slate-900">
-      CEO Message Dashboard
+      {{ isAdminView ? 'CEO Control Panel' : 'My Message to CEO' }}
     </h2>
     <p class="mt-2 text-sm text-slate-600">
-      Mockup หน้านี้รองรับ flow ส่งข้อความหา CEO, ติดตามสถานะว่าอ่านแล้ว และดู
-      reply ล่าสุด
+      {{
+        isAdminView
+          ? 'หน้าจอสำหรับ CEO/Admin เพื่อดูข้อความจากทุกคน ติดตามสถานะ และตอบกลับ'
+          : 'หน้าจอสำหรับพนักงาน แสดงเฉพาะข้อความของตัวเองและสถานะการตอบกลับจาก CEO'
+      }}
     </p>
 
     <div class="mt-5 grid gap-3 md:grid-cols-3">
@@ -33,122 +36,137 @@
     </div>
   </section>
 
-  <section class="grid gap-6 xl:grid-cols-[420px_1fr]">
-    <p-card header="ส่งเรื่องหา CEO">
-      <form
-        [formGroup]="messageForm"
-        class="space-y-4"
-        (ngSubmit)="submitMessage()"
-      >
-        <div class="space-y-2">
-          <label for="senderName" class="block text-sm text-slate-700"
-            >ชื่อผู้ส่ง</label
-          >
-          <input
-            id="senderName"
-            pInputText
-            formControlName="senderName"
-            class="w-full"
-            placeholder="เช่น Somchai A."
-          />
+  @if (isAdminView) {
+    <section class="rounded-2xl bg-white p-6 shadow-sm">
+      <div class="mb-4 flex items-center justify-between gap-3">
+        <h3 class="text-lg font-semibold text-slate-900">Incoming Messages</h3>
+        <span class="rounded-full bg-slate-100 px-3 py-1 text-xs text-slate-600">
+          ทั้งหมด {{ visibleMessages.length }} รายการ
+        </span>
+      </div>
+
+      <div class="overflow-x-auto">
+        <table class="w-full min-w-[900px] border-collapse">
+          <thead>
+            <tr class="border-b border-slate-200 text-left text-sm text-slate-500">
+              <th class="px-3 py-3 font-medium">พนักงาน</th>
+              <th class="px-3 py-3 font-medium">ตำแหน่ง</th>
+              <th class="px-3 py-3 font-medium">แผนก</th>
+              <th class="px-3 py-3 font-medium">หัวข้อ</th>
+              <th class="px-3 py-3 font-medium">ส่งเมื่อ</th>
+              <th class="px-3 py-3 font-medium">สถานะ</th>
+              <th class="px-3 py-3 font-medium">Actions</th>
+            </tr>
+          </thead>
+          <tbody>
+            @for (message of visibleMessages; track message.id) {
+              <tr class="border-b border-slate-100 text-sm text-slate-700">
+                <td class="px-3 py-3 font-medium text-slate-900">{{ message.senderName }}</td>
+                <td class="px-3 py-3">{{ message.senderJobTitle }}</td>
+                <td class="px-3 py-3">{{ message.senderDepartment }}</td>
+                <td class="px-3 py-3">{{ message.subject }}</td>
+                <td class="px-3 py-3">{{ message.postedAt | date: 'dd/MM/yyyy HH:mm' }}</td>
+                <td class="px-3 py-3">
+                  <p-tag [severity]="getTagSeverity(message.status)" [value]="message.status"></p-tag>
+                </td>
+                <td class="px-3 py-3">
+                  <p-button
+                    label="อ่าน/Reply"
+                    size="small"
+                    icon="pi pi-envelope"
+                    (click)="selectMessage(message)"
+                  ></p-button>
+                </td>
+              </tr>
+            }
+          </tbody>
+        </table>
+      </div>
+    </section>
+  } @else {
+    <section class="grid gap-6 xl:grid-cols-[420px_1fr]">
+      <p-card header="ส่งเรื่องหา CEO">
+        <div class="mb-4 rounded-xl border border-slate-200 bg-slate-50 p-3 text-xs text-slate-600">
+          ผู้ส่ง: <strong>{{ fullName }}</strong> • {{ currentUser.jobTitle }}
         </div>
 
-        <div class="space-y-2">
-          <label for="subject" class="block text-sm text-slate-700"
-            >หัวข้อเรื่อง</label
-          >
-          <input
-            id="subject"
-            pInputText
-            formControlName="subject"
-            class="w-full"
-            placeholder="ระบุหัวข้อที่ต้องการแจ้ง"
-          />
-        </div>
+        <form [formGroup]="messageForm" class="space-y-4" (ngSubmit)="submitMessage()">
+          <div class="space-y-2">
+            <label for="subject" class="block text-sm text-slate-700">หัวข้อเรื่อง</label>
+            <input
+              id="subject"
+              pInputText
+              formControlName="subject"
+              class="w-full"
+              placeholder="ระบุหัวข้อที่ต้องการแจ้ง"
+            />
+          </div>
 
-        <div class="space-y-2">
-          <label for="detail" class="block text-sm text-slate-700"
-            >รายละเอียด</label
-          >
-          <textarea
-            id="detail"
-            pInputTextarea
-            rows="5"
-            formControlName="detail"
-            class="w-full"
-            placeholder="สรุปประเด็นเพื่อให้ CEO อ่านและตอบกลับได้เร็ว"
-          ></textarea>
-        </div>
+          <div class="space-y-2">
+            <label for="detail" class="block text-sm text-slate-700">รายละเอียด</label>
+            <textarea
+              id="detail"
+              pInputTextarea
+              rows="5"
+              formControlName="detail"
+              class="w-full"
+              placeholder="สรุปประเด็นเพื่อให้ CEO อ่านและตอบกลับได้เร็ว"
+            ></textarea>
+          </div>
 
-        <p-button
-          type="submit"
-          label="กดส่งถึง CEO"
-          icon="pi pi-send"
-          [fluid]="true"
-        ></p-button>
-      </form>
-    </p-card>
-
-    <div class="space-y-4">
-      <p-card header="รายการข้อความ">
-        <div class="max-h-[420px] space-y-3 overflow-y-auto pr-2">
-          @for (message of messages; track message.id) {
-            <button
-              class="w-full rounded-xl border p-4 text-left transition hover:border-slate-400"
-              [class.border-slate-900]="selectedMessage?.id === message.id"
-              type="button"
-              (click)="selectMessage(message)"
-            >
-              <div class="flex items-start justify-between gap-3">
-                <div>
-                  <p class="font-semibold text-slate-900">
-                    {{ message.subject }}
-                  </p>
-                  <p class="mt-1 text-xs text-slate-500">
-                    จาก {{ message.senderName }} •
-                    {{ message.postedAt | date: 'dd/MM/yyyy HH:mm' }}
-                  </p>
-                </div>
-                <p-tag
-                  [severity]="getTagSeverity(message.status)"
-                  [value]="message.status"
-                ></p-tag>
-              </div>
-              <p class="mt-2 text-sm text-slate-600">
-                {{ message.detail }}
-              </p>
-            </button>
-          }
-        </div>
+          <p-button type="submit" label="กดส่งถึง CEO" icon="pi pi-send" [fluid]="true"></p-button>
+        </form>
       </p-card>
 
-      @if (selectedMessage) {
-        <p-card header="รายละเอียด + CEO Reply">
-          <div class="space-y-4">
-            <div>
-              <p class="text-xs text-slate-500">Subject</p>
-              <p class="font-semibold text-slate-900">
-                {{ selectedMessage.subject }}
-              </p>
-            </div>
-
-            <div class="rounded-xl bg-slate-50 p-4 text-sm text-slate-700">
-              {{ selectedMessage.detail }}
-            </div>
-
-            <p-divider></p-divider>
-
-            <div>
-              <p class="text-xs text-slate-500">CEO Reply</p>
-              <div
-                class="mt-2 rounded-xl bg-emerald-50 p-4 text-sm text-emerald-900"
+      <div class="space-y-4">
+        <p-card header="ข้อความของฉัน">
+          <div class="max-h-[420px] space-y-3 overflow-y-auto pr-2">
+            @for (message of visibleMessages; track message.id) {
+              <button
+                class="w-full rounded-xl border p-4 text-left transition hover:border-slate-400"
+                [class.border-slate-900]="selectedMessage?.id === message.id"
+                type="button"
+                (click)="selectMessage(message)"
               >
-                {{ selectedMessage.ceoReply || 'ยังไม่มีการตอบกลับจาก CEO' }}
-              </div>
-            </div>
+                <div class="flex items-start justify-between gap-3">
+                  <div>
+                    <p class="font-semibold text-slate-900">{{ message.subject }}</p>
+                    <p class="mt-1 text-xs text-slate-500">
+                      {{ message.postedAt | date: 'dd/MM/yyyy HH:mm' }}
+                    </p>
+                  </div>
+                  <p-tag [severity]="getTagSeverity(message.status)" [value]="message.status"></p-tag>
+                </div>
+                <p class="mt-2 text-sm text-slate-600">{{ message.detail }}</p>
+              </button>
+            }
           </div>
         </p-card>
-      }
-    </div>
-  </section>
+
+        @if (selectedMessage) {
+          <p-card header="รายละเอียด + CEO Reply">
+            <div class="space-y-4">
+              <div>
+                <p class="text-xs text-slate-500">Subject</p>
+                <p class="font-semibold text-slate-900">{{ selectedMessage.subject }}</p>
+              </div>
+
+              <div class="rounded-xl bg-slate-50 p-4 text-sm text-slate-700">
+                {{ selectedMessage.detail }}
+              </div>
+
+              <p-divider></p-divider>
+
+              <div>
+                <p class="text-xs text-slate-500">CEO Reply</p>
+                <div class="mt-2 rounded-xl bg-emerald-50 p-4 text-sm text-emerald-900">
+                  {{ selectedMessage.ceoReply || 'ยังไม่มีการตอบกลับจาก CEO' }}
+                </div>
+              </div>
+            </div>
+          </p-card>
+        }
+      </div>
+    </section>
+  }
 </div>
