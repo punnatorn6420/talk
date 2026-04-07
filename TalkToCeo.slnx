@@ -1,0 +1,10 @@
+<Solution>
+<Folder Name="/apps/" />
+  <Folder Name="/apps/api/">
+    <Project Path="apps/api/NokAir.TalkToCeo.Api.csproj" />
+  </Folder>
+  <Folder Name="/libs/" />
+  <Folder Name="/libs/backend-shared/">
+    <Project Path="libs/backend-shared/NokAir.TalkToCeo.Shared.csproj" />
+  </Folder>
+</Solution>

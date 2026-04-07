@@ -1,0 +1,50 @@
+{
+  "type": "object",
+  "required": [
+    "objectId",
+    "firstName",
+    "lastName",
+    "email",
+    "jobTitle",
+    "department",
+    "active"
+  ],
+  "properties": {
+    "objectId": {
+      "type": "string",
+      "description": "Unique identifier from the portal system",
+      "example": "8af3e9d2-1234-4c3d-a111-abcd1234abcd"
+    },
+    "firstName": {
+      "type": "string",
+      "description": "First name of the user",
+      "example": "John"
+    },
+    "lastName": {
+      "type": "string",
+      "description": "Last name of the user",
+      "example": "Doe"
+    },
+    "email": {
+      "type": "string",
+      "format": "email",
+      "description": "Email address of the user",
+      "example": "john.doe@example.com"
+    },
+    "jobTitle": {
+      "type": "string",
+      "description": "Job title of the user",
+      "example": "Software Engineer"
+    },
+    "department": {
+      "type": "string",
+      "description": "Department the user belongs to",
+      "example": "IT"
+    },
+    "active": {
+      "type": "boolean",
+      "description": "Indicates whether the user account is active",
+      "example": true
+    }
+  }
+}

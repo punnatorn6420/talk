@@ -1,0 +1,17 @@
+{
+  "name": "api",
+  "$schema": "../../node_modules/nx/schemas/project-schema.json",
+  "projectType": "application",
+  "sourceRoot": "apps/api",
+  "targets": {
+    "build": {
+      "command": "dotnet build apps/api/NokAir.TalkToCeo.Api.csproj -c Release"
+    },
+    "serve": {
+      "command": "dotnet watch run --project apps/api/NokAir.TalkToCeo.Api.csproj"
+    },
+    "test": {
+      "command": "dotnet test apps/api/NokAir.TalkToCeo.Api.csproj"
+    }
+  }
+}

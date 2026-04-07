@@ -1,0 +1,41 @@
+{
+  "type": "object",
+  "properties": {
+    "objectId": {
+      "type": "string",
+      "description": "User's unique identifier",
+      "example": "8af3e9d2-1234-4c3d-a111-abcd1234abcd"
+    },
+    "firstName": {
+      "type": "string",
+      "description": "First name of the user",
+      "example": "John"
+    },
+    "lastName": {
+      "type": "string",
+      "description": "Last name of the user",
+      "example": "Doe"
+    },
+    "email": {
+      "type": "string",
+      "format": "email",
+      "description": "Email address of the user",
+      "example": "john.doe@example.com"
+    },
+    "jobTitle": {
+      "type": "string",
+      "description": "Job title of the user",
+      "example": "Software Engineer"
+    },
+    "department": {
+      "type": "string",
+      "description": "Department of the user",
+      "example": "IT"
+    },
+    "active": {
+      "type": "boolean",
+      "description": "Is the user active",
+      "example": true
+    }
+  }
+}

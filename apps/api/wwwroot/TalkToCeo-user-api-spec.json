@@ -1,0 +1,449 @@
+{
+  "openapi": "3.0.3",
+  "info": {
+    "title": "Talk to CEO API",
+    "contact": {
+      "name": "Supot Sukvaree",
+      "url": "https://www.nokair.com",
+      "email": "supot.suk@nokair.com"
+    },
+    "version": "1.0.0",
+    "description": "API for managing user roles and portal users in the Talk to CEO system."
+  },
+  "servers": [
+    {
+      "url": "https://uat-nokconnext.nokair.com",
+      "description": "UAT server"
+    },
+    {
+      "url": "https://nokconnext.nokair.com",
+      "description": "Production server"
+    }
+  ],
+  "components": {
+    "schemas": {
+      "InvalidRequest": {
+        "$ref": "./components/response/InvalidRequestSchema.json"
+      },
+      "InternalServerError": {
+        "$ref": "./components/response/InternalServerError.json"
+      },
+      "InvalidTokenResponse": {
+        "$ref": "./components/response/InvalidTokenResponse.json"
+      },
+      "SuccessResponse": {
+        "$ref": "./components/response/SuccessResponse.json"
+      },
+      "UnauthorizedResponse": {
+        "$ref": "./components/response/UnauthorizedResponse.json"
+      },
+      "RoleDtoDto": {
+        "$ref": "./components/response/RoleDto.json"
+      },
+      "AddUserDto": {
+        "$ref": "./components/request/AddUserDto.json"
+      },
+      "UserProfileDto": {
+        "$ref": "./components/response/UserProfileDto.json"
+      },
+      "RefreshTokenDto": {
+        "$ref": "./components/response/RefreshTokenDto.json"
+      }
+    },
+    "securitySchemes": {
+      "BearerAuth": {
+        "type": "http",
+        "scheme": "bearer",
+        "bearerFormat": "JWT",
+        "description": "JWT token for authentication"
+      }
+    }
+  },
+  "paths": {
+    "/roles": {
+      "get": {
+        "summary": "Get all roles",
+        "description": "Retrieve a list of all roles including id, role name, active status, and timestamps.",
+        "operationId": "GetRolesAsync",
+        "security": [
+          {
+            "BearerAuth": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "List of roles retrieved successfully",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "items": {
+                      "type": "array",
+                      "items": {
+                        "$ref": "#/components/schemas/RoleDtoDto"
+                      }
+                    }
+                  }
+                },
+                "examples": {
+                  "example": {
+                    "value": {
+                      "items": [
+                        {
+                          "id": 1,
+                          "roleName": "Admin",
+                          "active": true,
+                          "createdAt": "2025-06-02T14:28:50.065216",
+                          "lastUpdate": "2025-06-02T14:28:50.065216"
+                        },
+                        {
+                          "id": 2,
+                          "roleName": "FlightOperationManager",
+                          "active": true,
+                          "createdAt": "2025-06-02T14:28:50.065216",
+                          "lastUpdate": "2025-06-02T14:28:50.065216"
+                        }
+                      ]
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized access",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/UnauthorizedResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Token is invalid",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/InvalidTokenResponse"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Internal server error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/InternalServerError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/assignUser": {
+      "post": {
+        "summary": "Add a new portal user",
+        "description": "Add a new user into the system from the portal.",
+        "operationId": "AddPortalUser",
+        "security": [
+          {
+            "BearerAuth": []
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/AddUserDto"
+              },
+              "example": {
+                "objectId": "8af3e9d2-1234-4c3d-a111-abcd1234abcd",
+                "firstName": "John",
+                "lastName": "Doe",
+                "email": "john.doe@example.com",
+                "jobTitle": "Software Engineer",
+                "department": "IT",
+                "active": true
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "User added successfully",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SuccessResponse"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid request data",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/InvalidRequest"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/UnauthorizedResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Token is invalid",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/InvalidTokenResponse"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Internal server error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/InternalServerError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/get-profile-user": {
+      "get": {
+        "summary": "Get user profile",
+        "description": "Retrieve the profile information of the currently authenticated user.",
+        "operationId": "GetProfileUser",
+        "security": [
+          {
+            "BearerAuth": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "User profile retrieved successfully",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/UserProfileDto"
+                },
+                "example": {
+                  "objectId": "8af3e9d2-1234-4c3d-a111-abcd1234abcd",
+                  "firstName": "John",
+                  "lastName": "Doe",
+                  "email": "john.doe@example.com",
+                  "jobTitle": "Software Engineer",
+                  "department": "IT",
+                  "active": true
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized - token is missing or invalid",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/UnauthorizedResponse"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Internal server error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/InternalServerError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/refresh-token": {
+      "post": {
+        "summary": "Refresh access token",
+        "description": "Use a valid refresh token to obtain a new access token.",
+        "operationId": "RefreshAccessToken",
+        "security": [
+          {
+            "BearerAuth": []
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "refreshToken": {
+                    "type": "string",
+                    "description": "The refresh token issued during login."
+                  }
+                },
+                "required": [
+                  "refreshToken"
+                ]
+              },
+              "example": {
+                "refreshToken": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Token refreshed successfully",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/RefreshTokenDto"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad request - invalid or missing refresh token",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/InvalidRequest"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized - refresh token expired or invalid",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/UnauthorizedResponse"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Internal server error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/InternalServerError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/auth/validate-token": {
+      "get": {
+        "summary": "Validate JWT token",
+        "operationId": "validateJwtToken",
+        "tags": [
+          "Authentication"
+        ],
+        "security": [
+          {
+            "BearerAuth": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Token is valid",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "isValid": {
+                      "type": "boolean"
+                    },
+                    "expiresAt": {
+                      "type": "string",
+                      "format": "date-time"
+                    },
+                    "username": {
+                      "type": "string"
+                    },
+                    "roles": {
+                      "type": "array",
+                      "items": {
+                        "type": "string"
+                      }
+                    }
+                  }
+                },
+                "example": {
+                  "isValid": true,
+                  "expiresAt": "2025-06-04T15:00:00Z",
+                  "username": "john.doe",
+                  "roles": [
+                    "admin",
+                    "user"
+                  ]
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized access - token is missing or invalid",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/UnauthorizedResponse"
+                },
+                "example": {
+                  "message": "Missing or invalid JWT token."
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Token is expired or invalid",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/InvalidTokenResponse"
+                },
+                "example": {
+                  "message": "The token is invalid or expired"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Internal server error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/InternalServerError"
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+}

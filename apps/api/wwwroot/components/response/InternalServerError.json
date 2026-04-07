@@ -1,0 +1,25 @@
+{
+  "type": "object",
+  "properties": {
+    "error": {
+      "type": "object",
+      "properties": {
+        "code": {
+          "type": "string",
+          "description": "Error code",
+          "example": "E0001"
+        },
+        "userMessage": {
+          "type": "string",
+          "description": "User-friendly error message",
+          "example": "Please contact support"
+        },
+        "developerMessage": {
+          "type": "string",
+          "description": "Detailed error message for developers",
+          "example": "An unexpected error occurred"
+        }
+      }
+    }
+  }
+}
