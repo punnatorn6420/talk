@@ -1,0 +1,46 @@
+.mail-layout {
+  display: grid;
+  grid-template-columns: 240px 1fr;
+}
+
+.folder-btn {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  border-radius: 0.75rem;
+  padding: 0.65rem 0.75rem;
+  color: #475569;
+}
+
+.folder-btn:hover {
+  background: #f1f5f9;
+}
+
+.folder-btn--active {
+  background: #10b981;
+  color: #ffffff;
+}
+
+.folder-badge {
+  border-radius: 9999px;
+  padding: 0.125rem 0.5rem;
+  background: #e2e8f0;
+  font-size: 0.75rem;
+}
+
+.folder-btn--active .folder-badge {
+  background: rgba(255, 255, 255, 0.3);
+  color: #ffffff;
+}
+
+@media (max-width: 1024px) {
+  .mail-layout {
+    grid-template-columns: 1fr;
+  }
+
+  .mail-sidebar {
+    border-right: 0;
+    border-bottom: 1px solid #e2e8f0;
+  }
+}
