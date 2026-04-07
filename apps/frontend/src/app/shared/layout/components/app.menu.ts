@@ -29,9 +29,9 @@ export class AppMenu implements OnInit {
   ngOnInit() {
     this.model = [
       {
-        label: 'Dashboard',
+        label: 'Message Center',
         icon: 'pi pi-home',
-        routerLink: ['/admin/dashboard'],
+        routerLink: ['/admin/messages'],
       },
     ];
 
