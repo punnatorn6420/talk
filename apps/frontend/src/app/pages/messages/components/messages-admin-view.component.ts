@@ -19,6 +19,9 @@ import { ToastModule } from 'primeng/toast';
 import { TooltipModule } from 'primeng/tooltip';
 import { _MessageService } from '../../../service/message.service';
 import { IMail, IMessageParams } from '../../../types/message.model';
+import { InputGroupModule } from 'primeng/inputgroup';
+import { InputGroupAddonModule } from 'primeng/inputgroupaddon';
+import { TableModule } from 'primeng/table';
 
 type MailSidebarKey =
   | 'inbox'
@@ -42,6 +45,9 @@ type MailSidebarKey =
     TooltipModule,
     PaginatorModule,
     ProgressSpinnerModule,
+    InputGroupModule,
+    InputGroupAddonModule,
+    TableModule,
   ],
   templateUrl: './messages-admin-view.component.html',
   styleUrl: './messages-admin-view.component.scss',
@@ -70,12 +76,12 @@ export class MessagesAdminViewComponent implements OnInit {
 
   readonly menuItems: { key: MailSidebarKey; label: string; icon: string }[] = [
     { key: 'inbox', label: 'Inbox', icon: 'pi pi-inbox' },
-    { key: 'starred', label: 'Starred', icon: 'pi pi-star' },
-    { key: 'important', label: 'Important', icon: 'pi pi-bookmark' },
-    { key: 'sent', label: 'Sent', icon: 'pi pi-send' },
-    { key: 'archived', label: 'Archived', icon: 'pi pi-file' },
-    { key: 'spam', label: 'Spam', icon: 'pi pi-ban' },
-    { key: 'trash', label: 'Trash', icon: 'pi pi-trash' },
+    // { key: 'starred', label: 'Starred', icon: 'pi pi-star' },
+    // { key: 'important', label: 'Important', icon: 'pi pi-bookmark' },
+    // { key: 'sent', label: 'Sent', icon: 'pi pi-send' },
+    // { key: 'archived', label: 'Archived', icon: 'pi pi-file' },
+    // { key: 'spam', label: 'Spam', icon: 'pi pi-ban' },
+    // { key: 'trash', label: 'Trash', icon: 'pi pi-trash' },
   ];
 
   ngOnInit(): void {
@@ -124,14 +130,6 @@ export class MessagesAdminViewComponent implements OnInit {
 
   openMail(mail: IMail): void {
     this.router.navigate(['/messages', mail.id]);
-  }
-
-  composeNew(): void {
-    this.toast.add({
-      severity: 'info',
-      summary: 'Coming soon',
-      detail: 'Compose feature is not implemented yet.',
-    });
   }
 
   getPreview(mail: IMail): string {
