@@ -60,7 +60,7 @@ export class AuthService {
       jobTitle: 'Front-End Development',
       department: 'HQ',
       active: true,
-      roles: [IUserRole.User],
+      roles: [IUserRole.Admin],
       team: '',
       createdAt: '2025-08-08T14:30:29',
       modifiedAt: '2025-08-08T14:30:29',

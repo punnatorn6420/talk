@@ -1,1 +1,236 @@
-<app-mail-app></app-mail-app>
+<p-toast></p-toast>
+
+<div class="min-h-screen bg-slate-50">
+  <div class="border-b border-slate-200 bg-white">
+    <div class="flex items-center justify-between px-6 py-4">
+      <div>
+        <h1 class="text-2xl font-semibold text-slate-900">Mails</h1>
+        <p class="mt-1 text-sm text-slate-500">
+          Review, open, and reply to incoming messages
+        </p>
+      </div>
+
+      <button
+        aria-label="Compose New Message"
+        pButton
+        type="button"
+        icon="pi pi-plus"
+        label="Compose New"
+        class="p-button-outlined"
+        (click)="composeNew()"
+      ></button>
+    </div>
+  </div>
+
+  <div class="flex min-h-[calc(100vh-88px)] flex-col xl:flex-row">
+    <!-- Sidebar -->
+    <aside
+      class="w-full border-b border-slate-200 bg-white xl:w-[280px] xl:border-b-0 xl:border-r"
+    >
+      <div class="px-5 py-5">
+        <div
+          class="text-xs font-semibold uppercase tracking-wide text-slate-400"
+        >
+          Menu
+        </div>
+
+        <div class="mt-4 space-y-2">
+          @for (item of menuItems; track item.key) {
+            <button
+              type="button"
+              class="flex w-full items-center justify-between rounded-xl px-4 py-3 text-left transition"
+              [ngClass]="
+                selectedMenu === item.key
+                  ? 'bg-emerald-500 text-white shadow-sm'
+                  : 'text-slate-600 hover:bg-slate-100'
+              "
+            >
+              <span class="flex items-center gap-3">
+                <i [class]="item.icon"></i>
+                <span class="text-base font-medium">{{ item.label }}</span>
+              </span>
+
+              <span
+                class="rounded-md px-2 py-0.5 text-xs font-semibold"
+                [ngClass]="
+                  selectedMenu === item.key
+                    ? 'bg-white/20 text-white'
+                    : 'bg-slate-100 text-slate-600'
+                "
+              >
+                {{ item.key === 'inbox' ? totalCount : 0 }}
+              </span>
+            </button>
+          }
+        </div>
+      </div>
+    </aside>
+
+    <!-- Content -->
+    <section class="flex min-w-0 flex-1 flex-col">
+      <!-- Search -->
+      <div class="border-b border-slate-200 bg-white px-4 py-4 md:px-6">
+        <div
+          class="flex flex-col gap-3 md:flex-row md:items-center md:justify-between"
+        >
+          <span class="p-input-icon-left w-full max-w-xl">
+            <i class="pi pi-search"></i>
+            <input
+              pInputText
+              type="text"
+              [(ngModel)]="keyword"
+              placeholder="Search mail"
+              class="w-full"
+              (keyup.enter)="onSearch()"
+            />
+          </span>
+
+          <button
+            aria-label="Search"
+            pButton
+            type="button"
+            label="Search"
+            icon="pi pi-search"
+            class="p-button-text"
+            (click)="onSearch()"
+          ></button>
+        </div>
+      </div>
+
+      <!-- Table Header -->
+      <div
+        class="hidden border-b border-slate-200 bg-white px-4 py-4 md:grid md:grid-cols-[56px_260px_140px_1fr_140px_120px] md:items-center md:gap-4 md:px-6"
+      >
+        <div>
+          <div class="h-5 w-5 rounded border border-slate-300"></div>
+        </div>
+        <div class="text-sm font-semibold text-slate-700">From</div>
+        <div class="text-sm font-semibold text-slate-700">Time</div>
+        <div class="text-sm font-semibold text-slate-700">Message</div>
+        <div></div>
+        <div></div>
+      </div>
+
+      <!-- Loading -->
+      @if (loading) {
+        <div class="flex flex-1 items-center justify-center py-20">
+          <p-progressSpinner
+            strokeWidth="4"
+            class="w-12 h-12"
+          ></p-progressSpinner>
+        </div>
+      } @else {
+        <!-- Mail Rows -->
+        <div class="flex-1">
+          @if (mails.length === 0) {
+            <div class="px-6 py-16 text-center">
+              <div
+                class="mx-auto flex h-14 w-14 items-center justify-center rounded-full bg-slate-100"
+              >
+                <i class="pi pi-inbox text-slate-400"></i>
+              </div>
+              <h3 class="mt-4 text-lg font-semibold text-slate-800">
+                No messages found
+              </h3>
+              <p class="mt-1 text-sm text-slate-500">
+                Try a different keyword or clear your filters.
+              </p>
+            </div>
+          } @else {
+            <div class="divide-y divide-slate-200 bg-white">
+              @for (mail of mails; track trackByMail($index, mail)) {
+                <button
+                  type="button"
+                  class="grid w-full grid-cols-1 gap-3 px-4 py-4 text-left transition hover:bg-slate-50 md:grid-cols-[56px_260px_140px_1fr_140px_120px] md:items-center md:gap-4 md:px-6"
+                  (click)="openMail(mail)"
+                >
+                  <div class="hidden md:block">
+                    <div class="h-5 w-5 rounded border border-slate-300"></div>
+                  </div>
+
+                  <div class="flex min-w-0 items-center gap-3">
+                    <div
+                      class="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-slate-200 text-sm font-semibold text-slate-700"
+                    >
+                      {{ getInitials(mail.fullName) }}
+                    </div>
+
+                    <div class="min-w-0">
+                      <div
+                        class="truncate text-base font-semibold text-slate-800"
+                      >
+                        {{ mail.fullName || 'Unknown Sender' }}
+                      </div>
+                      <div class="truncate text-sm text-slate-500">
+                        {{ mail.email || '-' }}
+                      </div>
+                    </div>
+                  </div>
+
+                  <div class="text-sm text-slate-500">
+                    {{ formatTime(mail.postedAt) }}
+                  </div>
+
+                  <div class="min-w-0">
+                    <div class="truncate text-base font-medium text-slate-800">
+                      {{ mail.subject }}
+                    </div>
+                    <div class="truncate text-sm text-slate-500">
+                      {{ getPreview(mail) }}
+                    </div>
+                  </div>
+
+                  <div class="md:justify-self-start">
+                    <span [class]="getStatusClass(mail.status)">
+                      {{ getStatusLabel(mail.status) }}
+                    </span>
+                  </div>
+
+                  <div
+                    class="flex items-center gap-3 text-slate-400 md:justify-end"
+                  >
+                    <button
+                      type="button"
+                      class="p-0 bg-transparent border-0 pi pi-star cursor-pointer hover:text-amber-400"
+                      pTooltip="Star"
+                      tooltipPosition="top"
+                      (click)="$event.stopPropagation()"
+                      aria-label="Star message"
+                    ></button>
+                    <button
+                      type="button"
+                      class="p-0 bg-transparent border-0 pi pi-bookmark cursor-pointer hover:text-sky-500"
+                      pTooltip="Bookmark"
+                      tooltipPosition="top"
+                      (click)="$event.stopPropagation()"
+                      aria-label="Bookmark message"
+                    ></button>
+                    <button
+                      type="button"
+                      class="p-0 bg-transparent border-0 pi pi-ellipsis-v cursor-pointer hover:text-slate-700"
+                      pTooltip="More"
+                      tooltipPosition="top"
+                      (click)="$event.stopPropagation()"
+                      aria-label="More actions"
+                    ></button>
+                  </div>
+                </button>
+              }
+            </div>
+          }
+        </div>
+
+        <!-- Pagination -->
+        <div class="border-t border-slate-200 bg-white px-2 py-2">
+          <p-paginator
+            [rows]="params.pageSize || 10"
+            [first]="((params.pageNumber || 1) - 1) * (params.pageSize || 10)"
+            [totalRecords]="totalCount"
+            [rowsPerPageOptions]="[10, 20, 50]"
+            (onPageChange)="onPageChange($event)"
+          ></p-paginator>
+        </div>
+      }
+    </section>
+  </div>
+</div>
