@@ -6,19 +6,18 @@ export default [
     loadComponent: () =>
       import('./messages/messages.component').then((m) => m.MessagesComponent),
     children: [
-      { path: '', redirectTo: 'inbox', pathMatch: 'full' },
       {
-        path: 'inbox',
+        path: '',
         loadComponent: () =>
-          import('./messages/components/ui/mail-inbox').then(
-            (c) => c.MailInboxComponent,
+          import('./messages/components/messages-entry.component').then(
+            (m) => m.MessagesEntryComponent,
           ),
       },
       {
-        path: 'detail/:id',
+        path: ':id',
         loadComponent: () =>
-          import('./messages/components/ui/mail-detail').then(
-            (c) => c.MailDetailComponent,
+          import('./messages/components/message-admin-detail.component').then(
+            (m) => m.MessageAdminDetailComponent,
           ),
       },
     ],
