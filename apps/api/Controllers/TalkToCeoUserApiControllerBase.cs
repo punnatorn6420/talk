@@ -26,9 +26,9 @@ namespace TalkToCeoUserApi.Controllers
 
     [System.CodeDom.Compiler.GeneratedCode("NSwag", "14.2.0.0 (NJsonSchema v11.1.0.0 (Newtonsoft.Json v13.0.0.0))")]
 
-    public abstract class TalkToCeoUserApiControllerControllerBase : NokAir.Shared.Controllers.InHouseControllerBase
+    public abstract class TalkToCeoUserApiControllerBase : NokAir.Shared.Controllers.InHouseControllerBase
     {
-        protected TalkToCeoUserApiControllerControllerBase(IResponseFactory apiResponseFactory) : base(apiResponseFactory)
+        protected TalkToCeoUserApiControllerBase(IResponseFactory apiResponseFactory) : base(apiResponseFactory)
         {
         }
 

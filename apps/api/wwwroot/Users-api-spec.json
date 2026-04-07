@@ -1,14 +1,14 @@
 {
-  "openapi": "3.0.3",
+  "openapi": "3.0.1",
   "info": {
-    "title": "Talk to CEO API",
+    "title": "Talk To CEO User API",
     "contact": {
       "name": "Supot Sukvaree",
       "url": "https://www.nokair.com",
       "email": "supot.suk@nokair.com"
     },
     "version": "1.0.0",
-    "description": "API for managing user roles and portal users in the Talk to CEO system."
+    "description": "API for managing user roles and portal users in the Talk To CEO system."
   },
   "servers": [
     {
