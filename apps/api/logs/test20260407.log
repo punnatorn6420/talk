@@ -836,3 +836,15 @@ Exception:
 [2026-04-07 10:39:06 WRN] (Voucher API) Failed to determine the https port for redirect.
 ObjectData: 
 Exception: 
+[2026-04-07 10:55:35 INF] (Voucher API) Voucher API is starting with Serilog configured for Development environment
+ObjectData: 
+Exception: 
+[2026-04-07 10:55:39 WRN] (Voucher API) Failed to determine the https port for redirect.
+ObjectData: 
+Exception: 
+[2026-04-07 11:00:32 INF] (Voucher API) Voucher API is starting with Serilog configured for Development environment
+ObjectData: 
+Exception: 
+[2026-04-07 11:00:33 WRN] (Voucher API) Failed to determine the https port for redirect.
+ObjectData: 
+Exception: 
