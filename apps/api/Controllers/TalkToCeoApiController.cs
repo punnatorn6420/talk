@@ -26,27 +26,26 @@ namespace NokAir.TalkToCeo.api.Controllers
             this.usersService = usersService;
         }
 
-        // [Authorize(Policy = "AllRole")]
+        [Authorize(Policy = "UserRole")]
         public override async Task<ActionResult> CreateMessage([FromBody] CreateMessageRequestDto body)
         {
             try
             {
-                // var token = this.HttpContext.Request.Headers.Authorization.ToString().Replace("Bearer ", string.Empty);
-                // var user = await this.usersService.GetUserFromTokenAsync(token);
+                var token = this.HttpContext.Request.Headers.Authorization.ToString().Replace("Bearer ", string.Empty);
+                var user = await this.usersService.GetUserFromTokenAsync(token);
 
-                // var userNameAcc = (user?.FirstName ?? string.Empty) + " " + (user?.LastName ?? string.Empty);
+                var userNameAcc = (user?.FirstName ?? string.Empty) + " " + (user?.LastName ?? string.Empty);
 
-                // if (user == null)
-                // {
-                //     throw new DataValidationException("User information in token is invalid.");
-                // }
+                if (user == null)
+                {
+                    throw new DataValidationException("User information in token is invalid.");
+                }
 
-                // body.UserId = 999999;
-                // body.UserName = userNameAcc;
+                body.UserId = user.Id;
+                body.UserName = userNameAcc;
+                await messageService.CreateAsync(body);
 
-                var result = await messageService.CreateAsync(body);
-
-                return this.OkResponseWithResult(result);
+                return this.OkSuccessResponse();
             }
             catch (DataValidationException ex)
             {
@@ -58,7 +57,7 @@ namespace NokAir.TalkToCeo.api.Controllers
             }
         }
 
-        // [Authorize(Policy = "AllRole")]
+        [Authorize(Policy = "UserRole")]
         public override async Task<ActionResult> DeleteMessage(int id)
         {
             try
@@ -91,7 +90,7 @@ namespace NokAir.TalkToCeo.api.Controllers
 
         }
 
-        // [Authorize(Policy = "AllRole")]
+        [Authorize(Policy = "AllRole")]
         public override async Task<ActionResult> GetAllMessages(
             [FromQuery] string keyword,
             [FromQuery] string sortField,
@@ -103,15 +102,25 @@ namespace NokAir.TalkToCeo.api.Controllers
         {
             try
             {
+                var userId =
+             User.FindFirst("user_id")?.Value;
+
+                var role =
+                    User.FindFirst(System.Security.Claims.ClaimTypes.Role)?.Value;
+
                 var result =
-               await messageService.GetMessagesCriteriaAsync(
-                   keyword,
-                   sortField,
-                   pageNumber ?? 1,
-                   pageSize ?? 25,
-                   ascending ?? true,
-                   searchStartDate,
-                   searchEndDate);
+                    await messageService.GetMessagesCriteriaAsync(
+                        keyword,
+                        sortField,
+                        pageNumber ?? 1,
+                        pageSize ?? 25,
+                        ascending ?? true,
+                        searchStartDate,
+                        searchEndDate,
+                        role == "CEO"
+                            ? null
+                            : userId
+                    );
 
                 return this.OkResponseWithResult(result);
             }
@@ -125,7 +134,7 @@ namespace NokAir.TalkToCeo.api.Controllers
             }
         }
 
-        // [Authorize(Policy = "AllRole")]
+        [Authorize(Policy = "AllRole")]
         public override async Task<ActionResult> GetMessageDetail(int id)
         {
             try
@@ -144,7 +153,7 @@ namespace NokAir.TalkToCeo.api.Controllers
             }
         }
 
-        // [Authorize(Policy = "AllRole")]
+        [Authorize(Policy = "CeoRole")]
         public override async Task<ActionResult> ReplyMessage(int id, [FromBody] ReplyMessageRequestDto body)
         {
             try
@@ -175,7 +184,7 @@ namespace NokAir.TalkToCeo.api.Controllers
             }
         }
 
-        // [Authorize(Policy = "AllRole")]
+        [Authorize(Policy = "UserRole")]
         public override async Task<ActionResult> UpdateMessage(int id, [FromBody] CreateMessageRequestDto body)
         {
             try
@@ -206,7 +215,7 @@ namespace NokAir.TalkToCeo.api.Controllers
             }
         }
 
-        // [Authorize(Policy = "AllRole")]
+        [Authorize(Policy = "CeoRole")]
         public override async Task<ActionResult> UpdateReadStatus(int id)
         {
             try
