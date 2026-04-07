@@ -123,8 +123,6 @@ export class _MessageService {
       },
     };
 
-    console.log('getMessageCriteria response:', response);
-
     return of(response).pipe(delay(300));
   }
 
@@ -155,7 +153,6 @@ export class _MessageService {
 
   getMessageThreadById(id: string): Observable<IResponse<IMail>> {
     const item = MOCK_MAILS.find((mail) => String(mail.id) === String(id));
-
     return of({
       correlationId: '',
       status: item ? 'Mock detail loaded successfully' : 'Message not found',

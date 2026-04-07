@@ -10,7 +10,7 @@ import { FormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
 import { finalize } from 'rxjs';
 
-import { MessageService } from 'primeng/api';
+import { ConfirmationService, MessageService } from 'primeng/api';
 import { ButtonModule } from 'primeng/button';
 import { InputTextModule } from 'primeng/inputtext';
 import { PaginatorModule, PaginatorState } from 'primeng/paginator';
@@ -23,6 +23,7 @@ import { IMail, IMessageParams } from '../../../types/message.model';
 import { InputGroupModule } from 'primeng/inputgroup';
 import { InputGroupAddonModule } from 'primeng/inputgroupaddon';
 import { TableModule } from 'primeng/table';
+import { ConfirmDialogModule } from 'primeng/confirmdialog';
 
 type MailSidebarKey =
   | 'inbox'
@@ -48,11 +49,12 @@ type MailSidebarKey =
     ProgressSpinnerModule,
     InputGroupModule,
     InputGroupAddonModule,
+    ConfirmDialogModule,
     TableModule,
   ],
   templateUrl: './messages-admin-view.component.html',
   styleUrl: './messages-admin-view.component.scss',
-  providers: [MessageService],
+  providers: [MessageService, ConfirmationService],
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class MessagesAdminViewComponent implements OnInit {
@@ -60,10 +62,12 @@ export class MessagesAdminViewComponent implements OnInit {
   private readonly toast = inject(MessageService);
   private readonly router = inject(Router);
   private readonly cdr = inject(ChangeDetectorRef);
+  private readonly confirmationService = inject(ConfirmationService);
 
   mails: IMail[] = [];
   totalCount = 0;
   loading = false;
+  deletingId: string | number | null = null;
 
   keyword = '';
   selectedMenu: MailSidebarKey = 'inbox';
@@ -78,12 +82,6 @@ export class MessagesAdminViewComponent implements OnInit {
 
   readonly menuItems: { key: MailSidebarKey; label: string; icon: string }[] = [
     { key: 'inbox', label: 'Inbox', icon: 'pi pi-inbox' },
-    // { key: 'starred', label: 'Starred', icon: 'pi pi-star' },
-    // { key: 'important', label: 'Important', icon: 'pi pi-bookmark' },
-    // { key: 'sent', label: 'Sent', icon: 'pi pi-send' },
-    // { key: 'archived', label: 'Archived', icon: 'pi pi-file' },
-    // { key: 'spam', label: 'Spam', icon: 'pi pi-ban' },
-    // { key: 'trash', label: 'Trash', icon: 'pi pi-trash' },
   ];
 
   ngOnInit(): void {
@@ -140,6 +138,61 @@ export class MessagesAdminViewComponent implements OnInit {
     this.router.navigate(['/admin/messages', mail.id]);
   }
 
+  onDeleteMail(id: string | number, event: Event): void {
+    event.stopPropagation();
+
+    if (!id || this.deletingId === id) return;
+
+    this.confirmationService.confirm({
+      header: 'Confirm delete',
+      message: 'Are you sure you want to delete this message?',
+      icon: 'pi pi-exclamation-triangle',
+      acceptButtonStyleClass: 'p-button-danger',
+      rejectButtonStyleClass: 'p-button-text',
+      acceptLabel: 'Delete',
+      rejectLabel: 'Cancel',
+      accept: () => {
+        this.deletingId = id;
+
+        this.messageApi
+          .deleteMessageThread(String(id))
+          .pipe(
+            finalize(() => {
+              this.deletingId = null;
+              this.cdr.markForCheck();
+            }),
+          )
+          .subscribe({
+            next: () => {
+              this.toast.add({
+                severity: 'success',
+                summary: 'Deleted',
+                detail: 'Message deleted successfully.',
+              });
+
+              if (
+                this.mails.length === 1 &&
+                (this.params.pageNumber ?? 1) > 1
+              ) {
+                this.params = {
+                  ...this.params,
+                  pageNumber: (this.params.pageNumber ?? 1) - 1,
+                };
+              }
+
+              this.loadMessages();
+            },
+            error: () => {
+              this.toast.add({
+                severity: 'error',
+                summary: 'Delete failed',
+                detail: 'Unable to delete message.',
+              });
+            },
+          });
+      },
+    });
+  }
   getPreview(mail: IMail): string {
     return (
       mail.message?.trim() || mail.detail?.trim() || mail.reply?.trim() || '-'

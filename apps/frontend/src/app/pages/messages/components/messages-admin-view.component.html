@@ -1,4 +1,5 @@
 <p-toast></p-toast>
+<p-confirmDialog></p-confirmDialog>
 
 <div class="min-h-screen bg-slate-50">
   <div class="border-b border-slate-200 bg-white">
@@ -30,7 +31,7 @@
               class="flex w-full items-center justify-between rounded-xl px-4 py-3 text-left transition"
               [ngClass]="
                 selectedMenu === item.key
-                  ? 'bg-emerald-500 text-white shadow-sm'
+                  ? 'bg-primary-600 text-white shadow-sm'
                   : 'text-slate-600 hover:bg-slate-100'
               "
             >
@@ -82,22 +83,26 @@
           [value]="mails"
           [loading]="loading"
           [tableStyle]="{ 'min-width': '72rem' }"
-          styleClass="p-datatable-sm mail-table"
+          class="p-datatable-sm mail-table"
           [rowHover]="true"
         >
           <ng-template pTemplate="header">
             <tr>
-              <th class="w-[260px]">From</th>
-              <th class="w-[140px]">Time</th>
+              <th class="w-[260px] !text-start">From</th>
+              <th class="w-[140px] !text-center">Time</th>
               <th>Message</th>
-              <th class="w-[140px]">Status</th>
-              <th class="w-[120px] text-right">Actions</th>
+              <th class="w-[140px] !text-center">Status</th>
+              <th class="!text-right">
+                <div class="flex justify-end">
+                  <i class="pi pi-ellipsis-v text-slate-500"></i>
+                </div>
+              </th>
             </tr>
           </ng-template>
 
           <ng-template pTemplate="body" let-mail>
             <tr class="cursor-pointer" (click)="openMail(mail)">
-              <td>
+              <td class="!text-start">
                 <div class="flex min-w-0 items-center gap-3">
                   <div
                     class="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-slate-200 text-sm font-semibold text-slate-700"
@@ -118,7 +123,7 @@
                 </div>
               </td>
 
-              <td class="text-sm text-slate-500">
+              <td class="!text-center text-sm text-slate-500">
                 {{ formatTime(mail.postedAt) }}
               </td>
 
@@ -133,31 +138,19 @@
                 </div>
               </td>
 
-              <td>
+              <td class="!text-center">
                 <span [class]="getStatusClass(mail.status)">
                   {{ getStatusLabel(mail.status) }}
                 </span>
               </td>
 
-              <td>
+              <td class="text-right">
                 <div class="flex items-center justify-end gap-3 text-slate-400">
                   <button
                     type="button"
-                    class="p-0 bg-transparent border-0 pi pi-star cursor-pointer hover:text-amber-400"
-                    (click)="$event.stopPropagation()"
-                    aria-label="Star message"
-                  ></button>
-                  <button
-                    type="button"
-                    class="p-0 bg-transparent border-0 pi pi-bookmark cursor-pointer hover:text-sky-500"
-                    (click)="$event.stopPropagation()"
-                    aria-label="Bookmark message"
-                  ></button>
-                  <button
-                    type="button"
-                    class="p-0 bg-transparent border-0 pi pi-ellipsis-v cursor-pointer hover:text-slate-700"
-                    (click)="$event.stopPropagation()"
-                    aria-label="More actions"
+                    class="cursor-pointer border-0 bg-transparent p-0 pi pi-trash hover:text-red-400"
+                    (click)="onDeleteMail(mail.id, $event)"
+                    aria-label="Delete message"
                   ></button>
                 </div>
               </td>

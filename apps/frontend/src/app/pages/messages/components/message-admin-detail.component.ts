@@ -55,21 +55,20 @@ export class MessageAdminDetailComponent implements OnInit {
       });
       return;
     }
-
     this.loadMail(id);
   }
 
   loadMail(id: string): void {
     this.loading = true;
-
     this.messageApi
       .getMessageThreadById(id)
       .pipe(finalize(() => (this.loading = false)))
       .subscribe({
         next: (res) => {
+          console.log('getMessageThreadById response:', res);
           this.mail = res.data ?? null;
+          console.log('Loaded mail:', this.mail);
           this.replyText = this.mail?.reply ?? '';
-
           this.messageApi.putReadMessageThread(id).subscribe({
             error: () => {
               // ignore read error silently
