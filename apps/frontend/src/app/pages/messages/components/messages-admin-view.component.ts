@@ -1,10 +1,5 @@
-import { Component, OnInit, inject } from '@angular/core';
-import { MailInboxComponent } from './ui/mail-inbox';
-import { MailSidebarComponent } from './ui/mail-sidebar';
-import { Mail } from './ui/mail';
-import { MailService } from './ui/service/mail.service';
-import { MessageService } from 'primeng/api';
-import { SubscriptionDestroyer } from '../../../shared/core/helper/SubscriptionDestroyer.helper';
+import { Component } from '@angular/core';
+import { MailAppComponent } from './ui';
 
 const MOCK_MAILS: Mail[] = [
   {
@@ -87,18 +82,9 @@ const MOCK_MAILS: Mail[] = [
 @Component({
   selector: 'app-messages-admin-view',
   standalone: true,
-  imports: [MailSidebarComponent, MailInboxComponent],
+  imports: [MailAppComponent],
   templateUrl: './messages-admin-view.component.html',
   styleUrl: './messages-admin-view.component.scss',
   providers: [MessageService, MailService],
 })
-export class MessagesAdminViewComponent
-  extends SubscriptionDestroyer
-  implements OnInit
-{
-  private readonly mailService = inject(MailService);
-
-  ngOnInit(): void {
-    this.mailService.updateMails(MOCK_MAILS);
-  }
-}
+export class MessagesAdminViewComponent {}

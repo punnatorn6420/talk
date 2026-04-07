@@ -19,7 +19,7 @@ import { Mail } from './mail';
       label="Compose New"
       class="mb-8 w-full"
       outlined
-      [routerLink]="'/apps/mail/compose/'"
+      [routerLink]="'/admin/messages/compose/'"
       aria-label="Compose New Mail"
     ></button>
     <div class="overflow-auto">
@@ -157,43 +157,43 @@ export class MailSidebarComponent implements OnDestroy {
         label: 'Inbox',
         icon: 'pi pi-inbox',
         badge: this.badgeValues.inbox,
-        routerLink: '/apps/mail/inbox',
+        routerLink: '/admin/messages/inbox',
       },
       {
         label: 'Starred',
         icon: 'pi pi-star',
         badge: this.badgeValues.starred,
-        routerLink: '/apps/mail/starred',
+        routerLink: '/admin/messages/starred',
       },
       {
         label: 'Spam',
         icon: 'pi pi-ban',
         badge: this.badgeValues.spam,
-        routerLink: '/apps/mail/spam',
+        routerLink: '/admin/messages/spam',
       },
       {
         label: 'Important',
         icon: 'pi pi-bookmark',
         badge: this.badgeValues.important,
-        routerLink: '/apps/mail/important',
+        routerLink: '/admin/messages/important',
       },
       {
         label: 'Sent',
         icon: 'pi pi-send',
         badge: this.badgeValues.sent,
-        routerLink: '/apps/mail/sent',
+        routerLink: '/admin/messages/sent',
       },
       {
         label: 'Archived',
         icon: 'pi pi-book',
         badge: this.badgeValues.archived,
-        routerLink: '/apps/mail/archived',
+        routerLink: '/admin/messages/archived',
       },
       {
         label: 'Trash',
         icon: 'pi pi-trash',
         badge: this.badgeValues.trash,
-        routerLink: '/apps/mail/trash',
+        routerLink: '/admin/messages/trash',
       },
     ];
   }

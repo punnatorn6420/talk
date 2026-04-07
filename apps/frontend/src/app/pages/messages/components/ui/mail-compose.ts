@@ -134,7 +134,7 @@ export class MailComposeComponent {
         summary: 'Success',
         detail: 'Mail sent',
       });
-      this.router.navigate(['apps/mail/inbox']);
+      this.router.navigate(['/admin/messages/inbox']);
     }
   }
 
