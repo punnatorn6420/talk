@@ -3,7 +3,7 @@ import { Observable } from 'rxjs/internal/Observable';
 import { IResponse } from '../types/response.model';
 import { environment } from '../../environments/environment';
 import { HttpService } from './http.service';
-import { IMail } from '../pages/messages/components/ui/mail';
+import { IMail, IMailResponse } from '../pages/messages/components/ui/mail';
 import { BehaviorSubject } from 'rxjs/internal/BehaviorSubject';
 import {
   IMessageParams,
@@ -23,7 +23,8 @@ export class MessageThreadService {
 
   constructor() {
     this.getMessageCriteria({}).subscribe((res) => {
-      this.updateMails(res.data || []);
+      console.log(res.data.items);
+      this.updateMails(res.data.items || []);
     });
   }
 
@@ -32,7 +33,9 @@ export class MessageThreadService {
     this.mails.next(data);
   }
 
-  getMessageCriteria(payload: IMessageParams): Observable<IResponse<IMail[]>> {
+  getMessageCriteria(
+    payload: IMessageParams,
+  ): Observable<IResponse<IMailResponse>> {
     const params = new URLSearchParams();
     params.append('keyword', payload.keyword || '');
     params.append('pageNumber', String(payload.pageNumber || '1'));
@@ -42,7 +45,7 @@ export class MessageThreadService {
     params.append('sortField', payload.sortField || '');
     params.append('ascending', String(payload.ascending || 'true'));
 
-    return this.https.get<IResponse<IMail[]>>(
+    return this.https.get<IResponse<IMailResponse>>(
       `${environment.endpoint}v1/messages?${params.toString()}`,
       true,
     );

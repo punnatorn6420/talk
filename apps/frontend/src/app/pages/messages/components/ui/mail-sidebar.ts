@@ -35,13 +35,16 @@ import { MessageThreadService } from '../../../../service/message-thread.service
                 'text-white dark:text-surface-900': url === item.routerLink,
               }"
             ></i>
+
             <span
               class="text-surface-900 dark:text-surface-0 font-medium hidden md:inline"
               [ngClass]="{
                 'text-white dark:text-surface-900': url === item.routerLink,
               }"
-              >{{ item.label }}</span
             >
+              {{ item.label }}
+            </span>
+
             @if (item.badge) {
               <span
                 [ngClass]="{
@@ -60,16 +63,21 @@ import { MessageThreadService } from '../../../../service/message-thread.service
     </div>
   </div>`,
 })
-export class MailSidebarComponent implements OnDestroy {
+export class MailSidebarComponent {
   items: MenuItem[] = [];
 
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  badgeValues: any;
+  badgeValues = {
+    inbox: 0,
+    starred: 0,
+    spam: 0,
+    important: 0,
+    archived: 0,
+    trash: 0,
+    sent: 0,
+  };
 
-  mailSubscription: Subscription | undefined;
-
+  mailSubscription?: Subscription;
   routeSubscription: Subscription;
-
   url = '';
 
   private router = inject(Router);
@@ -78,8 +86,9 @@ export class MailSidebarComponent implements OnDestroy {
   constructor() {
     this.url = this.router.url;
     this.updateSidebar();
+
     this.mailSubscription = this.messageThreadService.mails$.subscribe((data) =>
-      this.getBadgeValues(data),
+      this.getBadgeValues(data ?? []),
     );
 
     this.routeSubscription = this.router.events
@@ -91,30 +100,15 @@ export class MailSidebarComponent implements OnDestroy {
   }
 
   getBadgeValues(data: IMail[]) {
-    const inbox = [],
-      starred = [],
-      spam = [],
-      important = [],
-      archived = [],
-      trash = [],
-      sent = [];
-
-    for (let i = 0; i < data.length; i++) {
-      const mail = data[i];
-
-      inbox.push(mail);
-    }
-
     this.badgeValues = {
-      inbox: inbox.length,
-      starred: starred.length,
-      spam: spam.length,
-      important: important.length,
-      archived: archived.length,
-      trash: trash.length,
-      sent: sent.length,
+      inbox: data.length,
+      starred: 0,
+      spam: 0,
+      important: 0,
+      archived: 0,
+      trash: 0,
+      sent: 0,
     };
-
     this.updateSidebar();
   }
 
@@ -123,50 +117,8 @@ export class MailSidebarComponent implements OnDestroy {
       {
         label: 'Inbox',
         icon: 'pi pi-inbox',
-        badge: this.badgeValues.inbox,
         routerLink: '/admin/messages/inbox',
       },
-      {
-        label: 'Starred',
-        icon: 'pi pi-star',
-        badge: this.badgeValues.starred,
-        routerLink: '/admin/messages/starred',
-      },
-      {
-        label: 'Spam',
-        icon: 'pi pi-ban',
-        badge: this.badgeValues.spam,
-        routerLink: '/admin/messages/spam',
-      },
-      {
-        label: 'Important',
-        icon: 'pi pi-bookmark',
-        badge: this.badgeValues.important,
-        routerLink: '/admin/messages/important',
-      },
-      {
-        label: 'Sent',
-        icon: 'pi pi-send',
-        badge: this.badgeValues.sent,
-        routerLink: '/admin/messages/sent',
-      },
-      {
-        label: 'Archived',
-        icon: 'pi pi-book',
-        badge: this.badgeValues.archived,
-        routerLink: '/admin/messages/archived',
-      },
-      {
-        label: 'Trash',
-        icon: 'pi pi-trash',
-        badge: this.badgeValues.trash,
-        routerLink: '/admin/messages/trash',
-      },
     ];
-  }
-
-  ngOnDestroy() {
-    this.mailSubscription?.unsubscribe();
-    this.routeSubscription.unsubscribe();
   }
 }

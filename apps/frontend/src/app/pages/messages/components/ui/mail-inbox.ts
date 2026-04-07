@@ -34,7 +34,7 @@ export class MailInboxComponent
   ngOnInit() {
     this.AddSubscription(
       this.service.getMessageCriteria({}).subscribe((res) => {
-        this.service.updateMails(res.data || []);
+        this.service.updateMails(res.data.items || []);
       }),
     );
   }

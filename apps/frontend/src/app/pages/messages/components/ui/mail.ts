@@ -1,3 +1,8 @@
+export interface IMailResponse {
+  totalCount: number;
+  items: IMail[];
+}
+
 export interface IMail {
   id: number | string;
   subject: string;
