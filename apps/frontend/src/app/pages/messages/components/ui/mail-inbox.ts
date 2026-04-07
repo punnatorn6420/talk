@@ -1,5 +1,4 @@
 import { Component, OnDestroy, OnInit, inject } from '@angular/core';
-import { Router } from '@angular/router';
 import { MailTableComponent } from './mail-table';
 import { IMail } from './mail';
 import { SubscriptionDestroyer } from '../../../../shared/core/helper/SubscriptionDestroyer.helper';
@@ -17,29 +16,26 @@ export class MailInboxComponent
 {
   mails: IMail[] = [];
 
-  private router = inject(Router);
   private service = inject(MessageThreadService);
 
   constructor() {
     super();
-    // this.subscription = this.mailService.mails$.subscribe((data) => {
-    //   this.mails = data.filter(
-    //     // eslint-disable-next-line no-prototype-builtins
-    //     (d) => !d.hasOwnProperty('sent'),
-    //   );
-    // });
+    this.AddSubscription(
+      this.service.mails$.subscribe((data) => {
+        this.mails = data;
+      }),
+    );
   }
 
-  // eslint-disable-next-line @angular-eslint/no-empty-lifecycle-method
   override ngOnDestroy() {
-    // this.subscription.unsubscribe();
+    super.ngOnDestroy();
   }
 
-  // eslint-disable-next-line @angular-eslint/no-empty-lifecycle-method
   ngOnInit() {
-    // const obs = this.service.getMessageCriteria({}).subscribe((res) => {
-    //   this.mails = Array.isArray(res?.data?.items) ? res.data.items : [];
-    // });
-    // this.AddSubscription(obs);
+    this.AddSubscription(
+      this.service.getMessageCriteria({}).subscribe((res) => {
+        this.service.updateMails(res.data || []);
+      }),
+    );
   }
 }

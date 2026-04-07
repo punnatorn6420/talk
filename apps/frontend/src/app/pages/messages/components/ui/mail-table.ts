@@ -14,6 +14,7 @@ import { InputTextModule } from 'primeng/inputtext';
 import { TooltipModule } from 'primeng/tooltip';
 import { IMail } from './mail';
 import { SubscriptionDestroyer } from '../../../../shared/core/helper/SubscriptionDestroyer.helper';
+import { MessageThreadService } from '../../../../service/message-thread.service';
 
 @Component({
   selector: 'app-mail-table',
@@ -64,7 +65,7 @@ import { SubscriptionDestroyer } from '../../../../shared/core/helper/Subscripti
         class="cursor-pointer"
       >
         <td style="min-width: 12rem" class="text-900 font-semibold">
-          {{ mail.createdBy }}
+          {{ mail.fullName || mail.createdBy || '-' }}
         </td>
         <td style="min-width: 12rem">
           <span
@@ -77,7 +78,7 @@ import { SubscriptionDestroyer } from '../../../../shared/core/helper/Subscripti
         <td style="width: 12rem;">
           <div class="flex justify-content-end w-full px-0">
             <span #date class="text-700 font-semibold white-space-nowrap">
-              {{ mail.createdAt }}
+              {{ mail.createdAt | date: 'medium' }}
             </span>
             <div style="display: none" #options>
               <button
@@ -140,6 +141,7 @@ export class MailTableComponent
   dialogVisible = false;
 
   private router = inject(Router);
+  private messageThreadService = inject(MessageThreadService);
 
   constructor() {
     super();
@@ -158,7 +160,7 @@ export class MailTableComponent
     }
   }
 
-  onRowSelect(id: number) {
+  onRowSelect(id: number | string) {
     this.router.navigate(['/admin/messages/detail/', id]);
   }
 
@@ -176,7 +178,13 @@ export class MailTableComponent
 
   onTrash(event: Event, mail: IMail) {
     event.stopPropagation();
-    // this.mailService.onTrash(mail.id);
+    this.AddSubscription(
+      this.messageThreadService.deleteMessageThread(String(mail.id)).subscribe(() => {
+        this.messageThreadService.updateMails(
+          this.mails.filter((item) => item.id !== mail.id),
+        );
+      }),
+    );
   }
 
   onReply(event: Event, mail: IMail) {

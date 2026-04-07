@@ -8,6 +8,9 @@ import { RippleModule } from 'primeng/ripple';
 import { EditorModule } from 'primeng/editor';
 import { FormsModule } from '@angular/forms';
 import { IMail } from './mail';
+import { MessageThreadService } from '../../../../service/message-thread.service';
+import { switchMap } from 'rxjs';
+import { SubscriptionDestroyer } from '../../../../shared/core/helper/SubscriptionDestroyer.helper';
 
 @Component({
   standalone: true,
@@ -47,7 +50,7 @@ import { IMail } from './mail';
           <div class="flex flex-col mx-4">
             <span
               class="block text-surface-900 dark:text-surface-0 font-bold text-lg"
-              >{{ mail.modifiedBy }}</span
+              >{{ mail.fullName || mail.modifiedBy || mail.createdBy }}</span
             >
             <span
               class="block text-surface-900 dark:text-surface-0 font-semibold"
@@ -56,10 +59,10 @@ import { IMail } from './mail';
           </div>
         </div>
         <div class="flex items-center justify-end gap-x-4 px-6 md:px-0">
-          <span
-            class="text-surface-900 dark:text-surface-0 font-semibold whitespace-nowrap mr-auto"
-            >{{ mail.createdAt }}</span
-          >
+            <span
+              class="text-surface-900 dark:text-surface-0 font-semibold whitespace-nowrap mr-auto"
+              >{{ mail.createdAt | date: 'medium' }}</span
+            >
           <button
             pButton
             pRipple
@@ -90,7 +93,10 @@ import { IMail } from './mail';
         >
           {{ mail.subject }}
         </div>
-        <p class="leading-normal mt-0 mb-4" [innerHTML]="mail.message"></p>
+        <p
+          class="leading-normal mt-0 mb-4"
+          [innerHTML]="mail.message || mail.detail"
+        ></p>
         <p-editor
           [style]="{ height: '250px' }"
           [(ngModel)]="newMail.message"
@@ -126,20 +132,25 @@ import { IMail } from './mail';
     </div>
   } `,
 })
-export class MailDetailComponent implements OnDestroy {
+export class MailDetailComponent
+  extends SubscriptionDestroyer
+  implements OnDestroy
+{
   private route = inject(ActivatedRoute);
   private location = inject(Location);
   private router = inject(Router);
   private messageService = inject(MessageService);
+  private messageThreadService = inject(MessageThreadService);
 
   newMail: IMail = {
     id: 0,
     subject: '',
     message: '',
+    detail: '',
     reply: '',
     status: '',
     postedAt: '',
-    repliedAt: '',
+    repliedAt: null,
     createdAt: '',
     modifiedAt: '',
     createdBy: '',
@@ -154,10 +165,11 @@ export class MailDetailComponent implements OnDestroy {
     id: 0,
     subject: '',
     message: '',
+    detail: '',
     reply: '',
     status: '',
     postedAt: '',
-    repliedAt: '',
+    repliedAt: null,
     createdAt: '',
     modifiedAt: '',
     createdBy: '',
@@ -168,20 +180,22 @@ export class MailDetailComponent implements OnDestroy {
     fullName: '',
   };
 
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  id: any;
+  id = '';
 
   constructor() {
-    // this.subscription = this.route.params
-    //   .pipe(
-    //     switchMap((params) => {
-    //       this.id = params['id'];
-    //       return this.mailService.mails$;
-    //     }),
-    //   )
-    //   .subscribe((data) => {
-    //     this.mail = data.filter((d) => d.id == this.id)[0];
-    //   });
+    super();
+    this.AddSubscription(
+      this.route.params
+        .pipe(
+          switchMap((params) => {
+            this.id = params['id'];
+            return this.messageThreadService.getMessageThreadById(this.id);
+          }),
+        )
+        .subscribe((res) => {
+          this.mail = res.data;
+        }),
+    );
   }
 
   goBack() {
@@ -190,21 +204,22 @@ export class MailDetailComponent implements OnDestroy {
 
   sendMail() {
     if (this.newMail.message) {
-      // this.newMail.to = this.mail.from ? this.mail.from : this.mail.to;
-      // this.newMail.image = this.mail.image;
-
-      // this.mailService.onSend(this.newMail);
-      this.messageService.add({
-        severity: 'success',
-        summary: 'Success',
-        detail: 'Mail sent',
-      });
-      this.router.navigate(['/admin/messages/inbox']);
+      this.AddSubscription(
+        this.messageThreadService
+          .putReplyMessageThread(this.id, { reply: this.newMail.message })
+          .subscribe(() => {
+            this.messageService.add({
+              severity: 'success',
+              summary: 'Success',
+              detail: 'Reply sent',
+            });
+            this.router.navigate(['/admin/messages/inbox']);
+          }),
+      );
     }
   }
 
-  // eslint-disable-next-line @angular-eslint/no-empty-lifecycle-method
-  ngOnDestroy() {
-    // this.subscription.unsubscribe();
+  override ngOnDestroy() {
+    super.ngOnDestroy();
   }
 }
