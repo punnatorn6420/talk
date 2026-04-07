@@ -27,6 +27,9 @@ using NokAir.Shared.Security.Services.InHouse;
 using NokAir.Shared.Api.Responses.Factories;
 using NokAir.Shared.Api.Responses.Factories.InHouse;
 using NokAir.Shared.Resources.BookingLocalize;
+using Microsoft.AspNetCore.Authorization;
+using NokAir.Shared.Security.AuthorizationHandlers;
+using NokAir.Core.Abstractions.Services.Rbac;
 
 
 // Read environment variables
@@ -147,6 +150,11 @@ builder.Services.AddScoped<IUsersService<UserDto>, UsersService>();
 builder.Services.AddScoped<IJwtTalkToCeo, JwtTalkToCeoService>();
 builder.Services.AddScoped<IJwtService, JwtService>();
 
+// Role service
+builder.Services.AddScoped<IAuthorizationHandler, RoleAuthorizationHandler>();
+builder.Services.AddScoped<IAuthorizationHandler, MultiRoleAuthorizationHandler>();
+builder.Services.AddScoped<IRoleServiceBase, RoleService>();
+
 // Add services to the container.
 builder.Services.AddControllers()
     .AddNewtonsoftJson(options =>
@@ -174,7 +182,6 @@ builder.Services.AddCors(options =>
 // Add services to the container.
 // Learn more about configuring OpenAPI at https://aka.ms/aspnet/openapi
 
-builder.Services.AddAuthorization();
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen(c =>
 {
@@ -214,6 +221,37 @@ builder.Services.Configure<RequestLocalizationOptions>(options =>
     {
         return await Task.FromResult(new ProviderCultureResult("en"));
     }));
+});
+
+// Register the permission handler.
+builder.Services.AddAuthorization(options =>
+{
+    // Iterate through the list of permissions and add them to the policy.
+    foreach (var role in NokAir.TalkToCeo.Shared.Constants.TalkToCeoRole.SystemRoles)
+    {
+        options.AddPolicy(role, policy => policy.Requirements.Add(new RoleRequirementModel(role)));
+    }
+
+    options.AddPolicy("AllRole", policy =>
+    policy.Requirements.Add(new MultiRoleRequirementModel(new[]
+        {
+            NokAir.TalkToCeo.Shared.Constants.TalkToCeoRole.Admin,
+            NokAir.TalkToCeo.Shared.Constants.TalkToCeoRole.User,
+            NokAir.TalkToCeo.Shared.Constants.TalkToCeoRole.Ceo,
+        })));
+
+    options.AddPolicy("UserRole", policy =>
+        policy.Requirements.Add(new MultiRoleRequirementModel(new[]
+        {
+                    NokAir.TalkToCeo.Shared.Constants.TalkToCeoRole.Admin,
+                    NokAir.TalkToCeo.Shared.Constants.TalkToCeoRole.User,
+        })));
+    options.AddPolicy("CeoRole", policy =>
+        policy.Requirements.Add(new MultiRoleRequirementModel(new[]
+        {
+                    NokAir.TalkToCeo.Shared.Constants.TalkToCeoRole.Admin,
+                    NokAir.TalkToCeo.Shared.Constants.TalkToCeoRole.Ceo,
+        })));
 });
 
 // Add JWT authentication
@@ -257,37 +295,6 @@ builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
             },
         };
     });
-
-// Register the permission handler.
-builder.Services.AddAuthorization(options =>
-{
-    // Iterate through the list of permissions and add them to the policy.
-    foreach (var role in NokAir.TalkToCeo.Shared.Constants.TalkToCeoRole.SystemRoles)
-    {
-        options.AddPolicy(role, policy => policy.Requirements.Add(new RoleRequirementModel(role)));
-    }
-
-    options.AddPolicy("AllRole", policy =>
-    policy.Requirements.Add(new MultiRoleRequirementModel(new[]
-        {
-            NokAir.TalkToCeo.Shared.Constants.TalkToCeoRole.Admin,
-            NokAir.TalkToCeo.Shared.Constants.TalkToCeoRole.User,
-            NokAir.TalkToCeo.Shared.Constants.TalkToCeoRole.Ceo,
-        })));
-
-    options.AddPolicy("User", policy =>
-        policy.Requirements.Add(new MultiRoleRequirementModel(new[]
-        {
-                    NokAir.TalkToCeo.Shared.Constants.TalkToCeoRole.Admin,
-                    NokAir.TalkToCeo.Shared.Constants.TalkToCeoRole.User,
-        })));
-    options.AddPolicy("Ceo", policy =>
-        policy.Requirements.Add(new MultiRoleRequirementModel(new[]
-        {
-                            NokAir.TalkToCeo.Shared.Constants.TalkToCeoRole.Admin,
-                            NokAir.TalkToCeo.Shared.Constants.TalkToCeoRole.Ceo,
-        })));
-});
 
 var app = builder.Build();
 
@@ -338,6 +345,7 @@ app.Use(async (context, next) =>
 app.UseStaticFiles();
 app.UseRouting();
 // Configure the HTTP request pipeline.
+
 app.UseMiddleware<JwtMiddleware>();
 app.UseHttpsRedirection();
 app.UseCors("AllowClient");
