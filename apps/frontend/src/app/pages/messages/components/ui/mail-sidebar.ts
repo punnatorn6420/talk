@@ -6,6 +6,7 @@ import { ButtonModule } from 'primeng/button';
 import { RippleModule } from 'primeng/ripple';
 import { CommonModule } from '@angular/common';
 import { IMail } from './mail';
+import { MessageThreadService } from '../../../../service/message-thread.service';
 
 @Component({
   selector: 'app-mail-sidebar',
@@ -72,13 +73,14 @@ export class MailSidebarComponent implements OnDestroy {
   url = '';
 
   private router = inject(Router);
-  // private mailService = inject(MailService);
+  private messageThreadService = inject(MessageThreadService);
 
   constructor() {
     this.url = this.router.url;
-    // this.mailSubscription = this.mailService.mails$.subscribe((data) =>
-    //   this.getBadgeValues(data),
-    // );
+    this.updateSidebar();
+    this.mailSubscription = this.messageThreadService.mails$.subscribe((data) =>
+      this.getBadgeValues(data),
+    );
 
     this.routeSubscription = this.router.events
       .pipe(filter((event) => event instanceof NavigationEnd))
@@ -100,9 +102,7 @@ export class MailSidebarComponent implements OnDestroy {
     for (let i = 0; i < data.length; i++) {
       const mail = data[i];
 
-      if (!Object.prototype.hasOwnProperty.call(mail, 'sent')) {
-        inbox.push(mail);
-      }
+      inbox.push(mail);
     }
 
     this.badgeValues = {
