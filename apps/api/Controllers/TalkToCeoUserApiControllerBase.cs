@@ -59,7 +59,7 @@ namespace TalkToCeoUserApi.Controllers
         /// Retrieve the profile information of the currently authenticated user.
         /// </remarks>
         /// <returns>User profile retrieved successfully</returns>
-        [Microsoft.AspNetCore.Mvc.HttpGet, Microsoft.AspNetCore.Mvc.Route("get-profile-user")]
+        [Microsoft.AspNetCore.Mvc.HttpGet, Microsoft.AspNetCore.Mvc.Route("v1/get-profile-user")]
         public abstract System.Threading.Tasks.Task<Microsoft.AspNetCore.Mvc.ActionResult> GetProfileUser();
 
         /// <summary>
@@ -69,14 +69,14 @@ namespace TalkToCeoUserApi.Controllers
         /// Use a valid refresh token to obtain a new access token.
         /// </remarks>
         /// <returns>Token refreshed successfully</returns>
-        [Microsoft.AspNetCore.Mvc.HttpPost, Microsoft.AspNetCore.Mvc.Route("refresh-token")]
+        [Microsoft.AspNetCore.Mvc.HttpPost, Microsoft.AspNetCore.Mvc.Route("v1/refresh-token")]
         public abstract System.Threading.Tasks.Task<Microsoft.AspNetCore.Mvc.ActionResult> RefreshAccessToken();
 
         /// <summary>
         /// Validate JWT token
         /// </summary>
         /// <returns>Token is valid</returns>
-        [Microsoft.AspNetCore.Mvc.HttpGet, Microsoft.AspNetCore.Mvc.Route("auth/validate-token")]
+        [Microsoft.AspNetCore.Mvc.HttpGet, Microsoft.AspNetCore.Mvc.Route("v1/auth/validate-token")]
         public abstract System.Threading.Tasks.Task<Microsoft.AspNetCore.Mvc.ActionResult> AuthenticateJwtToken();
 
     }
