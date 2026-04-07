@@ -9,19 +9,13 @@ export interface IThreadActivity {
 }
 
 export interface IMessageThread {
-  id: number;
-  postedAt: string;
+  id: string;
+  senderName: string;
   title: string;
   content: string;
-  response?: string;
-  senderId: string;
-  senderName: string;
-  senderJobTitle: string;
-  senderDepartment: string;
-  status: ThreadStatus;
-  seenAt?: string;
-  answeredAt?: string;
-  activities: IThreadActivity[];
+  postedAt: string | Date;
+  status: 'UNREAD' | 'SEEN' | 'ANSWERED';
+  avatarUrl?: string;
 }
 
 export interface ICreateThreadPayload {
