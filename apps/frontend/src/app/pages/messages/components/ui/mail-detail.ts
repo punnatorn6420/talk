@@ -10,7 +10,7 @@ import { ButtonModule } from 'primeng/button';
 import { RippleModule } from 'primeng/ripple';
 import { EditorModule } from 'primeng/editor';
 import { FormsModule } from '@angular/forms';
-import { Mail } from './mail';
+import { IMail } from './mail';
 
 @Component({
   standalone: true,
@@ -39,29 +39,29 @@ import { Mail } from './mail';
             (click)="goBack()"
             aria-label="Go Back"
           ></button>
-          @if (mail && mail.image) {
+          <!-- @if (mail && mail.image) {
             <p-avatar
               [image]="'/demo/images/avatar/' + mail.image"
               size="large"
               shape="circle"
               class="border-2 border-surface-200 dark:border-surface-700"
             ></p-avatar>
-          }
+          } -->
           <div class="flex flex-col mx-4">
             <span
               class="block text-surface-900 dark:text-surface-0 font-bold text-lg"
-              >{{ mail.from }}</span
+              >{{ mail.modifiedBy }}</span
             >
             <span
               class="block text-surface-900 dark:text-surface-0 font-semibold"
-              >To: {{ mail.email || mail.to }}</span
+              >To: {{ mail.email }}</span
             >
           </div>
         </div>
         <div class="flex items-center justify-end gap-x-4 px-6 md:px-0">
           <span
             class="text-surface-900 dark:text-surface-0 font-semibold whitespace-nowrap mr-auto"
-            >{{ mail.date }}</span
+            >{{ mail.createdAt }}</span
           >
           <button
             pButton
@@ -91,7 +91,7 @@ import { Mail } from './mail';
         <div
           class="text-surface-900 dark:text-surface-0 font-semibold text-lg mb-4"
         >
-          {{ mail.title }}
+          {{ mail.subject }}
         </div>
         <p class="leading-normal mt-0 mb-4" [innerHTML]="mail.message"></p>
         <p-editor
@@ -136,25 +136,37 @@ export class MailDetailComponent implements OnDestroy {
   private router = inject(Router);
   private messageService = inject(MessageService);
 
-  newMail: Mail = {
-    id: '',
-    to: '',
-    email: '',
-    image: '',
-    title: '',
+  newMail: IMail = {
+    id: 0,
+    subject: '',
     message: '',
-    date: '',
-    important: false,
-    starred: false,
-    trash: false,
-    spam: false,
-    archived: false,
-    sent: true,
+    reply: '',
+    status: '',
+    postedAt: '',
+    repliedAt: '',
+    createdAt: '',
+    modifiedAt: '',
+    createdBy: '',
+    modifiedBy: '',
+    email: '',
   };
 
   subscription: Subscription;
 
-  mail: Mail = {};
+  mail: IMail = {
+    id: 0,
+    subject: '',
+    message: '',
+    reply: '',
+    status: '',
+    postedAt: '',
+    repliedAt: '',
+    createdAt: '',
+    modifiedAt: '',
+    createdBy: '',
+    modifiedBy: '',
+    email: '',
+  };
 
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   id: any;
@@ -178,8 +190,8 @@ export class MailDetailComponent implements OnDestroy {
 
   sendMail() {
     if (this.newMail.message) {
-      this.newMail.to = this.mail.from ? this.mail.from : this.mail.to;
-      this.newMail.image = this.mail.image;
+      // this.newMail.to = this.mail.from ? this.mail.from : this.mail.to;
+      // this.newMail.image = this.mail.image;
 
       this.mailService.onSend(this.newMail);
       this.messageService.add({

@@ -3,7 +3,7 @@ import { Router } from '@angular/router';
 import { Subscription } from 'rxjs';
 import { MailService } from './service/mail.service';
 import { MailTableComponent } from './mail-table';
-import { Mail } from './mail';
+import { IMail } from './mail';
 
 @Component({
   selector: 'app-mail-inbox',
@@ -12,7 +12,7 @@ import { Mail } from './mail';
   template: `<app-mail-table [mails]="mails"></app-mail-table>`,
 })
 export class MailInboxComponent implements OnDestroy {
-  mails: Mail[] = [];
+  mails: IMail[] = [];
 
   subscription: Subscription;
 
@@ -23,7 +23,7 @@ export class MailInboxComponent implements OnDestroy {
     this.subscription = this.mailService.mails$.subscribe((data) => {
       this.mails = data.filter(
         // eslint-disable-next-line no-prototype-builtins
-        (d) => !d.archived && !d.spam && !d.trash && !d.hasOwnProperty('sent'),
+        (d) => !d.hasOwnProperty('sent'),
       );
     });
   }
