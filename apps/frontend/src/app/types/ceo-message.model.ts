@@ -14,7 +14,10 @@ export interface ICeoMessage {
   subject: string;
   detail: string;
   ceoReply?: string;
+  senderId: string;
   senderName: string;
+  senderJobTitle: string;
+  senderDepartment: string;
   status: MessageStatus;
   readAt?: string;
   repliedAt?: string;
@@ -24,5 +27,8 @@ export interface ICeoMessage {
 export interface ICreateMessagePayload {
   subject: string;
   detail: string;
+  senderId: string;
   senderName: string;
+  senderJobTitle: string;
+  senderDepartment: string;
 }

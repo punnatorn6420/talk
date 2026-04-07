@@ -17,7 +17,10 @@ export class CeoMessageService {
       subject: 'ขออนุมัติโปรเจ็คปรับปรุงระบบ CRM',
       detail:
         'ทีมขายต้องการเพิ่ม automation flow สำหรับ lead scoring และติดตาม conversion ให้แม่นยำขึ้น ขออนุมัติงบประมาณ 450,000 บาทครับ',
+      senderId: 'u-100',
       senderName: 'Narin P.',
+      senderJobTitle: 'Sales Manager',
+      senderDepartment: 'Sales',
       status: 'REPLIED',
       readAt: '2026-03-30T10:20:00Z',
       repliedAt: '2026-03-30T11:05:00Z',
@@ -51,7 +54,10 @@ export class CeoMessageService {
       subject: 'แจ้งปัญหาคอขวดในขั้นตอนเบิกจ่าย',
       detail:
         'ขั้นตอนอนุมัติ PO ใช้เวลานานเกิน 6 วันทำการ ส่งผลกระทบกับการ onboard vendor ใหม่ อยากเสนอให้ลดระดับการอนุมัติลงหนึ่งชั้น',
+      senderId: 'u-101',
       senderName: 'Mali S.',
+      senderJobTitle: 'Finance Analyst',
+      senderDepartment: 'Finance',
       status: 'READ',
       readAt: '2026-04-01T07:20:00Z',
       history: [
@@ -75,7 +81,10 @@ export class CeoMessageService {
       subject: 'เสนอแผนกิจกรรม Townhall Q2',
       detail:
         'ขอ slot เวลา 45 นาที ใน Townhall สำหรับ update กลยุทธ์งาน product roadmap และ Q&A จากพนักงานทุกฝ่าย',
+      senderId: 'u-102',
       senderName: 'Korn T.',
+      senderJobTitle: 'Product Owner',
+      senderDepartment: 'Product',
       status: 'SENT',
       history: [
         {
@@ -115,7 +124,10 @@ export class CeoMessageService {
       postedAt: now,
       subject: payload.subject,
       detail: payload.detail,
+      senderId: payload.senderId,
       senderName: payload.senderName,
+      senderJobTitle: payload.senderJobTitle,
+      senderDepartment: payload.senderDepartment,
       status: 'SENT',
       history: [postedHistory],
     };
