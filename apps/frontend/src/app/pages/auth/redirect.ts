@@ -54,7 +54,7 @@ export class Redirect extends SubscriptionDestroyer implements OnInit {
             next: (p) => {
               if (!p?.data) return this.fail('User profile not found');
               this.auth.setUser(p.data);
-              this.router.navigate(['/admin/dashboard'], { replaceUrl: true });
+              this.router.navigate(['/admin/messages'], { replaceUrl: true });
             },
             error: (e) =>
               this.fail(e?.error?.message || 'Failed to load user profile'),

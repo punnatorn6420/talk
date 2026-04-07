@@ -8,7 +8,7 @@ export const appRoutes: Route[] = [
     path: 'admin',
     component: AppLayout,
     children: [
-      { path: '', redirectTo: 'dashboard', pathMatch: 'full' },
+      { path: '', redirectTo: 'messages', pathMatch: 'full' },
       {
         path: '',
         loadChildren: () => import('../app/pages/pages.routes'),
