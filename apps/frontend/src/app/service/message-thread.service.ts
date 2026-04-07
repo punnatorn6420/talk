@@ -26,19 +26,9 @@ export class MessageThreadService {
       response:
         'อนุมัติในหลักการครับ ให้สรุป scope และ ROI อีกครั้งก่อนเริ่ม implement ภายในสัปดาห์นี้',
       activities: [
-        {
-          id: 1,
-          action: 'CREATED',
-          actor: 'Punnatorn Yimpong',
-          at: '2026-03-30T08:40:00Z',
-        },
+        { id: 1, action: 'CREATED', actor: 'Punnatorn Yimpong', at: '2026-03-30T08:40:00Z' },
         { id: 2, action: 'SEEN', actor: 'Admin', at: '2026-03-30T10:20:00Z' },
-        {
-          id: 3,
-          action: 'ANSWERED',
-          actor: 'Admin',
-          at: '2026-03-30T11:05:00Z',
-        },
+        { id: 3, action: 'ANSWERED', actor: 'Admin', at: '2026-03-30T11:05:00Z' },
       ],
     },
     {
@@ -54,20 +44,13 @@ export class MessageThreadService {
       status: 'SEEN',
       seenAt: '2026-04-01T07:20:00Z',
       activities: [
-        {
-          id: 4,
-          action: 'CREATED',
-          actor: 'Mali S.',
-          at: '2026-04-01T04:10:00Z',
-        },
+        { id: 4, action: 'CREATED', actor: 'Mali S.', at: '2026-04-01T04:10:00Z' },
         { id: 5, action: 'SEEN', actor: 'Admin', at: '2026-04-01T07:20:00Z' },
       ],
     },
   ];
 
-  private readonly threadsSubject = new BehaviorSubject<IMessageThread[]>(
-    this.seedThreads,
-  );
+  private readonly threadsSubject = new BehaviorSubject<IMessageThread[]>(this.seedThreads);
 
   getThreads(): Observable<IMessageThread[]> {
     return this.threadsSubject.asObservable().pipe(delay(150));
@@ -75,10 +58,7 @@ export class MessageThreadService {
 
   createThread(payload: ICreateThreadPayload): Observable<IMessageThread> {
     const now = new Date().toISOString();
-    const nextId = this.threadsSubject.value.reduce(
-      (max, thread) => Math.max(max, thread.id),
-      1000,
-    );
+    const nextId = this.threadsSubject.value.reduce((max, thread) => Math.max(max, thread.id), 1000);
 
     const createdActivity: IThreadActivity = {
       id: Date.now(),
@@ -102,5 +82,34 @@ export class MessageThreadService {
 
     this.threadsSubject.next([newThread, ...this.threadsSubject.value]);
     return of(newThread).pipe(delay(120));
+  }
+
+  replyThread(threadId: number, response: string): Observable<IMessageThread | null> {
+    const now = new Date().toISOString();
+    const updated = this.threadsSubject.value.map((thread) => {
+      if (thread.id !== threadId) {
+        return thread;
+      }
+
+      return {
+        ...thread,
+        status: 'ANSWERED' as const,
+        answeredAt: now,
+        response,
+        activities: [
+          ...thread.activities,
+          {
+            id: Date.now(),
+            action: 'ANSWERED',
+            actor: 'Admin',
+            at: now,
+          } as IThreadActivity,
+        ],
+      };
+    });
+
+    this.threadsSubject.next(updated);
+    const thread = updated.find((item) => item.id === threadId) ?? null;
+    return of(thread).pipe(delay(120));
   }
 }
