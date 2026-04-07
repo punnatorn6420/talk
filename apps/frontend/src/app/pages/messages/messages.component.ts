@@ -11,7 +11,11 @@ import { AuthService } from '../../service/auth.service';
 import { MessageThreadService } from '../../service/message-thread.service';
 import { SubscriptionDestroyer } from '../../shared/core/helper/SubscriptionDestroyer.helper';
 import { IUserInfo, IUserRole } from '../../types/auth.model';
-import { ICreateThreadPayload, IMessageThread, ThreadStatus } from '../../types/message-thread.model';
+import {
+  ICreateThreadPayload,
+  IMessageThread,
+  ThreadStatus,
+} from '../../types/message-thread.model';
 
 @Component({
   selector: 'app-messages',
@@ -56,7 +60,9 @@ export class MessagesComponent extends SubscriptionDestroyer implements OnInit {
         this.threads = threads;
         this.visibleThreads = this.isAdminView
           ? threads
-          : threads.filter((thread) => thread.senderId === this.currentUser.objectId);
+          : threads.filter(
+              (thread) => thread.senderId === this.currentUser.objectId,
+            );
         this.selectedThread = this.visibleThreads[0] ?? null;
       }),
     );
