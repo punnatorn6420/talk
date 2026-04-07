@@ -1,12 +1,11 @@
 import { Component, Input, OnInit, inject } from '@angular/core';
 import { Router } from '@angular/router';
-import { MenuItem, MessageService } from 'primeng/api';
+import { MenuItem } from 'primeng/api';
 import { Table, TableModule } from 'primeng/table';
 import { ButtonModule } from 'primeng/button';
 import { CommonModule } from '@angular/common';
 import { DialogModule } from 'primeng/dialog';
 import { RippleModule } from 'primeng/ripple';
-import { MailService } from './service/mail.service';
 import { AvatarModule } from 'primeng/avatar';
 import { MenuModule } from 'primeng/menu';
 import { IconFieldModule } from 'primeng/iconfield';
@@ -14,6 +13,7 @@ import { InputIconModule } from 'primeng/inputicon';
 import { InputTextModule } from 'primeng/inputtext';
 import { TooltipModule } from 'primeng/tooltip';
 import { IMail } from './mail';
+import { SubscriptionDestroyer } from '../../../../shared/core/helper/SubscriptionDestroyer.helper';
 
 @Component({
   selector: 'app-mail-table',
@@ -34,32 +34,16 @@ import { IMail } from './mail';
   template: `<p-table
     #dt
     [value]="mails"
-    responsiveLayout="scroll"
     [rows]="10"
     [globalFilterFields]="['from', 'title', 'message']"
     [paginator]="true"
     [rowsPerPageOptions]="[10, 20, 30]"
     [(selection)]="selectedMails"
-    selectionMode="multiple"
     [rowHover]="true"
     dataKey="id"
   >
     <ng-template #caption>
-      <div class="flex flex-wrap items-center justify-between gap-3">
-        <div class="flex gap-2 items-center">
-          <p-tableHeaderCheckbox></p-tableHeaderCheckbox>
-          <button
-            aria-label="Refresh"
-            pButton
-            pRipple
-            type="button"
-            icon="pi pi-refresh"
-            rounded
-            text
-            plain
-            class="ml-4"
-          ></button>
-        </div>
+      <div class="flex flex-wrap items-center justify-end gap-3">
         <p-iconfield>
           <p-inputicon class="pi pi-search" />
           <input
@@ -79,37 +63,21 @@ import { IMail } from './mail';
         (click)="onRowSelect(mail.id)"
         class="cursor-pointer"
       >
-        <td style="width: 4rem" class="pl-3">
-          <p-tableCheckbox
-            [value]="mail"
-            (click)="$event.stopPropagation()"
-            (touchend)="$event.stopPropagation()"
-          ></p-tableCheckbox>
-        </td>
-        <td style="min-width: 4rem">
-          <p-avatar
-            [image]="
-              mail.image
-                ? '/demo/images/avatar/' + mail.image
-                : 'assets/layout/images/avatar.png'
-            "
-          ></p-avatar>
-        </td>
         <td style="min-width: 12rem" class="text-900 font-semibold">
-          {{ mail.from || mail.to }}
+          {{ mail.createdBy }}
         </td>
         <td style="min-width: 12rem">
           <span
             class="font-medium white-space-nowrap overflow-hidden text-overflow-ellipsis block"
             style="max-width: 30rem"
           >
-            {{ mail.title }}
+            {{ mail.subject }}
           </span>
         </td>
         <td style="width: 12rem;">
           <div class="flex justify-content-end w-full px-0">
             <span #date class="text-700 font-semibold white-space-nowrap">
-              {{ mail.date }}
+              {{ mail.createdAt }}
             </span>
             <div style="display: none" #options>
               <button
@@ -141,7 +109,10 @@ import { IMail } from './mail';
     </ng-template>
   </p-table> `,
 })
-export class MailTableComponent implements OnInit {
+export class MailTableComponent
+  extends SubscriptionDestroyer
+  implements OnInit
+{
   @Input() mails!: IMail[];
 
   menuItems: MenuItem[] = [];
@@ -161,22 +132,21 @@ export class MailTableComponent implements OnInit {
     createdBy: '',
     modifiedBy: '',
     email: '',
+    jobTitle: '',
+    department: '',
+    fullName: '',
   };
 
   dialogVisible = false;
 
   private router = inject(Router);
-  private mailService = inject(MailService);
-  private messageService = inject(MessageService);
 
   constructor() {
-    /* empty */
+    super();
   }
 
-  // eslint-disable-next-line @angular-eslint/no-empty-lifecycle-method
-  ngOnInit(): void {
-    /* empty */
-  }
+  // eslint-disable-next-line @typescript-eslint/no-empty-function, @angular-eslint/no-empty-lifecycle-method
+  ngOnInit(): void {}
 
   toggleOptions(event: Event, opt: HTMLElement, date: HTMLElement) {
     if (event.type === 'mouseenter') {
@@ -190,16 +160,6 @@ export class MailTableComponent implements OnInit {
 
   onRowSelect(id: number) {
     this.router.navigate(['/admin/messages/detail/', id]);
-  }
-
-  onDelete(id: number) {
-    this.mailService.onDelete(id);
-    this.messageService.add({
-      severity: 'info',
-      summary: 'Info',
-      detail: 'Mail deleted',
-      life: 3000,
-    });
   }
 
   // onDeleteMultiple() {
@@ -216,7 +176,7 @@ export class MailTableComponent implements OnInit {
 
   onTrash(event: Event, mail: IMail) {
     event.stopPropagation();
-    this.mailService.onTrash(mail.id);
+    // this.mailService.onTrash(mail.id);
   }
 
   onReply(event: Event, mail: IMail) {

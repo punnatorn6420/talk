@@ -3,7 +3,6 @@ import { ToastModule } from 'primeng/toast';
 import { MailSidebarComponent } from './mail-sidebar';
 import { RouterModule } from '@angular/router';
 import { MessageService } from 'primeng/api';
-import { MailService } from './service/mail.service';
 
 @Component({
   selector: 'app-mail-app',
@@ -22,6 +21,6 @@ import { MailService } from './service/mail.service';
       </div>
     </div>
   `,
-  providers: [MessageService, MailService],
+  providers: [MessageService],
 })
 export class MailAppComponent {}

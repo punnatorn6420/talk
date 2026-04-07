@@ -1,7 +1,6 @@
 import { Component, OnDestroy, inject } from '@angular/core';
 import { MenuItem } from 'primeng/api';
 import { NavigationEnd, Router, RouterModule } from '@angular/router';
-import { MailService } from './service/mail.service';
 import { filter, Subscription } from 'rxjs';
 import { ButtonModule } from 'primeng/button';
 import { RippleModule } from 'primeng/ripple';
@@ -66,20 +65,20 @@ export class MailSidebarComponent implements OnDestroy {
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   badgeValues: any;
 
-  mailSubscription: Subscription;
+  mailSubscription: Subscription | undefined;
 
   routeSubscription: Subscription;
 
   url = '';
 
   private router = inject(Router);
-  private mailService = inject(MailService);
+  // private mailService = inject(MailService);
 
   constructor() {
     this.url = this.router.url;
-    this.mailSubscription = this.mailService.mails$.subscribe((data) =>
-      this.getBadgeValues(data),
-    );
+    // this.mailSubscription = this.mailService.mails$.subscribe((data) =>
+    //   this.getBadgeValues(data),
+    // );
 
     this.routeSubscription = this.router.events
       .pipe(filter((event) => event instanceof NavigationEnd))
@@ -167,7 +166,7 @@ export class MailSidebarComponent implements OnDestroy {
   }
 
   ngOnDestroy() {
-    this.mailSubscription.unsubscribe();
+    this.mailSubscription?.unsubscribe();
     this.routeSubscription.unsubscribe();
   }
 }

@@ -1,9 +1,9 @@
-import { Component, OnDestroy, inject } from '@angular/core';
+import { Component, OnDestroy, OnInit, inject } from '@angular/core';
 import { Router } from '@angular/router';
-import { Subscription } from 'rxjs';
-import { MailService } from './service/mail.service';
 import { MailTableComponent } from './mail-table';
 import { IMail } from './mail';
+import { SubscriptionDestroyer } from '../../../../shared/core/helper/SubscriptionDestroyer.helper';
+import { MessageThreadService } from '../../../../service/message-thread.service';
 
 @Component({
   selector: 'app-mail-inbox',
@@ -11,24 +11,35 @@ import { IMail } from './mail';
   imports: [MailTableComponent],
   template: `<app-mail-table [mails]="mails"></app-mail-table>`,
 })
-export class MailInboxComponent implements OnDestroy {
+export class MailInboxComponent
+  extends SubscriptionDestroyer
+  implements OnDestroy, OnInit
+{
   mails: IMail[] = [];
 
-  subscription: Subscription;
-
-  private mailService = inject(MailService);
   private router = inject(Router);
+  private service = inject(MessageThreadService);
 
   constructor() {
-    this.subscription = this.mailService.mails$.subscribe((data) => {
-      this.mails = data.filter(
-        // eslint-disable-next-line no-prototype-builtins
-        (d) => !d.hasOwnProperty('sent'),
-      );
-    });
+    super();
+    // this.subscription = this.mailService.mails$.subscribe((data) => {
+    //   this.mails = data.filter(
+    //     // eslint-disable-next-line no-prototype-builtins
+    //     (d) => !d.hasOwnProperty('sent'),
+    //   );
+    // });
   }
 
-  ngOnDestroy() {
-    this.subscription.unsubscribe();
+  // eslint-disable-next-line @angular-eslint/no-empty-lifecycle-method
+  override ngOnDestroy() {
+    // this.subscription.unsubscribe();
+  }
+
+  // eslint-disable-next-line @angular-eslint/no-empty-lifecycle-method
+  ngOnInit() {
+    // const obs = this.service.getMessageCriteria({}).subscribe((res) => {
+    //   this.mails = Array.isArray(res?.data?.items) ? res.data.items : [];
+    // });
+    // this.AddSubscription(obs);
   }
 }

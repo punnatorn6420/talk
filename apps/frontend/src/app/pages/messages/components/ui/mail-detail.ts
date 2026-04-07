@@ -1,9 +1,6 @@
 import { Component, OnDestroy, inject } from '@angular/core';
 import { ActivatedRoute, Router } from '@angular/router';
 import { CommonModule, Location } from '@angular/common';
-import { Subscription } from 'rxjs';
-import { switchMap } from 'rxjs/operators';
-import { MailService } from './service/mail.service';
 import { MessageService } from 'primeng/api';
 import { AvatarModule } from 'primeng/avatar';
 import { ButtonModule } from 'primeng/button';
@@ -131,7 +128,6 @@ import { IMail } from './mail';
 })
 export class MailDetailComponent implements OnDestroy {
   private route = inject(ActivatedRoute);
-  private mailService = inject(MailService);
   private location = inject(Location);
   private router = inject(Router);
   private messageService = inject(MessageService);
@@ -149,9 +145,10 @@ export class MailDetailComponent implements OnDestroy {
     createdBy: '',
     modifiedBy: '',
     email: '',
+    jobTitle: '',
+    department: '',
+    fullName: '',
   };
-
-  subscription: Subscription;
 
   mail: IMail = {
     id: 0,
@@ -166,22 +163,25 @@ export class MailDetailComponent implements OnDestroy {
     createdBy: '',
     modifiedBy: '',
     email: '',
+    jobTitle: '',
+    department: '',
+    fullName: '',
   };
 
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   id: any;
 
   constructor() {
-    this.subscription = this.route.params
-      .pipe(
-        switchMap((params) => {
-          this.id = params['id'];
-          return this.mailService.mails$;
-        }),
-      )
-      .subscribe((data) => {
-        this.mail = data.filter((d) => d.id == this.id)[0];
-      });
+    // this.subscription = this.route.params
+    //   .pipe(
+    //     switchMap((params) => {
+    //       this.id = params['id'];
+    //       return this.mailService.mails$;
+    //     }),
+    //   )
+    //   .subscribe((data) => {
+    //     this.mail = data.filter((d) => d.id == this.id)[0];
+    //   });
   }
 
   goBack() {
@@ -193,7 +193,7 @@ export class MailDetailComponent implements OnDestroy {
       // this.newMail.to = this.mail.from ? this.mail.from : this.mail.to;
       // this.newMail.image = this.mail.image;
 
-      this.mailService.onSend(this.newMail);
+      // this.mailService.onSend(this.newMail);
       this.messageService.add({
         severity: 'success',
         summary: 'Success',
@@ -203,7 +203,8 @@ export class MailDetailComponent implements OnDestroy {
     }
   }
 
+  // eslint-disable-next-line @angular-eslint/no-empty-lifecycle-method
   ngOnDestroy() {
-    this.subscription.unsubscribe();
+    // this.subscription.unsubscribe();
   }
 }
