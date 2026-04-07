@@ -304,7 +304,6 @@ export class AppConfigurator implements OnInit {
 
   themeOptions = [
     { name: 'Light', value: false },
-    { name: 'Dark', value: true },
   ];
 
   ngOnInit() {
@@ -312,7 +311,11 @@ export class AppConfigurator implements OnInit {
       const savedConfig = localStorage.getItem('user-theme-config');
       if (savedConfig) {
         const config = JSON.parse(savedConfig);
-        const nextConfig = { ...config, lang: config.lang ?? 'th' };
+        const nextConfig = {
+          ...config,
+          darkTheme: false,
+          lang: config.lang ?? 'th',
+        };
         this.layoutService.layoutConfig.update(() => nextConfig);
         this.onPresetChange(nextConfig.preset);
       } else {
@@ -695,7 +698,7 @@ export class AppConfigurator implements OnInit {
   executeDarkModeToggle() {
     this.layoutService.layoutConfig.update((state) => ({
       ...state,
-      darkTheme: !state.darkTheme,
+      darkTheme: false,
     }));
     this.persistLayoutConfig();
   }
