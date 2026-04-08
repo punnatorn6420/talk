@@ -131,7 +131,9 @@ namespace NokAir.TalkToCeo.Api.Controllers
 
                 var role = user.Roles.FirstOrDefault();
 
-                var excludeDraft = role == "CEO" || role == "Ceo";
+                var isCeo = role?.Equals("Ceo", StringComparison.OrdinalIgnoreCase) == true;
+
+                var excludeDraft = isCeo;
 
                 var result =
                     await this.messageService.GetMessagesCriteriaAsync(
@@ -142,6 +144,7 @@ namespace NokAir.TalkToCeo.Api.Controllers
                         ascending ?? true,
                         excludeDraft,
                         user.Id.ToString(CultureInfo.CurrentCulture) ?? string.Empty,
+                        isCeo,
                         searchStartDate,
                         searchEndDate);
 

@@ -171,6 +171,7 @@ namespace NokAir.TalkToCeo.Shared.Services
             bool ascending,
             bool excludeDraft,
             string userIdFilter,
+            bool isCeo,
             DateTimeOffset? searchStartDate,
             DateTimeOffset? searchEndDate)
         {
@@ -183,6 +184,7 @@ namespace NokAir.TalkToCeo.Shared.Services
                     ascending,
                     excludeDraft,
                     userIdFilter,
+                    isCeo,
                     searchStartDate,
                     searchEndDate);
 

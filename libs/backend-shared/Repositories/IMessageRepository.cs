@@ -54,6 +54,7 @@ namespace NokAir.TalkToCeo.Shared.Repositories
         /// <param name="ascending">Indicates whether the sorting should be in ascending order.</param>
         /// <param name="excludeDraft">Indicates whether to exclude draft messages from the results.</param>
         /// <param name="userIdFilter">Optional filter to retrieve messages for a specific user.</param>
+        /// <param name="isCeo">Indicates whether the user is a CEO.</param>
         /// <param name="searchStartDate">The start date for filtering messages.</param>
         /// <param name="searchEndDate">The end date for filtering messages.</param>
         /// <returns>A paged result containing messages that match the specified criteria.</returns>
@@ -65,6 +66,7 @@ namespace NokAir.TalkToCeo.Shared.Repositories
             bool ascending,
             bool excludeDraft,
             string userIdFilter,
+            bool isCeo,
             DateTimeOffset? searchStartDate,
             DateTimeOffset? searchEndDate);
     }
