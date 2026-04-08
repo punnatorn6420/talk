@@ -1,21 +1,30 @@
-using System;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using NokAir.Core.Exceptions;
 using NokAir.Shared.Api.Responses.Factories;
+using NokAir.Shared.Security.HttpHeaderFilters;
 using NokAir.TalkToCeo.Shared.Dtos;
-using NokAir.TalkToCeo.Shared.Services;
-using TalkToCeoApi.Controllers;
 using NokAir.TalkToCeo.Shared.Entities.Common;
 using NokAir.TalkToCeo.Shared.Enums;
+using NokAir.TalkToCeo.Shared.Services;
+using TalkToCeoApi.Controllers;
 
-namespace NokAir.TalkToCeo.api.Controllers
+namespace NokAir.TalkToCeo.Api.Controllers
 {
-    public class TalkToCeoApiController : TalkToCeoApiControllerControllerBase
+    /// <summary>
+    /// Controller for handling API requests related to the "Talk to CEO" feature. This controller provides endpoints for creating, retrieving, updating, and deleting messages, as well as replying to messages and updating their read status. The controller uses dependency injection to access the message service and user service, allowing it to perform necessary operations while adhering to the principles of separation of concerns and maintainability. Each endpoint is secured with appropriate authorization policies to ensure that only users with the correct roles can access specific functionalities.
+    /// </summary>
+    public class TalkToCeoApiController : TalkToCeoApiControllerBase
     {
         private readonly IMessageService messageService;
         private readonly IUsersService<UserDto> usersService;
 
+        /// <summary>
+        /// Initializes a new instance of the <see cref="TalkToCeoApiController"/> class with the specified dependencies. The constructor takes in an IResponseFactory for creating API responses, an IMessageService for handling message-related operations, and an IUsersService for managing user information. These dependencies are injected into the controller to allow it to perform its functions effectively while maintaining a clean separation of concerns. The constructor also calls the base class constructor to ensure that any necessary initialization in the base class is performed correctly.
+        /// </summary>
+        /// <param name="apiResponseFactory">The factory for creating API responses.</param>
+        /// <param name="messageService">The service for handling message-related operations.</param>
+        /// <param name="usersService">The service for managing user information.</param>
         public TalkToCeoApiController(
               IResponseFactory apiResponseFactory,
               IMessageService messageService,
@@ -26,12 +35,15 @@ namespace NokAir.TalkToCeo.api.Controllers
             this.usersService = usersService;
         }
 
+        /// <inheritdoc/>
         [Authorize(Policy = "UserRole")]
-        public override async Task<ActionResult> CreateMessage([FromBody] CreateMessageRequestDto body)
+        [ClientApplicationValidationWithIDAndSecretAttribute]
+        public override async Task<ActionResult> CreateMessageAsync([FromBody] CreateMessageRequestDto body)
         {
             try
             {
                 var token = this.HttpContext.Request.Headers.Authorization.ToString().Replace("Bearer ", string.Empty);
+
                 var user = await this.usersService.GetUserFromTokenAsync(token);
 
                 var userNameAcc = (user?.FirstName ?? string.Empty) + " " + (user?.LastName ?? string.Empty);
@@ -43,7 +55,7 @@ namespace NokAir.TalkToCeo.api.Controllers
 
                 body.UserId = user.Id;
                 body.UserName = userNameAcc;
-                await messageService.CreateAsync(body);
+                await this.messageService.CreateAsync(body);
 
                 return this.OkSuccessResponse();
             }
@@ -57,12 +69,14 @@ namespace NokAir.TalkToCeo.api.Controllers
             }
         }
 
+        /// <inheritdoc/>
         [Authorize(Policy = "UserRole")]
+        [ClientApplicationValidationWithIDAndSecretAttribute]
         public override async Task<ActionResult> DeleteMessage(int id)
         {
             try
             {
-                var result = await messageService.GetByIdAsync(id);
+                var result = await this.messageService.GetByIdAsync(id);
 
                 if (result == null)
                 {
@@ -71,12 +85,13 @@ namespace NokAir.TalkToCeo.api.Controllers
 
                 if (result.Status == ActionStatus.Draft)
                 {
-                    await messageService.DeleteAsync(id);
+                    await this.messageService.DeleteAsync(id);
                 }
                 else
                 {
                     throw new DataValidationException("Only messages with Draft status can be deleted.");
                 }
+
                 return this.OkSuccessResponse();
             }
             catch (DataValidationException ex)
@@ -87,10 +102,11 @@ namespace NokAir.TalkToCeo.api.Controllers
             {
                 return this.InternalServerErrorResponseFromException(ex);
             }
-
         }
 
+        /// <inheritdoc/>
         [Authorize(Policy = "AllRole")]
+        [ClientApplicationValidationWithIDAndSecretAttribute]
         public override async Task<ActionResult> GetAllMessages(
             [FromQuery] string keyword,
             [FromQuery] string sortField,
@@ -102,16 +118,14 @@ namespace NokAir.TalkToCeo.api.Controllers
         {
             try
             {
-                var userId =
-             User.FindFirst("user_id")?.Value;
+                var userId = this.User.FindFirst("user_id")?.Value;
 
-                var role =
-                    User.FindFirst(System.Security.Claims.ClaimTypes.Role)?.Value;
+                var role = this.User.FindFirst(System.Security.Claims.ClaimTypes.Role)?.Value;
 
                 var excludeDraft = role == "CEO";
 
                 var result =
-                    await messageService.GetMessagesCriteriaAsync(
+                    await this.messageService.GetMessagesCriteriaAsync(
                         keyword,
                         sortField,
                         pageNumber ?? 1,
@@ -120,10 +134,7 @@ namespace NokAir.TalkToCeo.api.Controllers
                         excludeDraft,
                         searchStartDate,
                         searchEndDate,
-                        role == "CEO"
-                            ? null
-                            : userId
-                    );
+                        role == "CEO" ? null : userId);
 
                 return this.OkResponseWithResult(result);
             }
@@ -137,12 +148,14 @@ namespace NokAir.TalkToCeo.api.Controllers
             }
         }
 
+        /// <inheritdoc/>
         [Authorize(Policy = "AllRole")]
+        [ClientApplicationValidationWithIDAndSecretAttribute]
         public override async Task<ActionResult> GetMessageDetail(int id)
         {
             try
             {
-                var result = await messageService.GetByIdAsync(id);
+                var result = await this.messageService.GetByIdAsync(id);
 
                 return this.OkResponseWithResult(result);
             }
@@ -156,12 +169,14 @@ namespace NokAir.TalkToCeo.api.Controllers
             }
         }
 
+        /// <inheritdoc/>
         [Authorize(Policy = "CeoRole")]
+        [ClientApplicationValidationWithIDAndSecretAttribute]
         public override async Task<ActionResult> ReplyMessage(int id, [FromBody] ReplyMessageRequestDto body)
         {
             try
             {
-                var result = await messageService.GetByIdAsync(id);
+                var result = await this.messageService.GetByIdAsync(id);
 
                 if (result == null)
                 {
@@ -173,7 +188,7 @@ namespace NokAir.TalkToCeo.api.Controllers
                     throw new DataValidationException("Only messages without reply can be replied.");
                 }
 
-                await messageService.ReplyAsync(id, body);
+                await this.messageService.ReplyAsync(id, body);
 
                 return this.OkSuccessResponse();
             }
@@ -187,12 +202,14 @@ namespace NokAir.TalkToCeo.api.Controllers
             }
         }
 
+        /// <inheritdoc/>
         [Authorize(Policy = "UserRole")]
+        [ClientApplicationValidationWithIDAndSecretAttribute]
         public override async Task<ActionResult> UpdateMessage(int id, [FromBody] CreateMessageRequestDto body)
         {
             try
             {
-                var result = await messageService.GetByIdAsync(id);
+                var result = await this.messageService.GetByIdAsync(id);
 
                 if (result == null)
                 {
@@ -204,7 +221,7 @@ namespace NokAir.TalkToCeo.api.Controllers
                     throw new DataValidationException("Only messages with Draft status can be updated.");
                 }
 
-                await messageService.UpdateAsync(id, body);
+                await this.messageService.UpdateAsync(id, body);
 
                 return this.OkSuccessResponse();
             }
@@ -218,12 +235,14 @@ namespace NokAir.TalkToCeo.api.Controllers
             }
         }
 
+        /// <inheritdoc/>
         [Authorize(Policy = "CeoRole")]
+        [ClientApplicationValidationWithIDAndSecretAttribute]
         public override async Task<ActionResult> UpdateReadStatus(int id)
         {
             try
             {
-                var result = await messageService.GetByIdAsync(id);
+                var result = await this.messageService.GetByIdAsync(id);
 
                 if (result == null)
                 {
@@ -235,7 +254,7 @@ namespace NokAir.TalkToCeo.api.Controllers
                     throw new DataValidationException("Messages with Replied status cannot be marked as Read.");
                 }
 
-                await messageService.UpdateReadStatusAsync(id);
+                await this.messageService.UpdateReadStatusAsync(id);
 
                 return this.OkSuccessResponse();
             }

@@ -27,26 +27,22 @@ namespace TalkToCeoApi.Controllers
     [System.CodeDom.Compiler.GeneratedCode("NSwag", "14.2.0.0 (NJsonSchema v11.1.0.0 (Newtonsoft.Json v13.0.0.0))")]
     [Microsoft.AspNetCore.Mvc.Route("v1")]
 
-    public abstract class TalkToCeoApiControllerControllerBase : NokAir.Shared.Controllers.InHouseControllerBase
+    public abstract class TalkToCeoApiControllerBase : NokAir.Shared.Controllers.InHouseControllerBase
     {
-        protected TalkToCeoApiControllerControllerBase(IResponseFactory apiResponseFactory) : base(apiResponseFactory)
+        protected TalkToCeoApiControllerBase(IResponseFactory apiResponseFactory) : base(apiResponseFactory)
         {
         }
 
         /// <summary>
         /// Create message to CEO
         /// </summary>
-        /// <param name="client_id">Client application id</param>
-        /// <param name="client_secret">Client application secret</param>
         /// <returns>Message created successfully</returns>
         [Microsoft.AspNetCore.Mvc.HttpPost, Microsoft.AspNetCore.Mvc.Route("messages")]
-        public abstract System.Threading.Tasks.Task<Microsoft.AspNetCore.Mvc.ActionResult> CreateMessage([Microsoft.AspNetCore.Mvc.FromBody] CreateMessageRequestDto body);
+        public abstract System.Threading.Tasks.Task<Microsoft.AspNetCore.Mvc.ActionResult> CreateMessageAsync([Microsoft.AspNetCore.Mvc.FromBody] CreateMessageRequestDto body);
 
         /// <summary>
         /// Get all messages (CEO view)
         /// </summary>
-        /// <param name="client_id">Client application id</param>
-        /// <param name="client_secret">Client application secret</param>
         /// <returns>Messages retrieved successfully</returns>
         [Microsoft.AspNetCore.Mvc.HttpGet, Microsoft.AspNetCore.Mvc.Route("messages")]
         public abstract System.Threading.Tasks.Task<Microsoft.AspNetCore.Mvc.ActionResult> GetAllMessages(
@@ -61,8 +57,6 @@ namespace TalkToCeoApi.Controllers
         /// <summary>
         /// Update message
         /// </summary>
-        /// <param name="client_id">Client application id</param>
-        /// <param name="client_secret">Client application secret</param>
         /// <returns>Message updated successfully</returns>
         [Microsoft.AspNetCore.Mvc.HttpPut, Microsoft.AspNetCore.Mvc.Route("messages/{id}/update")]
         public abstract System.Threading.Tasks.Task<Microsoft.AspNetCore.Mvc.ActionResult> UpdateMessage(int id, [Microsoft.AspNetCore.Mvc.FromBody] CreateMessageRequestDto body);
@@ -70,8 +64,6 @@ namespace TalkToCeoApi.Controllers
         /// <summary>
         /// Get message detail
         /// </summary>
-        /// <param name="client_id">Client application id</param>
-        /// <param name="client_secret">Client application secret</param>
         /// <returns>Message detail retrieved successfully</returns>
         [Microsoft.AspNetCore.Mvc.HttpGet, Microsoft.AspNetCore.Mvc.Route("messages/{id}")]
         public abstract System.Threading.Tasks.Task<Microsoft.AspNetCore.Mvc.ActionResult> GetMessageDetail(int id);
@@ -79,8 +71,6 @@ namespace TalkToCeoApi.Controllers
         /// <summary>
         /// Delete message
         /// </summary>
-        /// <param name="client_id">Client application id</param>
-        /// <param name="client_secret">Client application secret</param>
         /// <returns>Message deleted successfully</returns>
         [Microsoft.AspNetCore.Mvc.HttpDelete, Microsoft.AspNetCore.Mvc.Route("messages/{id}")]
         public abstract System.Threading.Tasks.Task<Microsoft.AspNetCore.Mvc.ActionResult> DeleteMessage(int id);
@@ -88,8 +78,6 @@ namespace TalkToCeoApi.Controllers
         /// <summary>
         /// Reply message (CEO only)
         /// </summary>
-        /// <param name="client_id">Client application id</param>
-        /// <param name="client_secret">Client application secret</param>
         /// <returns>The reply have been successfully retrieved</returns>
         [Microsoft.AspNetCore.Mvc.HttpPut, Microsoft.AspNetCore.Mvc.Route("messages/{id}/reply")]
         public abstract System.Threading.Tasks.Task<Microsoft.AspNetCore.Mvc.ActionResult> ReplyMessage(int id, [Microsoft.AspNetCore.Mvc.FromBody] ReplyMessageRequestDto body);
@@ -97,8 +85,6 @@ namespace TalkToCeoApi.Controllers
         /// <summary>
         /// Update status
         /// </summary>
-        /// <param name="client_id">Client application id</param>
-        /// <param name="client_secret">Client application secret</param>
         /// <returns>Status updated successfully</returns>
         [Microsoft.AspNetCore.Mvc.HttpPut, Microsoft.AspNetCore.Mvc.Route("messages/{id}/read")]
         public abstract System.Threading.Tasks.Task<Microsoft.AspNetCore.Mvc.ActionResult> UpdateReadStatus(int id);
