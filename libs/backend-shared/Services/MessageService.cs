@@ -183,8 +183,8 @@ namespace NokAir.TalkToCeo.Shared.Services
 
             var result = new MessageResponseListDto
             {
-                TotalCount = messages.Count,
-                Items = messages.Select(x =>
+                TotalCount = messages.TotalCount,
+                Items = messages.Items.Select(x =>
                     new MessageResponseDto
                     {
                         Id = x.Id,

@@ -1,6 +1,8 @@
 using System;
 using System.Globalization;
+using System.Security.Cryptography.X509Certificates;
 using Microsoft.EntityFrameworkCore;
+using NokAir.Core.Domain.Entities.InHouse;
 using NokAir.TalkToCeo.Shared.Entities.TalkToCeo;
 using NokAir.TalkToCeo.Shared.Enums;
 
@@ -61,7 +63,7 @@ namespace NokAir.TalkToCeo.Shared.Repositories
         }
 
         /// <inheritdoc/>
-        public async Task<List<Messages>> FindMessagesCriteriaAsync(
+        public async Task<PagedResult<Messages>> FindMessagesCriteriaAsync(
             string keyword,
             string sortField,
             int pageNumber,
@@ -72,73 +74,63 @@ namespace NokAir.TalkToCeo.Shared.Repositories
             DateTimeOffset? searchEndDate,
             string? userIdFilter)
         {
-            var query =
-                this.dbContext.Messages
-                    .Include(x => x.User)
-                    .AsQueryable();
+            var query = this.dbContext.Messages
+                .Include(x => x.User)
+                .AsQueryable();
 
             // keyword search
             if (!string.IsNullOrWhiteSpace(keyword))
             {
-                query =
-                    query.Where(x =>
-                        x.Subject.Contains(keyword) ||
-                        x.Detail.Contains(keyword));
+                query = query.Where(x =>
+                    EF.Functions.ILike(x.Subject, $"%{keyword}%") ||
+                    EF.Functions.ILike(x.Detail, $"%{keyword}%") ||
+                    EF.Functions.ILike(x.User.FirstName, $"%{keyword}%") ||
+                    EF.Functions.ILike(x.User.LastName, $"%{keyword}%"));
             }
 
             // date filter
             if (searchStartDate.HasValue)
             {
-                query =
-                    query.Where(x =>
-                        x.PostedAt >= searchStartDate.Value);
+                query = query.Where(x => x.PostedAt >= searchStartDate.Value);
             }
 
             if (searchEndDate.HasValue)
             {
-                query =
-                    query.Where(x =>
-                        x.PostedAt <= searchEndDate.Value);
+                query = query.Where(x => x.PostedAt <= searchEndDate.Value);
             }
 
             if (!string.IsNullOrEmpty(userIdFilter))
             {
-                query = query.Where(x =>
-                        x.UserId == int.Parse(userIdFilter, CultureInfo.InvariantCulture));
+                query = query.Where(x => x.UserId == int.Parse(userIdFilter, CultureInfo.InvariantCulture));
             }
 
             if (excludeDraft)
             {
-                query =
-                    query.Where(x =>
-                        x.Status != ActionStatus.Draft);
+                query = query.Where(x => x.Status != ActionStatus.Draft);
             }
 
+            // นับทั้งหมดก่อน pagination
+            var totalCount = await query.CountAsync();
+
             // sorting
-            query =
-                sortField?.ToLower(CultureInfo.InvariantCulture) switch
-                {
-                    "subject" =>
-                        ascending
-                            ? query.OrderBy(x => x.Subject)
-                            : query.OrderByDescending(x => x.Subject),
-
-                    "postedat" =>
-                        ascending
-                            ? query.OrderBy(x => x.PostedAt)
-                            : query.OrderByDescending(x => x.PostedAt),
-
-                    _ =>
-                        query.OrderByDescending(x => x.Id),
-                };
+            query = sortField?.ToLower(CultureInfo.InvariantCulture) switch
+            {
+                "subject" => ascending ? query.OrderBy(x => x.Subject) : query.OrderByDescending(x => x.Subject),
+                "postedat" => ascending ? query.OrderBy(x => x.PostedAt) : query.OrderByDescending(x => x.PostedAt),
+                _ => query.OrderByDescending(x => x.Id),
+            };
 
             // paging
-            query =
-                query
-                    .Skip((pageNumber - 1) * pageSize)
-                    .Take(pageSize);
+            var items = await query
+                .Skip((pageNumber - 1) * pageSize)
+                .Take(pageSize)
+                .ToListAsync();
 
-            return await query.ToListAsync();
+            return new PagedResult<Messages>
+            {
+                Items = items,
+                TotalCount = totalCount,
+            };
         }
     }
 }

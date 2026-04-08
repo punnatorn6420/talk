@@ -1,4 +1,5 @@
 using System;
+using NokAir.Core.Domain.Entities.InHouse;
 using NokAir.TalkToCeo.Shared.Entities.TalkToCeo;
 
 namespace NokAir.TalkToCeo.Shared.Repositories
@@ -54,9 +55,9 @@ namespace NokAir.TalkToCeo.Shared.Repositories
         /// <param name="excludeDraft">Indicates whether to exclude draft messages from the results.</param>
         /// <param name="searchStartDate">The start date for filtering messages.</param>
         /// <param name="searchEndDate">The end date for filtering messages.</param>
-        /// <returns>A list of messages that match the specified criteria.</returns>
+        /// <returns>A paged result containing messages that match the specified criteria.</returns>
         /// <param name="userIdFilter">Optional filter to retrieve messages for a specific user.</param>
-        Task<List<Messages>> FindMessagesCriteriaAsync(
+        Task<PagedResult<Messages>> FindMessagesCriteriaAsync(
             string keyword,
             string sortField,
             int pageNumber,
