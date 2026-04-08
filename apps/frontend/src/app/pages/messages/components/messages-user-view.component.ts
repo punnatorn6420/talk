@@ -31,6 +31,7 @@ import {
   IMessageParams,
   IMessageRequest,
 } from '../../../types/message.model';
+import { ScrollPanelModule } from 'primeng/scrollpanel';
 
 @Component({
   selector: 'app-messages-user-view',
@@ -48,6 +49,7 @@ import {
     PaginatorModule,
     ProgressSpinnerModule,
     ConfirmDialogModule,
+    ScrollPanelModule,
   ],
   templateUrl: './messages-user-view.component.html',
   providers: [MessageService, ConfirmationService],

@@ -17,7 +17,7 @@ import { RouterModule } from '@angular/router';
         [routerLink]="['/admin']"
         class="app-logo text-2xl font-bold text-theme py-2"
       >
-        Nok ExecConnect
+        <img src="logo-yellow.png" alt="Logo" width="40" class="rounded-lg" />
       </a>
     </div>
 
