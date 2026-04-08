@@ -1,6 +1,7 @@
 import { HttpClient, HttpHeaders } from '@angular/common/http';
 import { Injectable, inject } from '@angular/core';
 import { Observable } from 'rxjs';
+import { environment } from '../../environments/environment';
 
 @Injectable({
   providedIn: 'root',
@@ -18,7 +19,10 @@ export class HttpService {
     if (includeAuth && typeof window !== 'undefined') {
       const token = sessionStorage.getItem('bearerToken');
       if (token) {
-        headers = headers.set('Authorization', `Bearer ${token}`);
+        headers = headers
+          .set('Authorization', `Bearer ${token}`)
+          .append('nok_client_id', environment.NokClientId)
+          .append('nok_client_secret', environment.NokClientSecret);
       }
     }
 

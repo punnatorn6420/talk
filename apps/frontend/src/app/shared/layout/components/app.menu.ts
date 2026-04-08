@@ -28,11 +28,11 @@ export class AppMenu implements OnInit {
 
   ngOnInit() {
     this.model = [
-      {
-        label: 'Message Center',
-        icon: 'pi pi-home',
-        routerLink: ['/admin/messages'],
-      },
+      // {
+      //   label: 'Message Center',
+      //   icon: 'pi pi-home',
+      //   routerLink: ['/admin/messages'],
+      // },
     ];
 
     void this.permissionService;

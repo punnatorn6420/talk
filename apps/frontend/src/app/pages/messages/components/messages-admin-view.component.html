@@ -1,30 +1,41 @@
 <p-toast></p-toast>
 <p-confirmDialog></p-confirmDialog>
 
-<div class="min-h-screen bg-slate-50">
+<p-card class="min-h-screen bg-slate-50">
   <div class="border-b border-slate-200 bg-white">
-    <div class="flex items-center justify-between px-6 py-4">
-      <div>
-        <h1 class="text-2xl font-semibold text-slate-900">Mails</h1>
-        <p class="mt-1 text-sm text-slate-500">
-          Review, open, and reply to incoming messages
-        </p>
+    <div class="flex flex-col lg:flex-row">
+      <div
+        class="flex items-center px-6 py-4 lg:w-[220px] lg:border-r lg:border-slate-200"
+      >
+        <h1 class="text-xl font-semibold text-slate-900">Messages</h1>
+      </div>
+      <div class="flex flex-1 items-center justify-end px-6 py-4">
+        <p-iconfield>
+          <p-inputicon class="pi pi-search" />
+          <input
+            type="text"
+            [(ngModel)]="keyword"
+            pInputText
+            placeholder="Search"
+            (keyup.enter)="onSearch()"
+          />
+        </p-iconfield>
       </div>
     </div>
   </div>
 
   <div class="flex min-h-[calc(100vh-88px)] flex-col lg:flex-row">
     <aside
-      class="w-full border-b border-slate-200 bg-white lg:w-[280px] lg:border-b-0 lg:border-r"
+      class="w-full border-b border-slate-200 bg-white lg:w-[220px] lg:border-b-0 lg:border-r"
     >
-      <div class="px-5 py-5">
-        <div
+      <div class="px-5 py-4">
+        <!-- <div
           class="text-xs font-semibold uppercase tracking-wide text-slate-400"
         >
           Menu
-        </div>
+        </div> -->
 
-        <div class="mt-4 space-y-2">
+        <div class="space-y-2">
           @for (item of menuItems; track item.key) {
             <button
               type="button"
@@ -57,32 +68,15 @@
     </aside>
 
     <section class="flex min-w-0 flex-1 flex-col">
-      <div class="border-b border-slate-200 bg-white px-4 py-4 md:px-6">
-        <div
-          class="flex flex-col gap-3 md:flex-row md:items-center md:justify-end"
-        >
-          <p-inputGroup class="w-full md:w-96">
-            <p-inputGroupAddon class="!bg-gray-50">
-              <i class="pi pi-search"></i>
-            </p-inputGroupAddon>
-            <input
-              name="searchKeyword"
-              pInputText
-              type="text"
-              [(ngModel)]="keyword"
-              placeholder="Search mail"
-              class="h-11 !text-[14px] !rounded-r-lg"
-              (keyup.enter)="onSearch()"
-            />
-          </p-inputGroup>
-        </div>
-      </div>
+      <!-- <div class="border-b border-slate-200 bg-white px-4 py-4 md:px-6">
+       
+      </div> -->
 
       <div class="flex-1 bg-white p-4 md:p-6">
         <p-table
           [value]="mails"
           [loading]="loading"
-          [tableStyle]="{ 'min-width': '72rem' }"
+          [tableStyle]="{ 'min-width': '64rem' }"
           class="p-datatable-sm mail-table"
           [rowHover]="true"
         >
@@ -91,12 +85,12 @@
               <th class="w-[260px] !text-start">From</th>
               <th class="w-[140px] !text-center">Time</th>
               <th>Message</th>
-              <th class="w-[140px] !text-center">Status</th>
-              <th class="!text-right">
+              <th class="w-[80px] !text-center">Status</th>
+              <!-- <th class="w-[20px] !text-right">
                 <div class="flex justify-end">
                   <i class="pi pi-ellipsis-v text-slate-500"></i>
                 </div>
-              </th>
+              </th> -->
             </tr>
           </ng-template>
 
@@ -144,7 +138,7 @@
                 </span>
               </td>
 
-              <td class="text-right">
+              <!-- <td class="text-right">
                 <div class="flex items-center justify-end gap-3 text-slate-400">
                   <button
                     type="button"
@@ -153,7 +147,7 @@
                     aria-label="Delete message"
                   ></button>
                 </div>
-              </td>
+              </td> -->
             </tr>
           </ng-template>
 
@@ -190,4 +184,4 @@
       </div>
     </section>
   </div>
-</div>
+</p-card>

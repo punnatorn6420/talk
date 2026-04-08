@@ -24,6 +24,9 @@ import { InputGroupModule } from 'primeng/inputgroup';
 import { InputGroupAddonModule } from 'primeng/inputgroupaddon';
 import { TableModule } from 'primeng/table';
 import { ConfirmDialogModule } from 'primeng/confirmdialog';
+import { IconFieldModule } from 'primeng/iconfield';
+import { InputIconModule } from 'primeng/inputicon';
+import { CardModule } from 'primeng/card';
 
 type MailSidebarKey =
   | 'inbox'
@@ -51,6 +54,9 @@ type MailSidebarKey =
     InputGroupAddonModule,
     ConfirmDialogModule,
     TableModule,
+    IconFieldModule,
+    InputIconModule,
+    CardModule,
   ],
   templateUrl: './messages-admin-view.component.html',
   styleUrl: './messages-admin-view.component.scss',
@@ -90,7 +96,6 @@ export class MessagesAdminViewComponent implements OnInit {
 
   loadMessages(): void {
     this.loading = true;
-
     this.messageApi
       .getMessageCriteria(this.params)
       .pipe(
