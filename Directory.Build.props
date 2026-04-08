@@ -1,0 +1,40 @@
+<Project>
+  <PropertyGroup>
+    <!-- Treat all warnings as errors (enforce strict coding standard) -->
+    <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
+
+    <!-- Enable nullable reference types for better null-safety -->
+    <Nullable>enable</Nullable>
+
+    <!-- Enable implicit usings for cleaner code -->
+    <ImplicitUsings>enable</ImplicitUsings>
+
+    <!-- Language version: latest features in .NET 8 -->
+    <LangVersion>latest</LangVersion>
+
+    <!-- Enable XML documentation generation so StyleCop XML comment analysis runs -->
+    <GenerateDocumentationFile>true</GenerateDocumentationFile>
+
+    <!-- Optional: Include the XML file in the build output directory -->
+    <IncludeContentInPack>true</IncludeContentInPack>
+  </PropertyGroup>
+
+  <!-- Common analyzers shared across all projects -->
+  <ItemGroup>
+    <!-- Microsoft .NET built-in analyzers -->
+    <PackageReference Include="Microsoft.CodeAnalysis.NetAnalyzers" Version="9.0.0" PrivateAssets="all" />
+
+    <!-- StyleCop for C# style enforcement -->
+    <PackageReference Include="StyleCop.Analyzers" Version="1.2.0-beta.507" PrivateAssets="all" />
+  </ItemGroup>
+      <PropertyGroup>
+        <!-- Output path configuration -->
+        <RepoRoot>$(MSBuildThisFileDirectory)</RepoRoot>
+
+        <!-- Output and intermediate paths for build artifacts -->
+        <OutputPath>$(RepoRoot)dist/dotnet/bin/$(MSBuildProjectName)/</OutputPath>
+        <BaseIntermediateOutputPath>$(RepoRoot)dist/intermediates/$(MSBuildProjectName)/obj</BaseIntermediateOutputPath>
+        <IntermediateOutputPath>$(BaseIntermediateOutputPath)</IntermediateOutputPath>
+        <AppendTargetFrameworkToOutputPath>true</AppendTargetFrameworkToOutputPath>
+      </PropertyGroup>
+  </Project>

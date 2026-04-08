@@ -4,6 +4,7 @@ using System.Reflection;
 using System.Text;
 using System.Text.Json.Serialization;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Localization;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion.Internal;
@@ -13,24 +14,22 @@ using Newtonsoft.Json;
 using Newtonsoft.Json.Converters;
 using Newtonsoft.Json.Serialization;
 using NokAir.Configuration.Extensions;
+using NokAir.Core.Abstractions.Services.Rbac;
 using NokAir.Logging.Configurations;
 using NokAir.Logging.Extensions;
 using NokAir.Logging.Services;
+using NokAir.Shared.Api.Responses.Factories;
+using NokAir.Shared.Api.Responses.Factories.InHouse;
 using NokAir.Shared.Middlewares.Security;
+using NokAir.Shared.Resources.BookingLocalize;
+using NokAir.Shared.Security.AuthorizationHandlers;
 using NokAir.Shared.Security.Models.Common;
+using NokAir.Shared.Security.Services.InHouse;
+using NokAir.TalkToCeo.Shared.Dtos;
+using NokAir.TalkToCeo.Shared.Entities.Common;
 using NokAir.TalkToCeo.Shared.Repositories;
 using NokAir.TalkToCeo.Shared.Services;
 using Serilog;
-using NokAir.TalkToCeo.Shared.Entities.Common;
-using NokAir.TalkToCeo.Shared.Dtos;
-using NokAir.Shared.Security.Services.InHouse;
-using NokAir.Shared.Api.Responses.Factories;
-using NokAir.Shared.Api.Responses.Factories.InHouse;
-using NokAir.Shared.Resources.BookingLocalize;
-using Microsoft.AspNetCore.Authorization;
-using NokAir.Shared.Security.AuthorizationHandlers;
-using NokAir.Core.Abstractions.Services.Rbac;
-
 
 // Read environment variables
 var environment = Environment.GetEnvironmentVariable("DOTNET_ENVIRONMENT") ?? "Production";
@@ -106,7 +105,6 @@ builder.Services.AddDbContext<TalkToCeoDbContext>(options => options.UseNpgsql(v
 // Read AppLogger configuration for Serilog setup
 var appLoggerConfig = builder.Configuration.GetSection("AppLogger").Get<AppLoggerConfiguration>();
 
-
 if (appLoggerConfig == null)
 {
     Log.Fatal("AppLogger configuration section is missing or invalid.");
@@ -181,7 +179,6 @@ builder.Services.AddCors(options =>
 
 // Add services to the container.
 // Learn more about configuring OpenAPI at https://aka.ms/aspnet/openapi
-
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen(c =>
 {
@@ -202,7 +199,6 @@ builder.Services.AddSwaggerGen(c =>
         c.IncludeXmlComments(xmlPath);
     }
 });
-
 
 // Add Localization and set resource path
 builder.Services.AddLocalization();
@@ -302,7 +298,6 @@ var app = builder.Build();
 if (app.Environment.IsDevelopment())
 {
     app.UseDeveloperExceptionPage();
-    // app.UseSwagger();
     app.UseSwaggerUI(c =>
     {
         // Add all YAML files in the wwwroot folder
@@ -344,8 +339,8 @@ app.Use(async (context, next) =>
 
 app.UseStaticFiles();
 app.UseRouting();
-// Configure the HTTP request pipeline.
 
+// Configure the HTTP request pipeline.
 app.UseMiddleware<JwtMiddleware>();
 app.UseHttpsRedirection();
 app.UseCors("AllowClient");

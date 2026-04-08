@@ -1,0 +1,25 @@
+# Nx
+.nx/cache
+
+# Build outputs
+dist/
+build/
+output/
+dist-server/
+next-env.d.ts
+
+# Angular / Node modules
+node_modules/
+angular.json
+/angular-workspace/
+
+# .NET / C#
+**/bin/
+**/obj/
+*.user
+*.suo
+
+# IDE / OS
+.vscode/
+.idea/
+.DS_Store
