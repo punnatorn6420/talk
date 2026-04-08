@@ -69,6 +69,7 @@ namespace NokAir.TalkToCeo.Shared.Services
         /// <param name="ascending">Whether to sort in ascending order.</param>
         /// <param name="excludeDraft">Whether to exclude draft messages.</param>
         /// <param name="userIdFilter">The user ID to filter messages by.</param>
+        /// <param name="isCeo">Whether the user is a CEO, which may affect the visibility of certain messages.</param>
         /// <param name="searchStartDate">The start date for filtering messages.</param>
         /// <param name="searchEndDate">The end date for filtering messages.</param>
         /// <returns>A task that represents the asynchronous operation. The task result contains a MessageResponseListDto object.</returns>
@@ -80,6 +81,7 @@ namespace NokAir.TalkToCeo.Shared.Services
             bool ascending,
             bool excludeDraft,
             string userIdFilter,
+            bool isCeo,
             DateTimeOffset? searchStartDate,
             DateTimeOffset? searchEndDate);
     }
