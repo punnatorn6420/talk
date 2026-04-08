@@ -276,7 +276,7 @@
                   <div
                     class="text-xs font-semibold uppercase tracking-wide text-emerald-700"
                   >
-                    Admin reply
+                    {{ selectedMail.modifiedBy || 'Admin Reply' }}
                   </div>
                   <div class="text-xs text-slate-500">
                     {{ formatDate(selectedMail.repliedAt) }}
