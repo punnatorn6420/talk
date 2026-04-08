@@ -120,7 +120,9 @@ namespace NokAir.TalkToCeo.Shared.Repositories
             {
                 "subject" => ascending ? query.OrderBy(x => x.Subject) : query.OrderByDescending(x => x.Subject),
                 "postedat" => ascending ? query.OrderBy(x => x.PostedAt) : query.OrderByDescending(x => x.PostedAt),
-                _ => query.OrderByDescending(x => x.Id),
+                _ => query
+                    .OrderByDescending(x => x.ModifiedAt)
+                    .ThenByDescending(x => x.Id),
             };
 
             // paging
