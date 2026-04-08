@@ -52,6 +52,7 @@ namespace NokAir.TalkToCeo.Shared.Repositories
             int pageNumber,
             int pageSize,
             bool ascending,
+            bool excludeDraft,
             DateTimeOffset? searchStartDate,
             DateTimeOffset? searchEndDate,
             string? userIdFilter);

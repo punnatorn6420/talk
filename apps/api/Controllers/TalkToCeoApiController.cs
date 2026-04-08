@@ -108,6 +108,8 @@ namespace NokAir.TalkToCeo.api.Controllers
                 var role =
                     User.FindFirst(System.Security.Claims.ClaimTypes.Role)?.Value;
 
+                var excludeDraft = role == "CEO";
+
                 var result =
                     await messageService.GetMessagesCriteriaAsync(
                         keyword,
@@ -115,6 +117,7 @@ namespace NokAir.TalkToCeo.api.Controllers
                         pageNumber ?? 1,
                         pageSize ?? 25,
                         ascending ?? true,
+                        excludeDraft,
                         searchStartDate,
                         searchEndDate,
                         role == "CEO"
