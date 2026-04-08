@@ -24,7 +24,7 @@
   </div>
 
   <div class="grid gap-6 p-4 md:p-6 lg:grid-cols-[480px_1fr]">
-    <section class="rounded-xl border border-slate-200 bg-white">
+    <section class="rounded-lg border border-slate-200 bg-white">
       <div class="border-b border-slate-200 p-4">
         <div class="relative">
           <i
@@ -100,7 +100,7 @@
       </div>
     </section>
 
-    <section class="rounded-xl border border-slate-200 bg-white p-5">
+    <section class="rounded-lg border border-slate-200 bg-white p-5">
       @if (editingMailId || !selectedMail) {
         <div>
           <h2 class="text-xl font-semibold text-slate-900">
@@ -178,8 +178,8 @@
               <button
                 pButton
                 type="button"
-                [label]="editingMailId ? 'Update' : 'Send Message'"
-                [icon]="editingMailId ? 'pi pi-save' : 'pi pi-send'"
+                [label]="editingMailId ? 'Update' : 'Create Message'"
+                [icon]="editingMailId ? 'pi pi-save' : 'pi pi-plus'"
                 [loading]="editingMailId ? updating : creating"
                 (click)="editingMailId ? submitEdit() : submitCreate()"
               >
@@ -216,37 +216,39 @@
                 </div>
               </div>
 
-              <div class="flex items-center gap-2">
-                @if (selectedMail.status.toLowerCase() === 'draft') {
+              <div class="flex flex-wrap items-center gap-2">
+                @if ((selectedMail.status || '').toLowerCase() === 'draft') {
                   <button
                     pButton
                     type="button"
                     icon="pi pi-send"
                     label="Send"
                     [loading]="sendingId === selectedMail.id"
+                    class="p-button-text p-button-primary"
                     (click)="sendDraftSelected()"
                   >
                     <span class="sr-only">Send this draft message</span>
                   </button>
+
+                  <button
+                    pButton
+                    type="button"
+                    icon="pi pi-pencil"
+                    label="Edit"
+                    class="p-button-text p-button-success"
+                    (click)="startEdit()"
+                  >
+                    <span class="sr-only">Edit this message</span>
+                  </button>
                 }
-                <button
-                  pButton
-                  type="button"
-                  icon="pi pi-pencil"
-                  class="p-button-text"
-                  label="Edit"
-                  (click)="startEdit()"
-                >
-                  <span class="sr-only">Edit this message</span>
-                </button>
 
                 <button
                   pButton
                   type="button"
                   icon="pi pi-trash"
-                  class="p-button-text p-button-danger"
                   label="Delete"
                   [loading]="deletingId === selectedMail.id"
+                  class="p-button-text p-button-danger"
                   (click)="deleteSelected()"
                 >
                   <span class="sr-only">Delete this message</span>
@@ -267,7 +269,7 @@
               </p>
             </div>
 
-            @if (selectedMail.reply) {
+            @if (hasAdminReply(selectedMail)) {
               <div
                 class="rounded-lg border border-emerald-200 bg-emerald-50/40 p-4"
               >
@@ -285,7 +287,7 @@
                   {{ selectedMail.reply }}
                 </p>
               </div>
-            } @else {
+            } @else if (shouldShowNoReply(selectedMail)) {
               <div
                 class="rounded-lg border border-dashed border-slate-300 p-4 text-sm text-slate-500"
               >

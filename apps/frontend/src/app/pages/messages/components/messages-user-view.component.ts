@@ -85,6 +85,8 @@ export class MessagesUserViewComponent
     ascending: false,
   };
 
+  private detailRequestSeq = 0;
+
   readonly messageForm = this.fb.nonNullable.group({
     subject: ['', [Validators.required, Validators.maxLength(150)]],
     detail: ['', [Validators.required, Validators.maxLength(2500)]],
@@ -114,8 +116,17 @@ export class MessagesUserViewComponent
             const latest = this.mails.find(
               (mail) => String(mail.id) === String(this.selectedMail?.id),
             );
-            if (latest) {
-              this.selectedMail = latest;
+
+            if (latest && this.selectedMail) {
+              this.selectedMail = {
+                ...this.selectedMail,
+                subject: latest.subject,
+                status: latest.status,
+                postedAt: latest.postedAt,
+                repliedAt: latest.repliedAt,
+                fullName: latest.fullName,
+                email: latest.email,
+              };
             }
           }
 
@@ -153,6 +164,7 @@ export class MessagesUserViewComponent
   onSelectMessage(mail: IMail): void {
     this.editingMailId = null;
     this.messageForm.reset({ subject: '', detail: '' });
+    this.selectedMail = null;
     this.loadMessageDetail(String(mail.id));
   }
 
@@ -321,19 +333,27 @@ export class MessagesUserViewComponent
   }
 
   private loadMessageDetail(id: string): void {
+    const requestSeq = ++this.detailRequestSeq;
+
     this.detailLoading = true;
+    this.cdr.markForCheck();
 
     this.messageApi
       .getMessageThreadById(id)
       .pipe(
         finalize(() => {
-          this.detailLoading = false;
-          this.cdr.markForCheck();
+          if (requestSeq === this.detailRequestSeq) {
+            this.detailLoading = false;
+            this.cdr.markForCheck();
+          }
         }),
       )
       .subscribe({
         next: (res) => {
+          if (requestSeq !== this.detailRequestSeq) return;
+
           this.selectedMail = res.data ?? null;
+
           if (!this.selectedMail) {
             this.toast.add({
               severity: 'warn',
@@ -341,14 +361,19 @@ export class MessagesUserViewComponent
               detail: 'Message detail is unavailable.',
             });
           }
+
           this.cdr.markForCheck();
         },
         error: () => {
+          if (requestSeq !== this.detailRequestSeq) return;
+
           this.toast.add({
             severity: 'error',
             summary: 'Load failed',
             detail: 'Unable to load message detail.',
           });
+
+          this.selectedMail = null;
           this.cdr.markForCheck();
         },
       });
@@ -362,27 +387,32 @@ export class MessagesUserViewComponent
     const normalized = (status || '').trim().toLowerCase();
 
     switch (normalized) {
-      case 'pending':
-        return 'Pending';
+      case 'draft':
+        return 'Draft';
+      case 'sent':
+        return 'Sent';
       case 'read':
         return 'Read';
       case 'replied':
         return 'Replied';
       default:
-        return normalized ? status || 'Pending' : 'Pending';
+        return normalized ? status || 'Draft' : 'Draft';
     }
   }
 
   getStatusClass(status?: string | null): string {
     const normalized = (status || '').trim().toLowerCase();
-
     switch (normalized) {
-      case 'replied':
-        return 'bg-emerald-100 text-emerald-700';
+      case 'draft':
+        return 'bg-amber-100 text-amber-700';
+      case 'sent':
+        return 'bg-orange-100 text-orange-700';
       case 'read':
         return 'bg-blue-100 text-blue-700';
+      case 'replied':
+        return 'bg-emerald-100 text-emerald-700';
       default:
-        return 'bg-amber-100 text-amber-700';
+        return 'bg-slate-100 text-slate-700';
     }
   }
 
@@ -466,5 +496,21 @@ export class MessagesUserViewComponent
           });
       },
     });
+  }
+
+  hasAdminReply(mail: IMail | null): boolean {
+    if (!mail) return false;
+
+    return (
+      !!mail.reply?.trim() || (mail.status || '').toLowerCase() === 'replied'
+    );
+  }
+
+  shouldShowNoReply(mail: IMail | null): boolean {
+    if (!mail) return false;
+
+    const status = (mail.status || '').toLowerCase();
+
+    return status !== 'draft' && !this.hasAdminReply(mail);
   }
 }
