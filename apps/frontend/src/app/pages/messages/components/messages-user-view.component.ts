@@ -404,7 +404,7 @@ export class MessagesUserViewComponent
     const normalized = (status || '').trim().toLowerCase();
     switch (normalized) {
       case 'draft':
-        return 'bg-amber-100 text-amber-700';
+        return 'bg-gray-100 text-gray-700';
       case 'sent':
         return 'bg-orange-100 text-orange-700';
       case 'read':
