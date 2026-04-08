@@ -17,6 +17,7 @@ import { ToastModule } from 'primeng/toast';
 import { TextareaModule } from 'primeng/textarea';
 import { _MessageService } from '../../../service/message.service';
 import { IMail } from '../../../types/message.model';
+import { CardModule } from 'primeng/card';
 
 @Component({
   selector: 'app-message-admin-detail',
@@ -29,6 +30,7 @@ import { IMail } from '../../../types/message.model';
     TextareaModule,
     ProgressSpinnerModule,
     NgClass,
+    CardModule,
   ],
   templateUrl: './message-admin-detail.component.html',
   styleUrl: './message-admin-detail.component.scss',
