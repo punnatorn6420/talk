@@ -136,6 +136,8 @@ namespace NokAir.TalkToCeo.Shared.Services
 
             entity.CeoReply = dto.Reply;
             entity.Status = ActionStatus.Replied;
+            entity.ModifiedAt = DateTime.Now;
+            entity.ModifiedBy = dto.UserName;
 
             entity.RepliedAt = DateTime.Now;
 
@@ -143,7 +145,7 @@ namespace NokAir.TalkToCeo.Shared.Services
         }
 
         /// <inheritdoc/>
-        public async Task UpdateReadStatusAsync(int id)
+        public async Task UpdateReadStatusAsync(int id, string userName)
         {
             var entity = await this.repository.FindMessageByIdAsync(id);
 
@@ -153,6 +155,9 @@ namespace NokAir.TalkToCeo.Shared.Services
             }
 
             entity.Status = ActionStatus.Read;
+            entity.ReadAt = DateTime.Now;
+            entity.ModifiedAt = DateTime.Now;
+            entity.ModifiedBy = userName;
 
             await this.repository.UpdateAsync(entity);
         }

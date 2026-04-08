@@ -185,6 +185,15 @@ namespace NokAir.TalkToCeo.Api.Controllers
         {
             try
             {
+                var token = this.HttpContext.Request.Headers.Authorization.ToString().Replace("Bearer ", string.Empty);
+
+                var user = await this.usersService.GetUserFromTokenAsync(token);
+
+                if (user == null)
+                {
+                    throw new DataValidationException("User information in token is invalid.");
+                }
+
                 var result = await this.messageService.GetByIdAsync(id);
 
                 if (result == null)
@@ -196,6 +205,8 @@ namespace NokAir.TalkToCeo.Api.Controllers
                 {
                     throw new DataValidationException("Only messages without reply can be replied.");
                 }
+
+                body.UserName = user.FirstName + " " + user.LastName;
 
                 await this.messageService.ReplyAsync(id, body);
 
@@ -251,6 +262,15 @@ namespace NokAir.TalkToCeo.Api.Controllers
         {
             try
             {
+                var token = this.HttpContext.Request.Headers.Authorization.ToString().Replace("Bearer ", string.Empty);
+
+                var user = await this.usersService.GetUserFromTokenAsync(token);
+
+                if (user == null)
+                {
+                    throw new DataValidationException("User information in token is invalid.");
+                }
+
                 var result = await this.messageService.GetByIdAsync(id);
 
                 if (result == null)
@@ -263,7 +283,9 @@ namespace NokAir.TalkToCeo.Api.Controllers
                     throw new DataValidationException("Messages with Replied status cannot be marked as Read.");
                 }
 
-                await this.messageService.UpdateReadStatusAsync(id);
+                string userName = user.FirstName + " " + user.LastName;
+
+                await this.messageService.UpdateReadStatusAsync(id, userName);
 
                 return this.OkSuccessResponse();
             }
