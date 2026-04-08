@@ -71,6 +71,7 @@ namespace NokAir.TalkToCeo.Shared.Repositories
             bool ascending,
             bool excludeDraft,
             string userIdFilter,
+            bool isCeo,
             DateTimeOffset? searchStartDate,
             DateTimeOffset? searchEndDate)
         {
@@ -99,7 +100,12 @@ namespace NokAir.TalkToCeo.Shared.Repositories
                 query = query.Where(x => x.PostedAt <= searchEndDate.Value);
             }
 
-            query = query.Where(x => x.UserId == int.Parse(userIdFilter, CultureInfo.InvariantCulture));
+            // filter ตาม user เฉพาะกรณีไม่ใช่ CEO
+            if (!isCeo && !string.IsNullOrWhiteSpace(userIdFilter))
+            {
+                query = query.Where(x =>
+                    x.UserId == int.Parse(userIdFilter, CultureInfo.InvariantCulture));
+            }
 
             if (excludeDraft)
             {
