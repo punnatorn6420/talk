@@ -1,14 +1,17 @@
 namespace NokAir.TalkToCeo.Shared.Dtos
 {
+    /// <summary>
+    /// Model representing a paginated list of messages in the "Talk to CEO" system. This DTO contains the total count of messages and a list of individual message response DTOs. It is used to return a structured response when retrieving multiple messages, allowing clients to easily access both the total number of messages and the details of each message in the list.
+    /// </summary>
     public class MessageResponseListDto
     {
         /// <summary>
-        /// Total number of messages.
+        /// Gets or sets total number of messages.
         /// </summary>
         public int TotalCount { get; set; }
 
         /// <summary>
-        /// List of messages.
+        /// Gets or sets list of messages.
         /// </summary>
         public List<MessageResponseDto> Items { get; set; } = new List<MessageResponseDto>();
     }

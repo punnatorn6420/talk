@@ -7,21 +7,37 @@ namespace NokAir.TalkToCeo.Shared.Repositories
     /// <summary>
     /// Constructor for TalkToCeoDbContext, which takes DbContextOptions as a parameter and passes it to the base DbContext class.
     /// </summary>
+    /// <param name="options">The options for configuring the DbContext, such as the database provider and connection string.</param>
     public class TalkToCeoDbContext(DbContextOptions<TalkToCeoDbContext> options) : DbContext(options)
     {
-
+        /// <summary>
+        /// Gets or sets dbSet property for the User entity, which represents the users in the application. This property allows you to perform CRUD operations on the User table in the database using Entity Framework Core's LINQ queries and other data manipulation methods.
+        /// </summary>
         public DbSet<User> User { get; set; }
 
+        /// <summary>
+        /// Gets or sets dbSet property for the Role entity, which represents the roles in the application. This property allows you to perform CRUD operations on the Role table in the database using Entity Framework Core's LINQ queries and other data manipulation methods.
+        /// </summary>
         public DbSet<Role> Roles { get; set; }
 
+        /// <summary>
+        /// Gets or sets dbSet property for the UserRole entity, which represents the many-to-many relationship between users and roles in the application. This property allows you to perform CRUD operations on the UserRole table in the database using Entity Framework Core's LINQ queries and other data manipulation methods.
+        /// </summary>
         public DbSet<UserRole> UserRole { get; set; }
 
+        /// <summary>
+        /// Gets or sets dbSet property for the Messages entity, which represents the messages in the application. This property allows you to perform CRUD operations on the Messages table in the database using Entity Framework Core's LINQ queries and other data manipulation methods.
+        /// </summary>
         public DbSet<Messages> Messages { get; set; }
 
-
+        /// <summary>
+        /// Overrides the OnModelCreating method to configure the entity mappings and relationships for the TalkToCeoDbContext. This method is called by Entity Framework Core when the model is being created, and it allows you to specify how the entities should be mapped to the database tables, as well as any relationships between them. In this implementation, we configure the data types for DateTime properties, and we define the mappings for the User, Role, UserRole, and Messages entities using Fluent API.
+        /// </summary>
+        /// <param name="modelBuilder">The model builder used to configure the entity mappings and relationships.</param>
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
             base.OnModelCreating(modelBuilder);
+
             // กำหนดค่า data types สำหรับ DateTime ให้เป็น timestamp with time zone
             foreach (var entityType in modelBuilder.Model.GetEntityTypes())
             {
@@ -33,6 +49,7 @@ namespace NokAir.TalkToCeo.Shared.Repositories
                     }
                 }
             }
+
             ConfigureUser(modelBuilder);
 
             ConfigureRole(modelBuilder);
@@ -41,7 +58,6 @@ namespace NokAir.TalkToCeo.Shared.Repositories
 
             ConfigureMessage(modelBuilder);
         }
-
 
         private static void ConfigureUser(ModelBuilder modelBuilder)
         {
@@ -63,7 +79,6 @@ namespace NokAir.TalkToCeo.Shared.Repositories
                 entity.Property(u => u.ModifiedAt).HasColumnName("modified_at").IsRequired();
             });
         }
-
 
         private static void ConfigureRole(ModelBuilder modelBuilder)
         {
@@ -92,7 +107,6 @@ namespace NokAir.TalkToCeo.Shared.Repositories
                 entity.Property(e => e.RoleId).HasColumnName("role_id").ValueGeneratedNever();
             });
         }
-
 
         private static void ConfigureMessage(ModelBuilder modelBuilder)
         {
@@ -139,7 +153,6 @@ namespace NokAir.TalkToCeo.Shared.Repositories
                 entity.Property(m => m.RepliedAt)
                     .HasColumnName("replied_at");
 
-
                 /*
                  * FK: Message → Sender (User)
                  */
@@ -149,7 +162,6 @@ namespace NokAir.TalkToCeo.Shared.Repositories
                     .HasForeignKey(m => m.UserId)
                     .OnDelete(DeleteBehavior.Restrict);
 
-
                 /*
                  * FK: Message → CEO (User)
                  */
@@ -158,7 +170,6 @@ namespace NokAir.TalkToCeo.Shared.Repositories
                     .WithMany()
                     .HasForeignKey(m => m.CeoId)
                     .OnDelete(DeleteBehavior.Restrict);
-
 
                 /*
                  * AuditBase mapping

@@ -7,6 +7,7 @@ using NokAir.TalkToCeo.Shared.Repositories;
 
 namespace NokAir.TalkToCeo.Shared.Services
 {
+    /// <inheritdoc/>
     public class UsersService : IUsersService<UserDto>
     {
         private readonly IUsersRepository<UserDto> usersRepository;
@@ -14,6 +15,13 @@ namespace NokAir.TalkToCeo.Shared.Services
         private readonly IUserRoleRepository userRoleRepository;
         private readonly TalkToCeoDbContext dbContext;
 
+        /// <summary>
+        /// Initializes a new instance of the <see cref="UsersService"/> class with the specified repositories and database context. The constructor takes in instances of IUsersRepository, IRoleRepository, IUserRoleRepository, and TalkToCeoDbContext, which are used to manage user data, roles, and user-role relationships within the application. This setup allows the UsersService to perform various operations related to user management, such as adding users, retrieving user information, and updating user details while ensuring that the necessary dependencies are injected for proper functionality.
+        /// </summary>
+        /// <param name="usersRepository">The repository for managing user data.</param>
+        /// <param name="roleRepository">The repository for managing role data.</param>
+        /// <param name="userRoleRepository">The repository for managing user-role relationships.</param>
+        /// <param name="dbContext">The database context for accessing the database.</param>
         public UsersService(
             IUsersRepository<UserDto> usersRepository,
             IRoleRepository<Role> roleRepository,
@@ -26,6 +34,7 @@ namespace NokAir.TalkToCeo.Shared.Services
             this.dbContext = dbContext;
         }
 
+        /// <inheritdoc/>
         public async Task AddUserAsync(AddUserFromPotal user, CancellationToken cancellationToken = default)
         {
             await using var dbTransaction = await this.dbContext.Database.BeginTransactionAsync(cancellationToken);
@@ -77,21 +86,25 @@ namespace NokAir.TalkToCeo.Shared.Services
             }
         }
 
+        /// <inheritdoc/>
         public Task<UserDto> AddUserAsync(UserDto user, CancellationToken cancellationToken = default)
         {
             throw new NotImplementedException();
         }
 
+        /// <inheritdoc/>
         public Task<UserDto?> GetUserByEmailAsync(string email, CancellationToken cancellationToken = default)
         {
             throw new NotImplementedException();
         }
 
+        /// <inheritdoc/>
         public Task<UserDto?> GetUserByIdAsync(int userId, CancellationToken cancellationToken = default)
         {
             throw new NotImplementedException();
         }
 
+        /// <inheritdoc/>
         public async Task<UserDto?> GetUserFromTokenAsync(string token, CancellationToken cancellationToken = default)
         {
             try
@@ -157,12 +170,13 @@ namespace NokAir.TalkToCeo.Shared.Services
             {
                 throw;
             }
-            catch (Exception ex)
+            catch (Exception)
             {
                 throw;
             }
         }
 
+        /// <inheritdoc/>
         public Task<bool> UpdateUserAsync(UserDto user, CancellationToken cancellationToken = default)
         {
             throw new NotImplementedException();

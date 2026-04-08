@@ -1,6 +1,10 @@
 using System.Security.Claims;
+
 namespace NokAir.TalkToCeo.Shared.Services
 {
+    /// <summary>
+    /// Defines the contract for a service that handles JWT token validation and refreshing for the "Talk to CEO" application. The IJwtTalkToCeo interface provides methods for validating JWT tokens and refreshing access tokens, ensuring secure authentication and authorization mechanisms within the application. Implementations of this interface are responsible for verifying the integrity and validity of JWT tokens, extracting claims, and managing token lifecycles to maintain secure access to protected resources in the "Talk to CEO" system.
+    /// </summary>
     public interface IJwtTalkToCeo
     {
         /// <summary>

@@ -4,6 +4,10 @@ using NokAir.TalkToCeo.Shared.Entities.Common;
 
 namespace NokAir.TalkToCeo.Shared.Repositories
 {
+    /// <summary>
+    /// Represents a repository for managing roles in the application. This interface extends the base role repository interface and provides additional functionality specific to the application's requirements.
+    /// </summary>
+    /// <typeparam name="T">The type of the role entity.</typeparam>
     public interface IRoleRepository<T> : IRoleRepositoryBase<T>
         where T : class
     {

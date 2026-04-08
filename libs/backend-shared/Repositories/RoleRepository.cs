@@ -4,10 +4,17 @@ using NokAir.TalkToCeo.Shared.Entities.Common;
 
 namespace NokAir.TalkToCeo.Shared.Repositories
 {
+    /// <summary>
+    /// Implements the IRoleRepository interface for managing roles in the application. This repository provides methods for adding roles, checking if a user exists in a role, finding all roles, and other role-related operations. The RoleRepository class interacts with the TalkToCeoDbContext to perform database operations related to roles, ensuring that data is stored and retrieved efficiently while adhering to the defined contract of the IRoleRepository interface.
+    /// </summary>
     public class RoleRepository : IRoleRepository<Role>
     {
         private readonly TalkToCeoDbContext dbContext;
 
+        /// <summary>
+        /// Initializes a new instance of the <see cref="RoleRepository"/> class with the specified TalkToCeoDbContext. The constructor takes a TalkToCeoDbContext as a parameter and assigns it to a private readonly field, allowing the repository to interact with the database context for performing operations related to roles. This setup enables the repository to manage role data effectively while maintaining a clear separation of concerns between the data access layer and the business logic layer of the application.
+        /// </summary>
+        /// <param name="dbContext">The TalkToCeoDbContext instance used for database operations.</param>
         public RoleRepository(TalkToCeoDbContext dbContext)
         {
             this.dbContext = dbContext;

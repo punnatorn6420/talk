@@ -4,10 +4,10 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 
 #nullable disable
 
-namespace backend_shared.Migrations
+namespace NokAir.TalkToCeo.Shared.Migrations
 {
     /// <inheritdoc />
-    public partial class init : Migration
+    public partial class Init : Migration
     {
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
@@ -21,7 +21,7 @@ namespace backend_shared.Migrations
                     name = table.Column<string>(type: "character varying(100)", maxLength: 100, nullable: false),
                     Active = table.Column<bool>(type: "boolean", nullable: false),
                     created_at = table.Column<DateTime>(type: "timestamp with time zone", nullable: false),
-                    modified_at = table.Column<DateTime>(type: "timestamp with time zone", nullable: false)
+                    modified_at = table.Column<DateTime>(type: "timestamp with time zone", nullable: false),
                 },
                 constraints: table =>
                 {
@@ -41,7 +41,7 @@ namespace backend_shared.Migrations
                     department = table.Column<string>(type: "character varying(50)", maxLength: 50, nullable: false),
                     active = table.Column<bool>(type: "boolean", nullable: false),
                     created_at = table.Column<DateTime>(type: "timestamp with time zone", nullable: false),
-                    modified_at = table.Column<DateTime>(type: "timestamp with time zone", nullable: false)
+                    modified_at = table.Column<DateTime>(type: "timestamp with time zone", nullable: false),
                 },
                 constraints: table =>
                 {
@@ -66,7 +66,7 @@ namespace backend_shared.Migrations
                     created_by = table.Column<string>(type: "text", nullable: false),
                     modified_by = table.Column<string>(type: "text", nullable: false),
                     created_at = table.Column<DateTime>(type: "timestamp with time zone", nullable: false),
-                    modified_at = table.Column<DateTime>(type: "timestamp with time zone", nullable: false)
+                    modified_at = table.Column<DateTime>(type: "timestamp with time zone", nullable: false),
                 },
                 constraints: table =>
                 {
@@ -90,7 +90,7 @@ namespace backend_shared.Migrations
                 columns: table => new
                 {
                     user_id = table.Column<int>(type: "integer", nullable: false),
-                    role_id = table.Column<int>(type: "integer", nullable: false)
+                    role_id = table.Column<int>(type: "integer", nullable: false),
                 },
                 constraints: table =>
                 {

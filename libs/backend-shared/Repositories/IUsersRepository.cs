@@ -1,7 +1,12 @@
 using NokAir.Core.Abstractions.Repositories.Rbac;
 using NokAir.TalkToCeo.Shared.Entities.Common;
+
 namespace NokAir.TalkToCeo.Shared.Repositories
 {
+    /// <summary>
+    /// Represents a repository for managing users in the application. This interface extends the base user repository interface and provides additional functionality specific to the application's requirements, such as adding a user and finding a user by specific criteria.
+    /// </summary>
+    /// <typeparam name="T">The type of the user entity.</typeparam>
     public interface IUsersRepository<T> : IUserRepositoryBase<T>
         where T : class
     {

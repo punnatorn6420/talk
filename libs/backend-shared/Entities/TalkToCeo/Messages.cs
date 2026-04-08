@@ -1,9 +1,12 @@
 using System;
-using NokAir.TalkToCeo.Shared.Enums;
 using NokAir.TalkToCeo.Shared.Entities.Common;
+using NokAir.TalkToCeo.Shared.Enums;
 
 namespace NokAir.TalkToCeo.Shared.Entities.TalkToCeo
 {
+    /// <summary>
+    /// Represents a message exchanged between a user and the CEO.
+    /// </summary>
     public class Messages : AuditBase
     {
         /// <summary>
@@ -16,7 +19,7 @@ namespace NokAir.TalkToCeo.Shared.Entities.TalkToCeo
         /// </summary>
         public DateTime PostedAt { get; set; }
 
-        /// <summary>     
+        /// <summary>
         /// Gets or sets the subject of the message.
         /// </summary>
         public string Subject { get; set; } = string.Empty;

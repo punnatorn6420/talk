@@ -1,23 +1,32 @@
-using System.IdentityModel.Tokens.Jwt;
-using Microsoft.Extensions.Logging;
-using NokAir.Core.Exceptions;
-using System.Security.Claims;
 using System.Globalization;
-using NokAir.TalkToCeo.Shared.Dtos;
+using System.IdentityModel.Tokens.Jwt;
+using System.Security.Claims;
+using System.Text;
+using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Options;
+using Microsoft.IdentityModel.Tokens;
+using NokAir.Core.Exceptions;
 using NokAir.Shared.Security.Models.Common;
 using NokAir.Shared.Security.Services.InHouse;
-using Microsoft.Extensions.Options;
-using System.Text;
-using Microsoft.IdentityModel.Tokens;
+using NokAir.TalkToCeo.Shared.Dtos;
 
 namespace NokAir.TalkToCeo.Shared.Services
 {
+    /// <summary>
+    /// Implements the IJwtTalkToCeo interface to provide JWT token validation and refreshing functionality for the "Talk to CEO" application. The JwtTalkToCeoService class is responsible for validating JWT tokens, extracting claims, and refreshing access tokens as needed. It utilizes the JwtSettingsModel for configuration, the IUsersService to retrieve user information, and the IJwtService to generate new JWT tokens. This service ensures secure authentication and authorization mechanisms within the "Talk to CEO" system by managing token lifecycles effectively.
+    /// </summary>
     public class JwtTalkToCeoService : IJwtTalkToCeo
     {
         private readonly JwtSettingsModel jwtSettings;
         private readonly IUsersService<UserDto> usersService;
         private readonly IJwtService jwtService;
 
+        /// <summary>
+        /// Initializes a new instance of the <see cref="JwtTalkToCeoService"/> class.
+        /// </summary>
+        /// <param name="jwtOptions">The JWT settings options.</param>
+        /// <param name="usersService">The users service.</param>
+        /// <param name="jwtService">The JWT service.</param>
         public JwtTalkToCeoService(
             IOptions<JwtSettingsModel> jwtOptions,
             IUsersService<UserDto> usersService,
@@ -28,6 +37,7 @@ namespace NokAir.TalkToCeo.Shared.Services
             this.jwtService = jwtService;
         }
 
+        /// <inheritdoc/>
         public async Task<string> RefreshAccessTokenAsync(string token)
         {
             try
@@ -72,16 +82,17 @@ namespace NokAir.TalkToCeo.Shared.Services
                 var jwtInfo = this.jwtService.GenerateJwtTokenInfo(cliams);
                 return jwtInfo.Token;
             }
-            catch (DataValidationException ex)
+            catch (DataValidationException)
             {
                 throw;
             }
-            catch (Exception ex)
+            catch (Exception)
             {
                 throw;
             }
         }
 
+        /// <inheritdoc/>
         public bool TryValidateToken(string token, out ClaimsPrincipal principal, out DateTime? expiresAt)
         {
             principal = new ClaimsPrincipal(); // temporary default value
