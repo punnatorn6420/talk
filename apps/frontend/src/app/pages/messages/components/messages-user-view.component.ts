@@ -68,6 +68,7 @@ export class MessagesUserViewComponent
   loading = false;
   creating = false;
   updating = false;
+  sendingId: string | number | null = null;
   deletingId: string | number | null = null;
   detailLoading = false;
 
@@ -190,7 +191,7 @@ export class MessagesUserViewComponent
     const payload: IMessageRequest = {
       subject: this.messageForm.controls.subject.value.trim(),
       detail: this.messageForm.controls.detail.value.trim(),
-      status: 'pending',
+      status: 'draft',
     };
 
     this.creating = true;
@@ -398,5 +399,72 @@ export class MessagesUserViewComponent
       hour: '2-digit',
       minute: '2-digit',
     }).format(date);
+  }
+
+  sendDraftSelected(): void {
+    if (
+      !this.selectedMail?.id ||
+      this.sendingId ||
+      this.selectedMail.status?.toLowerCase() !== 'draft'
+    ) {
+      return;
+    }
+
+    const selectedId = String(this.selectedMail.id);
+
+    const payload: IMessageRequest = {
+      subject: this.selectedMail.subject?.trim() || '',
+      detail: this.getBody(this.selectedMail),
+      status: 'sent',
+    };
+
+    this.confirmationService.confirm({
+      header: 'Send draft message',
+      message: 'Are you sure you want to send this draft message?',
+      icon: 'pi pi-send',
+      acceptLabel: 'Send',
+      rejectLabel: 'Cancel',
+      acceptButtonStyleClass: 'p-button-primary',
+      rejectButtonStyleClass: 'p-button-text',
+      accept: () => {
+        this.sendingId = selectedId;
+        this.cdr.markForCheck();
+
+        this.messageApi
+          .putMessageThread(selectedId, payload)
+          .pipe(
+            finalize(() => {
+              this.sendingId = null;
+              this.cdr.markForCheck();
+            }),
+          )
+          .subscribe({
+            next: () => {
+              this.toast.add({
+                severity: 'success',
+                summary: 'Sent',
+                detail: 'Your draft message has been sent.',
+              });
+
+              if (this.selectedMail) {
+                this.selectedMail = {
+                  ...this.selectedMail,
+                  status: 'sent',
+                };
+              }
+
+              this.loadMessageDetail(selectedId);
+              this.loadMyMessages();
+            },
+            error: () => {
+              this.toast.add({
+                severity: 'error',
+                summary: 'Send failed',
+                detail: 'Unable to send this draft message.',
+              });
+            },
+          });
+      },
+    });
   }
 }

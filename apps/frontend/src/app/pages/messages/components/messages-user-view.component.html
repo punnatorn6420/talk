@@ -217,6 +217,18 @@
               </div>
 
               <div class="flex items-center gap-2">
+                @if (selectedMail.status.toLowerCase() === 'draft') {
+                  <button
+                    pButton
+                    type="button"
+                    icon="pi pi-send"
+                    label="Send"
+                    [loading]="sendingId === selectedMail.id"
+                    (click)="sendDraftSelected()"
+                  >
+                    <span class="sr-only">Send this draft message</span>
+                  </button>
+                }
                 <button
                   pButton
                   type="button"
@@ -227,6 +239,7 @@
                 >
                   <span class="sr-only">Edit this message</span>
                 </button>
+
                 <button
                   pButton
                   type="button"

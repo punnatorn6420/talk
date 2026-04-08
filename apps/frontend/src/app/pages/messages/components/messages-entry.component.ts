@@ -15,6 +15,10 @@ export class MessagesEntryComponent {
 
   isAdminView = computed(() => {
     const currentUser = this.authService.getCurrentUser();
-    return !!currentUser && currentUser.roles.includes(IUserRole.Admin);
+    return (
+      !!currentUser &&
+      (currentUser.roles.includes(IUserRole.Admin) ||
+        currentUser.roles.includes(IUserRole.CEO))
+    );
   });
 }

@@ -52,7 +52,7 @@ export class _MessageService {
     payload: IMessageRequest,
   ): Observable<IResponse<IMail>> {
     return this.http.put<IMessageRequest, IResponse<IMail>>(
-      `${this.baseUrl}/${id}`,
+      `${this.baseUrl}/${id}/update`,
       payload,
       true,
     );
