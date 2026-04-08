@@ -90,8 +90,8 @@ export class MessagesUserViewComponent
   private detailRequestSeq = 0;
 
   readonly messageForm = this.fb.nonNullable.group({
-    subject: ['', [Validators.required, Validators.maxLength(150)]],
-    detail: ['', [Validators.required, Validators.maxLength(2500)]],
+    subject: ['', Validators.required],
+    detail: ['', Validators.required],
   });
 
   ngOnInit(): void {

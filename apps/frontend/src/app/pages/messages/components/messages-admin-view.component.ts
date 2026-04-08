@@ -236,13 +236,13 @@ export class MessagesAdminViewComponent implements OnInit {
 
     switch (normalized) {
       case 'replied':
-        return 'mail-chip mail-chip--green';
+        return 'mail-chip bg-emerald-100 text-emerald-700';
       case 'read':
-        return 'mail-chip mail-chip--slate';
+        return 'mail-chip bg-blue-100 text-blue-700';
       case 'sent':
-        return 'mail-chip mail-chip--blue';
+        return 'mail-chip bg-orange-100 text-orange-700';
       default:
-        return 'mail-chip mail-chip--slate';
+        return 'mail-chip bg-gray-100 text-gray-700';
     }
   }
 
