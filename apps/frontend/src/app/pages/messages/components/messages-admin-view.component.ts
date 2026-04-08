@@ -220,18 +220,12 @@ export class MessagesAdminViewComponent implements OnInit {
     const normalized = status.trim().toLowerCase();
 
     switch (normalized) {
-      case 'pending':
-        return 'Pending';
       case 'read':
         return 'Read';
       case 'replied':
         return 'Replied';
-      case 'important':
-        return 'Important';
-      case 'security':
-        return 'Security';
-      case 'urgent':
-        return 'Urgent';
+      case 'sent':
+        return 'Sent';
       default:
         return status;
     }
@@ -243,13 +237,9 @@ export class MessagesAdminViewComponent implements OnInit {
     switch (normalized) {
       case 'replied':
         return 'mail-chip mail-chip--green';
-      case 'pending':
-        return 'mail-chip mail-chip--amber';
       case 'read':
         return 'mail-chip mail-chip--slate';
-      case 'urgent':
-        return 'mail-chip mail-chip--red';
-      case 'security':
+      case 'sent':
         return 'mail-chip mail-chip--blue';
       default:
         return 'mail-chip mail-chip--slate';

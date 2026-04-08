@@ -1,4 +1,4 @@
-import { CommonModule, Location } from '@angular/common';
+import { CommonModule, Location, NgClass } from '@angular/common';
 import {
   ChangeDetectorRef,
   ChangeDetectionStrategy,
@@ -28,6 +28,7 @@ import { IMail } from '../../../types/message.model';
     ButtonModule,
     TextareaModule,
     ProgressSpinnerModule,
+    NgClass,
   ],
   templateUrl: './message-admin-detail.component.html',
   styleUrl: './message-admin-detail.component.scss',
@@ -90,6 +91,7 @@ export class MessageAdminDetailComponent implements OnInit {
               // ignore read error silently
             },
           });
+
           this.cdr.markForCheck();
         },
         error: () => {
@@ -107,8 +109,22 @@ export class MessageAdminDetailComponent implements OnInit {
     this.location.back();
   }
 
+  isReplied(): boolean {
+    return !!this.mail?.reply?.trim();
+  }
+
   sendReply(): void {
     if (!this.mail?.id) return;
+
+    if (this.isReplied()) {
+      this.toast.add({
+        severity: 'warn',
+        summary: 'Already replied',
+        detail: 'This message has already been replied to.',
+      });
+      this.cdr.markForCheck();
+      return;
+    }
 
     const reply = this.replyText.trim();
     if (!reply) {
@@ -122,10 +138,16 @@ export class MessageAdminDetailComponent implements OnInit {
     }
 
     this.replying = true;
+    this.cdr.markForCheck();
 
     this.messageApi
       .putReplyMessageThread(String(this.mail.id), { reply })
-      .pipe(finalize(() => (this.replying = false)))
+      .pipe(
+        finalize(() => {
+          this.replying = false;
+          this.cdr.markForCheck();
+        }),
+      )
       .subscribe({
         next: () => {
           this.toast.add({
@@ -139,8 +161,10 @@ export class MessageAdminDetailComponent implements OnInit {
             ...this.mail!,
             reply,
             repliedAt: new Date().toISOString(),
-            status: 'replied',
+            status: 'Replied',
           };
+
+          this.replyText = reply;
           this.cdr.markForCheck();
         },
         error: () => {
