@@ -55,8 +55,9 @@ namespace NokAir.TalkToCeo.Shared.Services
         /// Asynchronously updates the read status of a message by its unique identifier. The method takes an integer id as a parameter and updates the read status of the corresponding message in the "Talk to CEO" system. This allows for tracking whether a message has been read or not, enabling features such as marking messages as read or unread.
         /// </summary>
         /// <param name="id">The unique identifier of the message to update the read status for.</param>
+        /// <param name="userName">The name of the user updating the read status.</param>
         /// <returns>A task that represents the asynchronous operation.</returns>
-        Task UpdateReadStatusAsync(int id);
+        Task UpdateReadStatusAsync(int id, string userName);
 
         /// <summary>
         /// Asynchronously retrieves a list of messages based on specified criteria. The method takes several parameters, including a keyword for searching messages, sorting options, pagination details, and optional date filters. It returns a MessageResponseListDto object that contains a list of MessageResponseDto objects matching the specified criteria, along with additional information such as total count and pagination details. This can be useful for features such as searching for messages, displaying sorted lists of messages, or implementing pagination for large sets of messages.

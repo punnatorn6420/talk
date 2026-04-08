@@ -1,4 +1,5 @@
 using System;
+using Newtonsoft.Json;
 
 namespace NokAir.TalkToCeo.Shared.Dtos
 {
@@ -11,5 +12,11 @@ namespace NokAir.TalkToCeo.Shared.Dtos
         /// Gets or sets the reply message.
         /// </summary>
         public string Reply { get; set; } = string.Empty;
+
+        /// <summary>
+        /// Gets or sets the name of the user creating the message.
+        /// </summary>
+        [JsonIgnore]
+        public string UserName { get; set; } = string.Empty;
     }
 }
