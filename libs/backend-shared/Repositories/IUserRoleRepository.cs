@@ -2,6 +2,9 @@ using NokAir.TalkToCeo.Shared.Entities.Common;
 
 namespace NokAir.TalkToCeo.Shared.Repositories
 {
+    /// <summary>
+    /// Defines the contract for a user-role repository in the "Talk to CEO" system. This interface outlines the methods for managing user-role associations, including adding roles to users and retrieving user roles based on user identifiers. Implementing this interface allows for consistent data access and manipulation of user-role relationships within the application, enabling features such as assigning roles to users and retrieving the roles associated with specific users.
+    /// </summary>
     public interface IUserRoleRepository
     {
         /// <summary>

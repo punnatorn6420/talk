@@ -25,7 +25,7 @@ namespace NokAir.TalkToCeo.Shared.Dtos
 
         /// <summary>
         /// Gets or sets the reply to the message. This field contains the response from the CEO or the responsible team addressing the user's message. The reply is expected to be a string and can be of varying length depending on the nature of the response. If a message has not been replied to yet, this property may be set to a default value or left null, depending on the implementation of the service layer.
-        /// </summary> 
+        /// </summary>
         public string? Reply { get; set; }
 
         /// <summary>

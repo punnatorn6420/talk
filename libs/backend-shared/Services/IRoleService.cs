@@ -4,6 +4,9 @@ using NokAir.TalkToCeo.Shared.Dtos;
 
 namespace NokAir.TalkToCeo.Shared.Services
 {
+    /// <summary>
+    /// Represents a service for managing roles in the application. This interface extends the base role service interface and provides additional functionality specific to the application's requirements, such as retrieving a list of roles asynchronously.
+    /// </summary>
     public interface IRoleService : IRoleServiceBase
     {
         /// <summary>

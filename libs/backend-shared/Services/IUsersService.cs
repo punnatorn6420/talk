@@ -4,6 +4,10 @@ using NokAir.TalkToCeo.Shared.Dtos.Common;
 
 namespace NokAir.TalkToCeo.Shared.Services
 {
+    /// <summary>
+    /// Represents a service for managing users in the application. This interface extends the base user service interface and provides additional functionality specific to the application's requirements, such as adding a flight IROP user and retrieving a flight IROP user based on a token asynchronously.
+    /// </summary>
+    /// <typeparam name="T">The type of the user entity.</typeparam>
     public interface IUsersService<T> : IUserServiceBase<T>
         where T : class
     {

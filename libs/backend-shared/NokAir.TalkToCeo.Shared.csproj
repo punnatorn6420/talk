@@ -5,6 +5,8 @@
     <RootNamespace>backend_shared</RootNamespace>
     <ImplicitUsings>enable</ImplicitUsings>
     <Nullable>enable</Nullable>
+    <BaseOutputPath>..\..\dist\libs\backend-shared\bin\</BaseOutputPath>
+    <BaseIntermediateOutputPath>..\..\dist\libs\backend-shared\obj\</BaseIntermediateOutputPath>
   </PropertyGroup>
 
   <ItemGroup>

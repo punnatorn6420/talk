@@ -8,15 +8,23 @@ using NokAir.TalkToCeo.Shared.Repositories;
 
 namespace NokAir.TalkToCeo.Shared.Services
 {
+    /// <summary>
+    /// Implements the IMessageService interface to provide functionality for managing messages in the "Talk to CEO" application. The MessageService class is responsible for handling operations related to messages, such as creating, retrieving, updating, deleting, and replying to messages. It interacts with the IMessageRepository to perform data access operations and ensures that the business logic for message management is properly implemented. This service allows users to communicate effectively with the CEO by managing their messages and providing necessary functionalities to handle various message-related actions within the application.
+    /// </summary>
     public class MessageService : IMessageService
     {
         private readonly IMessageRepository repository;
 
+        /// <summary>
+        /// Initializes a new instance of the <see cref="MessageService"/> class with the specified IMessageRepository. The constructor takes an IMessageRepository as a parameter and assigns it to a private readonly field, allowing the service to interact with the repository for performing data access operations related to messages. This setup enables the MessageService to manage message data effectively while maintaining a clear separation of concerns between the service layer and the data access layer of the application.
+        /// </summary>
+        /// <param name="repository">The message repository.</param>
         public MessageService(IMessageRepository repository)
         {
             this.repository = repository;
         }
 
+        /// <inheritdoc/>
         public async Task CreateAsync(CreateMessageRequestDto dto)
         {
             var entity = new Messages
@@ -29,29 +37,33 @@ namespace NokAir.TalkToCeo.Shared.Services
                 CreatedAt = DateTime.Now,
                 ModifiedAt = DateTime.Now,
                 CreatedBy = dto.UserName,
-                ModifiedBy = dto.UserName
+                ModifiedBy = dto.UserName,
             };
-            await repository.AddMessageAsync(entity);
+            await this.repository.AddMessageAsync(entity);
         }
 
+        /// <inheritdoc/>
         public async Task<List<MessageResponseDto>> GetAllAsync()
         {
-            var messages = await repository.FindMessagesListAsync();
+            var messages = await this.repository.FindMessagesListAsync();
 
             return messages.Select(x => new MessageResponseDto
             {
                 Id = x.Id,
                 Subject = x.Subject,
-                Message = x.Detail
+                Message = x.Detail,
             }).ToList();
         }
 
+        /// <inheritdoc/>
         public async Task<MessageResponseDto?> GetByIdAsync(int id)
         {
-            var message = await repository.FindMessageByIdAsync(id);
+            var message = await this.repository.FindMessageByIdAsync(id);
 
             if (message == null)
+            {
                 return null;
+            }
 
             return new MessageResponseDto
             {
@@ -69,27 +81,32 @@ namespace NokAir.TalkToCeo.Shared.Services
                 Email = message.User.Email,
                 JobTitle = message.User.JobTitle,
                 Department = message.User.Department,
-                FullName = $"{message.User.FirstName} {message.User.LastName}"
+                FullName = $"{message.User.FirstName} {message.User.LastName}",
             };
         }
 
+        /// <inheritdoc/>
         public async Task DeleteAsync(int id)
         {
-            var message = await repository.FindMessageByIdAsync(id);
+            var message = await this.repository.FindMessageByIdAsync(id);
 
             if (message == null)
-                throw new Exception("Message not found");
+            {
+                throw new DataValidationException("Message not found");
+            }
 
-            await repository.RemoveMessageAsync(message);
+            await this.repository.RemoveMessageAsync(message);
         }
 
+        /// <inheritdoc/>
         public async Task<MessageResponseDto> UpdateAsync(int id, CreateMessageRequestDto dto)
         {
-            var entity =
-             await repository.FindMessageByIdAsync(id);
+            var entity = await this.repository.FindMessageByIdAsync(id);
 
             if (entity == null)
+            {
                 throw new DataValidationException("Message not found");
+            }
 
             entity.Subject = dto.Subject;
             entity.Detail = dto.Detail;
@@ -97,43 +114,50 @@ namespace NokAir.TalkToCeo.Shared.Services
             entity.ModifiedAt = DateTime.Now;
             entity.ModifiedBy = dto.UserName;
 
-            await repository.UpdateAsync(entity);
+            await this.repository.UpdateAsync(entity);
 
             return new MessageResponseDto
             {
                 Id = entity.Id,
                 Subject = entity.Subject,
-                Message = entity.Detail
+                Message = entity.Detail,
             };
         }
 
+        /// <inheritdoc/>
         public async Task ReplyAsync(int id, ReplyMessageRequestDto dto)
         {
-            var entity = await repository.FindMessageByIdAsync(id);
+            var entity = await this.repository.FindMessageByIdAsync(id);
 
             if (entity == null)
-                throw new KeyNotFoundException("Message not found");
+            {
+                throw new DataValidationException("Message not found");
+            }
 
             entity.CeoReply = dto.Reply;
             entity.Status = ActionStatus.Replied;
 
             entity.RepliedAt = DateTime.Now;
 
-            await repository.UpdateAsync(entity);
+            await this.repository.UpdateAsync(entity);
         }
 
+        /// <inheritdoc/>
         public async Task UpdateReadStatusAsync(int id)
         {
-            var entity = await repository.FindMessageByIdAsync(id);
+            var entity = await this.repository.FindMessageByIdAsync(id);
 
             if (entity == null)
-                throw new KeyNotFoundException("Message not found");
+            {
+                throw new DataValidationException("Message not found");
+            }
 
             entity.Status = ActionStatus.Read;
 
-            await repository.UpdateAsync(entity);
+            await this.repository.UpdateAsync(entity);
         }
 
+        /// <inheritdoc/>
         public async Task<MessageResponseListDto> GetMessagesCriteriaAsync(
             string keyword,
             string sortField,
@@ -146,7 +170,7 @@ namespace NokAir.TalkToCeo.Shared.Services
             string? userIdFilter)
         {
             var messages =
-                await repository.FindMessagesCriteriaAsync(
+                await this.repository.FindMessagesCriteriaAsync(
                     keyword,
                     sortField,
                     pageNumber,
@@ -177,9 +201,9 @@ namespace NokAir.TalkToCeo.Shared.Services
                         Email = x.User.Email,
                         JobTitle = x.User.JobTitle,
                         Department = x.User.Department,
-                        FullName = $"{x.User.FirstName} {x.User.LastName}"
+                        FullName = $"{x.User.FirstName} {x.User.LastName}",
                     })
-                    .ToList()
+                    .ToList(),
             };
 
             return result;

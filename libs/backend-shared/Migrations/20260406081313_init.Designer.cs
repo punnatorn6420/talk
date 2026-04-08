@@ -9,11 +9,11 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 
 #nullable disable
 
-namespace backend_shared.Migrations
+namespace NokAir.TalkToCeo.Shared.Migrations
 {
     [DbContext(typeof(TalkToCeoDbContext))]
     [Migration("20260406081313_init")]
-    partial class init
+    partial class Init
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
