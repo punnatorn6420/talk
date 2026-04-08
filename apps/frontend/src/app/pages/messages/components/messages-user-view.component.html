@@ -240,19 +240,18 @@
                   >
                     <span class="sr-only">Edit this message</span>
                   </button>
+                  <button
+                    pButton
+                    type="button"
+                    icon="pi pi-trash"
+                    label="Delete"
+                    [loading]="deletingId === selectedMail.id"
+                    class="p-button-text p-button-danger"
+                    (click)="deleteSelected()"
+                  >
+                    <span class="sr-only">Delete this message</span>
+                  </button>
                 }
-
-                <button
-                  pButton
-                  type="button"
-                  icon="pi pi-trash"
-                  label="Delete"
-                  [loading]="deletingId === selectedMail.id"
-                  class="p-button-text p-button-danger"
-                  (click)="deleteSelected()"
-                >
-                  <span class="sr-only">Delete this message</span>
-                </button>
               </div>
             </div>
           </div>
