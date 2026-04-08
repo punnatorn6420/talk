@@ -21,7 +21,7 @@ namespace NokAir.TalkToCeo.Shared.Entities.TalkToCeo
 
         /// <summary>
         /// Gets or sets the subject of the message.
-        /// </summary>
+        /// </summary>s
         public string Subject { get; set; } = string.Empty;
 
         /// <summary>

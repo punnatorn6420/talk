@@ -70,9 +70,9 @@ namespace NokAir.TalkToCeo.Shared.Repositories
             int pageSize,
             bool ascending,
             bool excludeDraft,
+            string userIdFilter,
             DateTimeOffset? searchStartDate,
-            DateTimeOffset? searchEndDate,
-            string? userIdFilter)
+            DateTimeOffset? searchEndDate)
         {
             var query = this.dbContext.Messages
                 .Include(x => x.User)
@@ -99,10 +99,7 @@ namespace NokAir.TalkToCeo.Shared.Repositories
                 query = query.Where(x => x.PostedAt <= searchEndDate.Value);
             }
 
-            if (!string.IsNullOrEmpty(userIdFilter))
-            {
-                query = query.Where(x => x.UserId == int.Parse(userIdFilter, CultureInfo.InvariantCulture));
-            }
+            query = query.Where(x => x.UserId == int.Parse(userIdFilter, CultureInfo.InvariantCulture));
 
             if (excludeDraft)
             {
