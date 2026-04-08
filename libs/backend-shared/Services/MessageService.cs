@@ -165,9 +165,9 @@ namespace NokAir.TalkToCeo.Shared.Services
             int pageSize,
             bool ascending,
             bool excludeDraft,
+            string userIdFilter,
             DateTimeOffset? searchStartDate,
-            DateTimeOffset? searchEndDate,
-            string? userIdFilter)
+            DateTimeOffset? searchEndDate)
         {
             var messages =
                 await this.repository.FindMessagesCriteriaAsync(
@@ -177,9 +177,9 @@ namespace NokAir.TalkToCeo.Shared.Services
                     pageSize,
                     ascending,
                     excludeDraft,
+                    userIdFilter,
                     searchStartDate,
-                    searchEndDate,
-                    userIdFilter);
+                    searchEndDate);
 
             var result = new MessageResponseListDto
             {

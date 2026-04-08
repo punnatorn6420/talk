@@ -1,5 +1,7 @@
+using System.Globalization;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using NokAir.Core.Constants;
 using NokAir.Core.Exceptions;
 using NokAir.Shared.Api.Responses.Factories;
 using NokAir.Shared.Security.HttpHeaderFilters;
@@ -118,11 +120,18 @@ namespace NokAir.TalkToCeo.Api.Controllers
         {
             try
             {
-                var userId = this.User.FindFirst("user_id")?.Value;
+                var token = this.HttpContext.Request.Headers.Authorization.ToString().Replace("Bearer ", string.Empty);
 
-                var role = this.User.FindFirst(System.Security.Claims.ClaimTypes.Role)?.Value;
+                var user = await this.usersService.GetUserFromTokenAsync(token);
 
-                var excludeDraft = role == "CEO";
+                if (user == null)
+                {
+                    throw new DataValidationException("User information in token is invalid.");
+                }
+
+                var role = user.Roles.FirstOrDefault();
+
+                var excludeDraft = role == "CEO" || role == "Ceo";
 
                 var result =
                     await this.messageService.GetMessagesCriteriaAsync(
@@ -132,9 +141,9 @@ namespace NokAir.TalkToCeo.Api.Controllers
                         pageSize ?? 25,
                         ascending ?? true,
                         excludeDraft,
+                        user.Id.ToString(CultureInfo.CurrentCulture) ?? string.Empty,
                         searchStartDate,
-                        searchEndDate,
-                        role == "CEO" ? null : userId);
+                        searchEndDate);
 
                 return this.OkResponseWithResult(result);
             }

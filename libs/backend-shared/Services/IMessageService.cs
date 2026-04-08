@@ -67,9 +67,9 @@ namespace NokAir.TalkToCeo.Shared.Services
         /// <param name="pageSize">The number of messages per page.</param>
         /// <param name="ascending">Whether to sort in ascending order.</param>
         /// <param name="excludeDraft">Whether to exclude draft messages.</param>
+        /// <param name="userIdFilter">The user ID to filter messages by.</param>
         /// <param name="searchStartDate">The start date for filtering messages.</param>
         /// <param name="searchEndDate">The end date for filtering messages.</param>
-        /// <param name="userIdFilter">The user ID to filter messages by.</param>
         /// <returns>A task that represents the asynchronous operation. The task result contains a MessageResponseListDto object.</returns>
         Task<MessageResponseListDto> GetMessagesCriteriaAsync(
             string keyword,
@@ -78,8 +78,8 @@ namespace NokAir.TalkToCeo.Shared.Services
             int pageSize,
             bool ascending,
             bool excludeDraft,
+            string userIdFilter,
             DateTimeOffset? searchStartDate,
-            DateTimeOffset? searchEndDate,
-            string? userIdFilter);
+            DateTimeOffset? searchEndDate);
     }
 }
