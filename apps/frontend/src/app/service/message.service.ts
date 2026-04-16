@@ -87,8 +87,7 @@ export class _MessageService {
   }
 
   postMessageThreadWithFiles(formData: FormData) {
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    return this.http.postFormData<FormData, any>(
+    return this.http.postFormData<FormData, IResponse<IMail>>(
       `${this.baseUrl}`,
       formData,
       true,
@@ -96,8 +95,7 @@ export class _MessageService {
   }
 
   putMessageThreadWithFiles(id: string, formData: FormData) {
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    return this.http.putFormData<FormData, any>(
+    return this.http.putFormData<FormData, IResponse<IMail>>(
       `${this.baseUrl}/${id}`,
       formData,
       true,
@@ -105,6 +103,10 @@ export class _MessageService {
   }
 
   putReplyMessageThreadWithFiles(id: string, formData: FormData) {
-    return this.http.putFormData(`${this.baseUrl}/${id}/reply`, formData, true);
+    return this.http.putFormData<FormData, IResponse<IMail>>(
+      `${this.baseUrl}/${id}/reply`,
+      formData,
+      true,
+    );
   }
 }

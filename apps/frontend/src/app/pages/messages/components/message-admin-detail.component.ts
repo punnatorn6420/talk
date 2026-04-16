@@ -19,6 +19,7 @@ import { FileSelectEvent, FileUploadModule } from 'primeng/fileupload';
 import { _MessageService } from '../../../service/message.service';
 import { IMail } from '../../../types/message.model';
 import { CardModule } from 'primeng/card';
+import { DateTimePipe } from '../../../shared/core/pipes/date-time.pipe';
 
 @Component({
   selector: 'app-message-admin-detail',
@@ -33,6 +34,7 @@ import { CardModule } from 'primeng/card';
     ProgressSpinnerModule,
     NgClass,
     CardModule,
+    DateTimePipe,
   ],
   templateUrl: './message-admin-detail.component.html',
   styleUrl: './message-admin-detail.component.scss',
@@ -200,10 +202,7 @@ export class MessageAdminDetailComponent implements OnInit {
     this.cdr.markForCheck();
 
     this.messageApi
-      .putReplyMessageThreadWithFiles(
-        String(this.mail.id),
-        this.buildReplyFormData(),
-      )
+      .putReplyMessageThread(String(this.mail.id), { reply })
       .pipe(
         finalize(() => {
           this.replying = false;
@@ -242,21 +241,6 @@ export class MessageAdminDetailComponent implements OnInit {
           this.cdr.markForCheck();
         },
       });
-  }
-
-  getPostedDate(value?: string | null): string {
-    if (!value) return '-';
-
-    const date = new Date(value);
-    if (Number.isNaN(date.getTime())) return '-';
-
-    return new Intl.DateTimeFormat('en-GB', {
-      day: '2-digit',
-      month: 'short',
-      year: 'numeric',
-      hour: '2-digit',
-      minute: '2-digit',
-    }).format(date);
   }
 
   getSenderName(): string {

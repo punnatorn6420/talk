@@ -27,6 +27,7 @@ import { ConfirmDialogModule } from 'primeng/confirmdialog';
 import { IconFieldModule } from 'primeng/iconfield';
 import { InputIconModule } from 'primeng/inputicon';
 import { CardModule } from 'primeng/card';
+import { DateTimePipe } from '../../../shared/core/pipes/date-time.pipe';
 
 type MailSidebarKey =
   | 'inbox'
@@ -57,6 +58,7 @@ type MailSidebarKey =
     IconFieldModule,
     InputIconModule,
     CardModule,
+    DateTimePipe,
   ],
   templateUrl: './messages-admin-view.component.html',
   styleUrl: './messages-admin-view.component.scss',
@@ -199,9 +201,13 @@ export class MessagesAdminViewComponent implements OnInit {
     });
   }
   getPreview(mail: IMail): string {
-    return (
-      mail.message?.trim() || mail.detail?.trim() || mail.reply?.trim() || '-'
-    );
+    const html = mail.detail?.trim() || mail.message?.trim() || '';
+
+    return html
+      .replace(/<[^>]*>/g, ' ')
+      .replace(/&nbsp;/g, ' ')
+      .replace(/\s+/g, ' ')
+      .trim();
   }
 
   getInitials(fullName?: string | null): string {
@@ -244,31 +250,6 @@ export class MessagesAdminViewComponent implements OnInit {
       default:
         return 'mail-chip bg-gray-100 text-gray-700';
     }
-  }
-
-  formatTime(value?: string | null): string {
-    if (!value) return '-';
-
-    const date = new Date(value);
-    if (Number.isNaN(date.getTime())) return '-';
-
-    const now = new Date();
-    const sameDay =
-      now.getFullYear() === date.getFullYear() &&
-      now.getMonth() === date.getMonth() &&
-      now.getDate() === date.getDate();
-
-    if (sameDay) {
-      return new Intl.DateTimeFormat('en-US', {
-        hour: 'numeric',
-        minute: '2-digit',
-      }).format(date);
-    }
-
-    return new Intl.DateTimeFormat('en-US', {
-      month: 'short',
-      day: '2-digit',
-    }).format(date);
   }
 
   trackByMail(_: number, item: IMail): string | number {
