@@ -18,12 +18,13 @@ import { ConfirmationService, MessageService } from 'primeng/api';
 import { ButtonModule } from 'primeng/button';
 import { CardModule } from 'primeng/card';
 import { ConfirmDialogModule } from 'primeng/confirmdialog';
+import { EditorModule } from 'primeng/editor';
+import { FileSelectEvent, FileUploadModule } from 'primeng/fileupload';
 import { InputTextModule } from 'primeng/inputtext';
 import { PaginatorModule, PaginatorState } from 'primeng/paginator';
 import { ProgressSpinnerModule } from 'primeng/progressspinner';
 import { TagModule } from 'primeng/tag';
 import { ToastModule } from 'primeng/toast';
-import { TextareaModule } from 'primeng/textarea';
 import { _MessageService } from '../../../service/message.service';
 import { SubscriptionDestroyer } from '../../../shared/core/helper/SubscriptionDestroyer.helper';
 import {
@@ -32,6 +33,9 @@ import {
   IMessageRequest,
 } from '../../../types/message.model';
 import { ScrollPanelModule } from 'primeng/scrollpanel';
+import { SkeletonLoadingModule } from '../../../shared/skeleton-loading/skeleton-loading.module';
+
+type PanelMode = 'empty' | 'create' | 'edit' | 'detail';
 
 @Component({
   selector: 'app-messages-user-view',
@@ -43,15 +47,18 @@ import { ScrollPanelModule } from 'primeng/scrollpanel';
     ButtonModule,
     CardModule,
     InputTextModule,
-    TextareaModule,
     TagModule,
     ToastModule,
     PaginatorModule,
     ProgressSpinnerModule,
     ConfirmDialogModule,
     ScrollPanelModule,
+    EditorModule,
+    FileUploadModule,
+    SkeletonLoadingModule,
   ],
   templateUrl: './messages-user-view.component.html',
+  styleUrls: ['./messages-user-view.component.scss'],
   providers: [MessageService, ConfirmationService],
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
@@ -75,9 +82,12 @@ export class MessagesUserViewComponent
   detailLoading = false;
 
   selectedMail: IMail | null = null;
+  selectedMailId: string | number | null = null;
   editingMailId: string | null = null;
+  panelMode: PanelMode = 'empty';
 
   keyword = '';
+  pendingFiles: File[] = [];
 
   params: IMessageParams = {
     keyword: '',
@@ -88,6 +98,7 @@ export class MessagesUserViewComponent
   };
 
   private detailRequestSeq = 0;
+  private readonly maxFileSize = 10 * 1024 * 1024;
 
   readonly messageForm = this.fb.nonNullable.group({
     subject: ['', Validators.required],
@@ -96,6 +107,10 @@ export class MessagesUserViewComponent
 
   ngOnInit(): void {
     this.loadMyMessages();
+  }
+
+  get isComposeMode(): boolean {
+    return this.panelMode === 'create' || this.panelMode === 'edit';
   }
 
   loadMyMessages(): void {
@@ -114,9 +129,9 @@ export class MessagesUserViewComponent
           this.mails = res.data?.items ?? [];
           this.totalCount = res.data?.totalCount ?? 0;
 
-          if (this.selectedMail?.id) {
+          if (this.selectedMailId != null) {
             const latest = this.mails.find(
-              (mail) => String(mail.id) === String(this.selectedMail?.id),
+              (mail) => String(mail.id) === String(this.selectedMailId),
             );
 
             if (latest && this.selectedMail) {
@@ -132,7 +147,13 @@ export class MessagesUserViewComponent
             }
           }
 
-          this.cdr.markForCheck();
+          if (!this.mails.length && this.panelMode === 'detail') {
+            this.panelMode = 'empty';
+            this.selectedMail = null;
+            this.selectedMailId = null;
+          }
+
+          this.cdr.detectChanges();
         },
         error: () => {
           this.toast.add({
@@ -151,6 +172,11 @@ export class MessagesUserViewComponent
       keyword: this.keyword.trim(),
       pageNumber: 1,
     };
+
+    this.selectedMail = null;
+    this.selectedMailId = null;
+    this.panelMode = 'empty';
+
     this.loadMyMessages();
   }
 
@@ -165,35 +191,101 @@ export class MessagesUserViewComponent
 
   onSelectMessage(mail: IMail): void {
     this.editingMailId = null;
-    this.messageForm.reset({ subject: '', detail: '' });
-    this.selectedMail = null;
+    this.pendingFiles = [];
+    this.selectedMailId = mail.id;
+    this.selectedMail = { ...mail };
+    this.panelMode = 'detail';
+    this.detailLoading = true;
+
+    this.cdr.detectChanges();
     this.loadMessageDetail(String(mail.id));
   }
 
   startCreate(): void {
+    this.panelMode = 'create';
     this.selectedMail = null;
+    this.selectedMailId = null;
     this.editingMailId = null;
     this.messageForm.reset({ subject: '', detail: '' });
     this.messageForm.markAsPristine();
+    this.pendingFiles = [];
     this.cdr.markForCheck();
   }
 
   startEdit(): void {
     if (!this.selectedMail) return;
 
+    this.panelMode = 'edit';
     this.editingMailId = String(this.selectedMail.id);
     this.messageForm.reset({
       subject: this.selectedMail.subject ?? '',
       detail: this.getBody(this.selectedMail),
     });
     this.messageForm.markAsPristine();
+    this.pendingFiles = [];
     this.cdr.markForCheck();
   }
 
   cancelEdit(): void {
     this.editingMailId = null;
+    this.pendingFiles = [];
+
+    if (this.selectedMailId != null) {
+      this.panelMode = 'detail';
+    } else {
+      this.panelMode = 'empty';
+      this.selectedMail = null;
+    }
+
     this.messageForm.reset({ subject: '', detail: '' });
     this.cdr.markForCheck();
+  }
+
+  onFilesSelected(event: FileSelectEvent): void {
+    const files = event.files ?? [];
+
+    for (const file of files) {
+      if (file.size > this.maxFileSize) {
+        this.toast.add({
+          severity: 'warn',
+          summary: 'File too large',
+          detail: `${file.name} exceeds 10 MB.`,
+        });
+        continue;
+      }
+
+      const duplicated = this.pendingFiles.some(
+        (item) =>
+          item.name === file.name &&
+          item.size === file.size &&
+          item.lastModified === file.lastModified,
+      );
+
+      if (!duplicated) {
+        this.pendingFiles = [...this.pendingFiles, file];
+      }
+    }
+
+    this.cdr.markForCheck();
+  }
+
+  removePendingFile(index: number): void {
+    this.pendingFiles = this.pendingFiles.filter((_, i) => i !== index);
+    this.cdr.markForCheck();
+  }
+
+  private buildFormData(status: string): FormData {
+    const formData = new FormData();
+
+    formData.append('subject', this.messageForm.controls.subject.value.trim());
+    formData.append('detail', this.messageForm.controls.detail.value.trim());
+    formData.append('status', status);
+
+    this.pendingFiles.forEach((file) => {
+      formData.append('files', file, file.name);
+    });
+
+    return formData;
   }
 
   submitCreate(): void {
@@ -202,16 +294,10 @@ export class MessagesUserViewComponent
       return;
     }
 
-    const payload: IMessageRequest = {
-      subject: this.messageForm.controls.subject.value.trim(),
-      detail: this.messageForm.controls.detail.value.trim(),
-      status: 'draft',
-    };
-
     this.creating = true;
 
     this.messageApi
-      .postMessageThread(payload)
+      .postMessageThreadWithFiles(this.buildFormData('draft'))
       .pipe(
         finalize(() => {
           this.creating = false;
@@ -225,8 +311,15 @@ export class MessagesUserViewComponent
             summary: 'Sent',
             detail: 'Your message has been submitted.',
           });
-          this.startCreate();
+          this.panelMode = 'empty';
+          this.selectedMail = null;
+          this.selectedMailId = null;
+          this.editingMailId = null;
+          this.pendingFiles = [];
+          this.messageForm.reset({ subject: '', detail: '' });
+
           this.loadMyMessages();
+          this.cdr.detectChanges();
         },
         error: () => {
           this.toast.add({
@@ -249,16 +342,13 @@ export class MessagesUserViewComponent
       return;
     }
 
-    const payload: IMessageRequest = {
-      subject: this.messageForm.controls.subject.value.trim(),
-      detail: this.messageForm.controls.detail.value.trim(),
-      status: this.selectedMail.status || 'pending',
-    };
-
     this.updating = true;
 
     this.messageApi
-      .putMessageThread(this.editingMailId, payload)
+      .putMessageThreadWithFiles(
+        this.editingMailId,
+        this.buildFormData(this.selectedMail.status || 'pending'),
+      )
       .pipe(
         finalize(() => {
           this.updating = false;
@@ -275,7 +365,14 @@ export class MessagesUserViewComponent
 
           const id = this.editingMailId;
           this.editingMailId = null;
-          if (id) this.loadMessageDetail(id);
+          this.pendingFiles = [];
+          this.panelMode = 'detail';
+
+          if (id) {
+            this.selectedMailId = id;
+            this.loadMessageDetail(id);
+          }
+
           this.loadMyMessages();
         },
         error: () => {
@@ -319,7 +416,13 @@ export class MessagesUserViewComponent
                 summary: 'Deleted',
                 detail: 'Your message has been deleted.',
               });
-              this.startCreate();
+
+              this.selectedMail = null;
+              this.selectedMailId = null;
+              this.panelMode = 'empty';
+              this.pendingFiles = [];
+              this.messageForm.reset({ subject: '', detail: '' });
+
               this.loadMyMessages();
             },
             error: () => {
@@ -338,51 +441,62 @@ export class MessagesUserViewComponent
     const requestSeq = ++this.detailRequestSeq;
 
     this.detailLoading = true;
-    this.cdr.markForCheck();
+    this.cdr.detectChanges();
 
-    this.messageApi
-      .getMessageThreadById(id)
-      .pipe(
-        finalize(() => {
-          if (requestSeq === this.detailRequestSeq) {
-            this.detailLoading = false;
-            this.cdr.markForCheck();
-          }
-        }),
-      )
-      .subscribe({
-        next: (res) => {
-          if (requestSeq !== this.detailRequestSeq) return;
+    this.messageApi.getMessageThreadById(id).subscribe({
+      next: (res) => {
+        if (requestSeq !== this.detailRequestSeq) return;
 
-          this.selectedMail = res.data ?? null;
+        const nextMail = res.data ?? null;
 
-          if (!this.selectedMail) {
-            this.toast.add({
-              severity: 'warn',
-              summary: 'Not found',
-              detail: 'Message detail is unavailable.',
-            });
-          }
+        this.selectedMail = nextMail;
 
-          this.cdr.markForCheck();
-        },
-        error: () => {
-          if (requestSeq !== this.detailRequestSeq) return;
-
+        if (!this.selectedMail) {
+          this.panelMode = 'empty';
+          this.selectedMailId = null;
           this.toast.add({
-            severity: 'error',
-            summary: 'Load failed',
-            detail: 'Unable to load message detail.',
+            severity: 'warn',
+            summary: 'Not found',
+            detail: 'Message detail is unavailable.',
           });
+        } else {
+          this.panelMode = 'detail';
+        }
 
-          this.selectedMail = null;
-          this.cdr.markForCheck();
-        },
-      });
+        this.detailLoading = false;
+        this.cdr.detectChanges();
+      },
+      error: () => {
+        if (requestSeq !== this.detailRequestSeq) return;
+
+        this.toast.add({
+          severity: 'error',
+          summary: 'Load failed',
+          detail: 'Unable to load message detail.',
+        });
+
+        this.selectedMail = null;
+        this.selectedMailId = null;
+        this.panelMode = 'empty';
+        this.detailLoading = false;
+        this.cdr.detectChanges();
+      },
+    });
   }
 
   getBody(mail: IMail): string {
     return mail.detail?.trim() || mail.message?.trim() || '';
+  }
+
+  getPlainTextPreview(mail: IMail): string {
+    const html = this.getBody(mail);
+    if (!html) return '';
+
+    return html
+      .replace(/<[^>]*>/g, ' ')
+      .replace(/&nbsp;/g, ' ')
+      .replace(/\s+/g, ' ')
+      .trim();
   }
 
   getStatusLabel(status?: string | null): string {
@@ -431,6 +545,21 @@ export class MessagesUserViewComponent
       hour: '2-digit',
       minute: '2-digit',
     }).format(date);
+  }
+
+  formatFileSize(size: number): string {
+    if (!size) return '-';
+
+    const units = ['B', 'KB', 'MB', 'GB'];
+    let value = size;
+    let unitIndex = 0;
+
+    while (value >= 1024 && unitIndex < units.length - 1) {
+      value /= 1024;
+      unitIndex++;
+    }
+
+    return `${value.toFixed(value >= 10 || unitIndex === 0 ? 0 : 1)} ${units[unitIndex]}`;
   }
 
   sendDraftSelected(): void {

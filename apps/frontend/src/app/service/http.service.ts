@@ -70,4 +70,16 @@ export class HttpService {
       headers: this.getHeaders(includeAuth),
     });
   }
+
+  postFormData<T, B>(url: string, data: T, includeAuth = true): Observable<B> {
+    let headers = this.getHeaders(includeAuth);
+    headers = headers.delete('Content-Type');
+    return this.http.post<B>(url, data, { headers });
+  }
+
+  putFormData<T, B>(url: string, data: T, includeAuth = true): Observable<B> {
+    let headers = this.getHeaders(includeAuth);
+    headers = headers.delete('Content-Type');
+    return this.http.put<B>(url, data, { headers });
+  }
 }
