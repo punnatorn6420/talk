@@ -28,6 +28,8 @@ import { IconFieldModule } from 'primeng/iconfield';
 import { InputIconModule } from 'primeng/inputicon';
 import { CardModule } from 'primeng/card';
 import { DateTimePipe } from '../../../shared/core/pipes/date-time.pipe';
+import { DialogModule } from 'primeng/dialog';
+import { EditorModule } from 'primeng/editor';
 
 type MailSidebarKey =
   | 'inbox'
@@ -59,6 +61,8 @@ type MailSidebarKey =
     InputIconModule,
     CardModule,
     DateTimePipe,
+    DialogModule,
+    EditorModule,
   ],
   templateUrl: './messages-admin-view.component.html',
   styleUrl: './messages-admin-view.component.scss',
@@ -80,6 +84,15 @@ export class MessagesAdminViewComponent implements OnInit {
   keyword = '';
   selectedMenu: MailSidebarKey = 'inbox';
 
+  broadcastDialogVisible = false;
+  sendingBroadcast = false;
+  broadcastTo = 'All Users';
+  broadcastSubject = '';
+  broadcastMessage = '';
+
+  broadcastFiles: File[] = [];
+  private readonly maxBroadcastFileSize = 10 * 1024 * 1024;
+
   params: IMessageParams = {
     keyword: '',
     pageNumber: 1,
@@ -90,6 +103,7 @@ export class MessagesAdminViewComponent implements OnInit {
 
   readonly menuItems: { key: MailSidebarKey; label: string; icon: string }[] = [
     { key: 'inbox', label: 'Inbox', icon: 'pi pi-inbox' },
+    { key: 'sent', label: 'Sent', icon: 'pi pi-send' },
   ];
 
   ngOnInit(): void {
@@ -139,6 +153,69 @@ export class MessagesAdminViewComponent implements OnInit {
       pageSize: event.rows ?? 10,
     };
     this.loadMessages();
+  }
+
+  onSelectMenu(menu: MailSidebarKey): void {
+    this.selectedMenu = menu;
+    this.cdr.markForCheck();
+
+    // TODO: ถ้าภายหลังมี API/filter แยก inbox / sent ค่อยเติม logic ตรงนี้
+  }
+
+  openBroadcastDialog(): void {
+    this.broadcastTo = 'All Users';
+    this.broadcastSubject = '';
+    this.broadcastMessage = '';
+    this.broadcastFiles = [];
+    this.broadcastDialogVisible = true;
+    this.cdr.markForCheck();
+  }
+
+  closeBroadcastDialog(): void {
+    this.broadcastDialogVisible = false;
+    this.cdr.markForCheck();
+  }
+
+  sendBroadcast(): void {
+    const plainText = this.broadcastMessage
+      .replace(/<[^>]*>/g, ' ')
+      .replace(/&nbsp;/g, ' ')
+      .replace(/\s+/g, ' ')
+      .trim();
+
+    if (!this.broadcastSubject.trim()) {
+      this.toast.add({
+        severity: 'warn',
+        summary: 'Subject required',
+        detail: 'Please enter a broadcast subject.',
+      });
+      return;
+    }
+
+    if (!plainText) {
+      this.toast.add({
+        severity: 'warn',
+        summary: 'Message required',
+        detail: 'Please enter a broadcast message.',
+      });
+      return;
+    }
+
+    this.sendingBroadcast = true;
+    this.cdr.markForCheck();
+
+    setTimeout(() => {
+      this.sendingBroadcast = false;
+      this.broadcastDialogVisible = false;
+
+      this.toast.add({
+        severity: 'success',
+        summary: 'Broadcast created',
+        detail: 'Broadcast draft is ready.',
+      });
+
+      this.cdr.markForCheck();
+    }, 500);
   }
 
   openMail(mail: IMail): void {
@@ -200,6 +277,7 @@ export class MessagesAdminViewComponent implements OnInit {
       },
     });
   }
+
   getPreview(mail: IMail): string {
     const html = mail.detail?.trim() || mail.message?.trim() || '';
 
@@ -254,5 +332,55 @@ export class MessagesAdminViewComponent implements OnInit {
 
   trackByMail(_: number, item: IMail): string | number {
     return item.id;
+  }
+
+  onBroadcastFilesSelected(event: Event): void {
+    const input = event.target as HTMLInputElement;
+    const files = Array.from(input.files ?? []);
+
+    for (const file of files) {
+      if (file.size > this.maxBroadcastFileSize) {
+        this.toast.add({
+          severity: 'warn',
+          summary: 'File too large',
+          detail: `${file.name} exceeds 10 MB.`,
+        });
+        continue;
+      }
+
+      const duplicated = this.broadcastFiles.some(
+        (item) =>
+          item.name === file.name &&
+          item.size === file.size &&
+          item.lastModified === file.lastModified,
+      );
+
+      if (!duplicated) {
+        this.broadcastFiles = [...this.broadcastFiles, file];
+      }
+    }
+
+    input.value = '';
+    this.cdr.markForCheck();
+  }
+
+  removeBroadcastFile(index: number): void {
+    this.broadcastFiles = this.broadcastFiles.filter((_, i) => i !== index);
+    this.cdr.markForCheck();
+  }
+
+  formatFileSize(size: number): string {
+    if (!size) return '-';
+
+    const units = ['B', 'KB', 'MB', 'GB'];
+    let value = size;
+    let unitIndex = 0;
+
+    while (value >= 1024 && unitIndex < units.length - 1) {
+      value /= 1024;
+      unitIndex++;
+    }
+
+    return `${value.toFixed(value >= 10 || unitIndex === 0 ? 0 : 1)} ${units[unitIndex]}`;
   }
 }
