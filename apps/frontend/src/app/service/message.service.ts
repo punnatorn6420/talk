@@ -85,4 +85,26 @@ export class _MessageService {
       true,
     );
   }
+
+  postMessageThreadWithFiles(formData: FormData) {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    return this.http.postFormData<FormData, any>(
+      `${this.baseUrl}`,
+      formData,
+      true,
+    );
+  }
+
+  putMessageThreadWithFiles(id: string, formData: FormData) {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    return this.http.putFormData<FormData, any>(
+      `${this.baseUrl}/${id}`,
+      formData,
+      true,
+    );
+  }
+
+  putReplyMessageThreadWithFiles(id: string, formData: FormData) {
+    return this.http.putFormData(`${this.baseUrl}/${id}/reply`, formData, true);
+  }
 }

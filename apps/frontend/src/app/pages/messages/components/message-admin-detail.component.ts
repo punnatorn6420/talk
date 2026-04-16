@@ -14,7 +14,8 @@ import { MessageService } from 'primeng/api';
 import { ButtonModule } from 'primeng/button';
 import { ProgressSpinnerModule } from 'primeng/progressspinner';
 import { ToastModule } from 'primeng/toast';
-import { TextareaModule } from 'primeng/textarea';
+import { EditorModule } from 'primeng/editor';
+import { FileSelectEvent, FileUploadModule } from 'primeng/fileupload';
 import { _MessageService } from '../../../service/message.service';
 import { IMail } from '../../../types/message.model';
 import { CardModule } from 'primeng/card';
@@ -27,7 +28,8 @@ import { CardModule } from 'primeng/card';
     FormsModule,
     ToastModule,
     ButtonModule,
-    TextareaModule,
+    EditorModule,
+    FileUploadModule,
     ProgressSpinnerModule,
     NgClass,
     CardModule,
@@ -49,6 +51,9 @@ export class MessageAdminDetailComponent implements OnInit {
 
   mail: IMail | null = null;
   replyText = '';
+  pendingReplyFiles: File[] = [];
+
+  private readonly maxFileSize = 10 * 1024 * 1024;
 
   ngOnInit(): void {
     const id = this.route.snapshot.paramMap.get('id');
@@ -115,6 +120,52 @@ export class MessageAdminDetailComponent implements OnInit {
     return !!this.mail?.reply?.trim();
   }
 
+  onReplyFilesSelected(event: FileSelectEvent): void {
+    const files = event.files ?? [];
+
+    for (const file of files) {
+      if (file.size > this.maxFileSize) {
+        this.toast.add({
+          severity: 'warn',
+          summary: 'File too large',
+          detail: `${file.name} exceeds 10 MB.`,
+        });
+        continue;
+      }
+
+      const duplicated = this.pendingReplyFiles.some(
+        (item) =>
+          item.name === file.name &&
+          item.size === file.size &&
+          item.lastModified === file.lastModified,
+      );
+
+      if (!duplicated) {
+        this.pendingReplyFiles = [...this.pendingReplyFiles, file];
+      }
+    }
+
+    this.cdr.markForCheck();
+  }
+
+  removeReplyFile(index: number): void {
+    this.pendingReplyFiles = this.pendingReplyFiles.filter(
+      (_, i) => i !== index,
+    );
+    this.cdr.markForCheck();
+  }
+
+  private buildReplyFormData(): FormData {
+    const formData = new FormData();
+    formData.append('reply', this.replyText?.trim() || '');
+
+    this.pendingReplyFiles.forEach((file) => {
+      formData.append('files', file, file.name);
+    });
+
+    return formData;
+  }
+
   sendReply(): void {
     if (!this.mail?.id) return;
 
@@ -128,12 +179,18 @@ export class MessageAdminDetailComponent implements OnInit {
       return;
     }
 
-    const reply = this.replyText.trim();
-    if (!reply) {
+    const reply = this.replyText?.trim() || '';
+    const plainReply = reply
+      .replace(/<[^>]*>/g, ' ')
+      .replace(/&nbsp;/g, ' ')
+      .replace(/\s+/g, ' ')
+      .trim();
+
+    if (!plainReply && this.pendingReplyFiles.length === 0) {
       this.toast.add({
         severity: 'warn',
         summary: 'Reply required',
-        detail: 'Please enter a reply message.',
+        detail: 'Please enter a reply message or attach at least one file.',
       });
       this.cdr.markForCheck();
       return;
@@ -143,7 +200,10 @@ export class MessageAdminDetailComponent implements OnInit {
     this.cdr.markForCheck();
 
     this.messageApi
-      .putReplyMessageThread(String(this.mail.id), { reply })
+      .putReplyMessageThreadWithFiles(
+        String(this.mail.id),
+        this.buildReplyFormData(),
+      )
       .pipe(
         finalize(() => {
           this.replying = false;
@@ -167,7 +227,11 @@ export class MessageAdminDetailComponent implements OnInit {
           };
 
           this.replyText = reply;
+          this.pendingReplyFiles = [];
           this.cdr.markForCheck();
+
+          // โหลด detail ใหม่เพื่อดึง attachment จริงจาก backend
+          this.loadMail(String(this.mail.id));
         },
         error: () => {
           this.toast.add({
@@ -203,7 +267,56 @@ export class MessageAdminDetailComponent implements OnInit {
     return this.mail?.email || '-';
   }
 
-  getBody(): string {
-    return this.mail?.detail?.trim() || this.mail?.message?.trim() || '-';
+  get bodyDisplayValue(): string {
+    return (
+      this.mail?.detail?.trim() || this.mail?.message?.trim() || '<p>-</p>'
+    );
+  }
+
+  get replyDisplayValue(): string {
+    return this.mail?.reply?.trim() || '<p>-</p>';
+  }
+
+  getOriginalAttachments(): unknown[] {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    return (this.mail as any)?.attachments ?? [];
+  }
+
+  getReplyAttachments(): unknown[] {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    return (this.mail as any)?.replyAttachments ?? [];
+  }
+
+  getAttachmentName(file: unknown): string {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    return (file as any)?.fileName || (file as any)?.name || 'Attachment';
+  }
+
+  getAttachmentUrl(file: unknown): string | null {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    return (file as any)?.url || (file as any)?.downloadUrl || null;
+  }
+
+  hasOriginalAttachments(): boolean {
+    return this.getOriginalAttachments().length > 0;
+  }
+
+  hasReplyAttachments(): boolean {
+    return this.getReplyAttachments().length > 0;
+  }
+
+  formatFileSize(size?: number | null): string {
+    if (!size) return '-';
+
+    const units = ['B', 'KB', 'MB', 'GB'];
+    let value = size;
+    let unitIndex = 0;
+
+    while (value >= 1024 && unitIndex < units.length - 1) {
+      value /= 1024;
+      unitIndex++;
+    }
+
+    return `${value.toFixed(value >= 10 || unitIndex === 0 ? 0 : 1)} ${units[unitIndex]}`;
   }
 }

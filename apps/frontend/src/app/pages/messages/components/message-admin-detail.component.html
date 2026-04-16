@@ -74,9 +74,40 @@
           </div>
 
           <div class="px-5 py-8">
-            <p class="whitespace-pre-line text-lg leading-8 text-slate-700">
-              {{ getBody() }}
-            </p>
+            <p-editor
+              [ngModel]="bodyDisplayValue"
+              [readonly]="true"
+              class="reply-display-editor"
+            ></p-editor>
+
+            @if (hasOriginalAttachments()) {
+              <div class="mt-6 border-t border-slate-200 pt-4">
+                <div class="mb-3 text-sm font-semibold text-slate-800">
+                  Attachments
+                </div>
+
+                <div class="space-y-2">
+                  @for (file of getOriginalAttachments(); track $index) {
+                    <a
+                      class="flex items-center justify-between rounded-lg border border-slate-200 px-3 py-2 text-sm text-slate-700 transition hover:bg-slate-50"
+                      [href]="getAttachmentUrl(file) || null"
+                      target="_blank"
+                    >
+                      <div class="min-w-0">
+                        <div class="truncate font-medium">
+                          {{ getAttachmentName(file) }}
+                        </div>
+                        <!-- <div class="text-xs text-slate-400">
+                          {{ formatFileSize(file?.size) }}
+                        </div> -->
+                      </div>
+
+                      <i class="pi pi-paperclip text-slate-400"></i>
+                    </a>
+                  }
+                </div>
+              </div>
+            }
           </div>
         </div>
 
@@ -113,27 +144,163 @@
             </div>
 
             <div class="px-5 py-8">
-              <p class="whitespace-pre-line text-lg leading-8 text-slate-700">
-                {{ mail.reply }}
-              </p>
+              <p-editor
+                [ngModel]="replyDisplayValue"
+                [readonly]="true"
+                class="reply-display-editor"
+              ></p-editor>
+
+              @if (hasReplyAttachments()) {
+                <div class="mt-6 border-t border-slate-200 pt-4">
+                  <div class="mb-3 text-sm font-semibold text-slate-800">
+                    Reply attachments
+                  </div>
+
+                  <div class="space-y-2">
+                    @for (file of getReplyAttachments(); track $index) {
+                      <a
+                        class="flex items-center justify-between rounded-lg border border-slate-200 px-3 py-2 text-sm text-slate-700 transition hover:bg-slate-50"
+                        [href]="getAttachmentUrl(file) || null"
+                        target="_blank"
+                      >
+                        <div class="min-w-0">
+                          <div class="truncate font-medium">
+                            {{ getAttachmentName(file) }}
+                          </div>
+                        </div>
+
+                        <i class="pi pi-paperclip text-slate-400"></i>
+                      </a>
+                    }
+                  </div>
+                </div>
+              }
             </div>
           </div>
         }
 
         @if (!isReplied()) {
-          <div class="mt-6 rounded-lg border border-slate-200 bg-white p-5">
-            <div class="mb-4 flex items-center justify-between">
-              <h3 class="text-lg font-semibold text-slate-900">Reply</h3>
-            </div>
-
-            <textarea
-              pInputTextarea
+          <div class="mt-6">
+            <p-editor
               [(ngModel)]="replyText"
-              [autoResize]="true"
-              rows="6"
-              class="w-full"
-              placeholder="Write your reply here..."
-            ></textarea>
+              [style]="{ height: '260px' }"
+              class="message-editor"
+            >
+              <ng-template #header>
+                <span class="ql-formats">
+                  <select class="ql-size" aria-label="Font Size">
+                    <option value="small">Small</option>
+                    <option selected>Normal</option>
+                    <option value="large">Large</option>
+                    <option value="huge">Huge</option>
+                  </select>
+                </span>
+
+                <span class="ql-formats">
+                  <button
+                    type="button"
+                    class="ql-bold"
+                    aria-label="Bold"
+                  ></button>
+                  <button
+                    type="button"
+                    class="ql-italic"
+                    aria-label="Italic"
+                  ></button>
+                  <button
+                    type="button"
+                    class="ql-underline"
+                    aria-label="Underline"
+                  ></button>
+                </span>
+
+                <span class="ql-formats">
+                  <select class="ql-color" aria-label="Text Color"></select>
+                  <select
+                    class="ql-background"
+                    aria-label="Background Color"
+                  ></select>
+                </span>
+
+                <span class="ql-formats">
+                  <button
+                    type="button"
+                    class="ql-list"
+                    value="ordered"
+                    aria-label="Ordered List"
+                  ></button>
+                  <select class="ql-align" aria-label="Text Align">
+                    <option selected></option>
+                    <option value="center"></option>
+                    <option value="right"></option>
+                    <option value="justify"></option>
+                  </select>
+                </span>
+
+                <span class="ql-formats">
+                  <button
+                    type="button"
+                    class="ql-link"
+                    aria-label="Insert Link"
+                  ></button>
+                  <button
+                    type="button"
+                    class="ql-clean"
+                    aria-label="Clear Formatting"
+                  ></button>
+                </span>
+              </ng-template>
+            </p-editor>
+
+            <div class="mt-4">
+              <div class="flex items-center gap-3">
+                <p-fileUpload
+                  mode="basic"
+                  name="files[]"
+                  chooseLabel="Attach files"
+                  chooseIcon="pi pi-paperclip"
+                  [multiple]="true"
+                  [customUpload]="true"
+                  [auto]="false"
+                  accept="image/*,.pdf,.doc,.docx,.xls,.xlsx,.txt"
+                  [maxFileSize]="10000000"
+                  (onSelect)="onReplyFilesSelected($event)"
+                ></p-fileUpload>
+              </div>
+
+              @if (pendingReplyFiles.length) {
+                <div class="mt-3 space-y-2">
+                  @for (
+                    file of pendingReplyFiles;
+                    track file.name + '-' + file.size + '-' + $index
+                  ) {
+                    <div
+                      class="flex items-center justify-between rounded-md border border-slate-200 bg-white px-3 py-2"
+                    >
+                      <div class="min-w-0">
+                        <div
+                          class="truncate text-sm font-medium text-slate-800"
+                        >
+                          {{ file.name }}
+                        </div>
+                        <div class="mt-0.5 text-xs text-slate-400">
+                          {{ formatFileSize(file.size) }}
+                        </div>
+                      </div>
+
+                      <button
+                        aria-label="Remove file"
+                        pButton
+                        type="button"
+                        icon="pi pi-times"
+                        class="p-button-text p-button-danger p-button-sm"
+                        (click)="removeReplyFile($index)"
+                      ></button>
+                    </div>
+                  }
+                </div>
+              }
+            </div>
 
             <div class="mt-4 flex justify-end">
               <button

@@ -60,7 +60,7 @@
                 type="button"
                 class="w-full px-4 py-3 text-left transition-colors hover:bg-slate-50"
                 [ngClass]="
-                  selectedMail?.id === mail.id
+                  selectedMailId === mail.id
                     ? 'bg-primary-50 ring-1 ring-inset ring-primary-200'
                     : ''
                 "
@@ -79,7 +79,7 @@
                 </div>
 
                 <p class="mt-2 line-clamp-2 text-xs leading-5 text-slate-500">
-                  {{ getBody(mail) || '-' }}
+                  {{ getPlainTextPreview(mail) || '-' }}
                 </p>
 
                 <div class="mt-2 text-[11px] text-slate-400">
@@ -103,14 +103,14 @@
     </section>
 
     <section class="rounded-lg border border-slate-200 bg-white p-5">
-      @if (editingMailId || !selectedMail) {
+      @if (isComposeMode) {
         <div>
           <h2 class="text-xl font-semibold text-slate-900">
-            {{ editingMailId ? 'Edit Message' : 'Create Message' }}
+            {{ panelMode === 'edit' ? 'Edit Message' : 'Create Message' }}
           </h2>
           <p class="mt-1 text-sm text-slate-500">
             {{
-              editingMailId
+              panelMode === 'edit'
                 ? 'Update your message before admin replies.'
                 : 'Send a new message to admin.'
             }}
@@ -146,14 +146,78 @@
                 class="mb-2 block text-sm font-medium text-slate-700"
                 >Message</label
               >
-              <textarea
-                id="message-detail"
-                pInputTextarea
-                rows="10"
-                [autoResize]="true"
-                class="w-full"
+
+              <p-editor
                 formControlName="detail"
-              ></textarea>
+                [style]="{ height: '260px' }"
+                class="message-editor"
+              >
+                <ng-template #header>
+                  <span class="ql-formats">
+                    <select class="ql-size" aria-label="Font Size">
+                      <option value="small">Small</option>
+                      <option selected>Normal</option>
+                      <option value="large">Large</option>
+                      <option value="huge">Huge</option>
+                    </select>
+                  </span>
+
+                  <span class="ql-formats">
+                    <button
+                      type="button"
+                      class="ql-bold"
+                      aria-label="Bold"
+                    ></button>
+                    <button
+                      type="button"
+                      class="ql-italic"
+                      aria-label="Italic"
+                    ></button>
+                    <button
+                      type="button"
+                      class="ql-underline"
+                      aria-label="Underline"
+                    ></button>
+                  </span>
+
+                  <span class="ql-formats">
+                    <select class="ql-color" aria-label="Text Color"></select>
+                    <select
+                      class="ql-background"
+                      aria-label="Background Color"
+                    ></select>
+                  </span>
+
+                  <span class="ql-formats">
+                    <button
+                      type="button"
+                      class="ql-list"
+                      value="ordered"
+                      aria-label="Ordered List"
+                    ></button>
+                    <select class="ql-align" aria-label="Text Align">
+                      <option selected></option>
+                      <option value="center"></option>
+                      <option value="right"></option>
+                      <option value="justify"></option>
+                    </select>
+                  </span>
+
+                  <span class="ql-formats">
+                    <button
+                      type="button"
+                      class="ql-link"
+                      aria-label="Insert Link"
+                    ></button>
+                    <button
+                      type="button"
+                      class="ql-clean"
+                      aria-label="Clear Formatting"
+                    ></button>
+                  </span>
+                </ng-template>
+              </p-editor>
+
               @if (
                 messageForm.controls.detail.touched &&
                 messageForm.controls.detail.invalid
@@ -164,8 +228,58 @@
               }
             </div>
 
+            <div>
+              <div class="flex items-center gap-3">
+                <p-fileUpload
+                  mode="basic"
+                  name="files[]"
+                  chooseLabel="Attach files"
+                  chooseIcon="pi pi-paperclip"
+                  [multiple]="true"
+                  [customUpload]="true"
+                  [auto]="false"
+                  accept="image/*,.pdf,.doc,.docx,.xls,.xlsx,.txt"
+                  [maxFileSize]="10000000"
+                  (onSelect)="onFilesSelected($event)"
+                ></p-fileUpload>
+              </div>
+
+              @if (pendingFiles.length) {
+                <div class="mt-2 space-y-2">
+                  @for (
+                    file of pendingFiles;
+                    track file.name + '-' + file.size + '-' + $index
+                  ) {
+                    <div
+                      class="flex items-center justify-between rounded-md border border-slate-200 bg-white px-3 py-2"
+                    >
+                      <div class="min-w-0">
+                        <div
+                          class="truncate text-sm font-medium text-slate-800"
+                        >
+                          {{ file.name }}
+                        </div>
+                        <div class="mt-0.5 text-xs text-slate-400">
+                          {{ formatFileSize(file.size) }}
+                        </div>
+                      </div>
+
+                      <button
+                        aria-label="Remove file"
+                        pButton
+                        type="button"
+                        icon="pi pi-times"
+                        class="p-button-text p-button-danger p-button-sm"
+                        (click)="removePendingFile($index)"
+                      ></button>
+                    </div>
+                  }
+                </div>
+              }
+            </div>
+
             <div class="flex justify-end gap-2">
-              @if (editingMailId) {
+              @if (panelMode === 'edit') {
                 <button
                   pButton
                   type="button"
@@ -180,25 +294,18 @@
               <button
                 pButton
                 type="button"
-                [label]="editingMailId ? 'Update' : 'Create Message'"
-                [icon]="editingMailId ? 'pi pi-save' : 'pi pi-plus'"
-                [loading]="editingMailId ? updating : creating"
-                (click)="editingMailId ? submitEdit() : submitCreate()"
+                [label]="panelMode === 'edit' ? 'Update' : 'Create Message'"
+                [icon]="panelMode === 'edit' ? 'pi pi-save' : 'pi pi-plus'"
+                [loading]="panelMode === 'edit' ? updating : creating"
+                (click)="panelMode === 'edit' ? submitEdit() : submitCreate()"
               >
                 <span class="sr-only">Submit message form</span>
               </button>
             </div>
           </form>
         </div>
-      } @else {
-        @if (detailLoading) {
-          <div class="flex h-56 items-center justify-center">
-            <p-progressSpinner
-              strokeWidth="4"
-              class="h-10 w-10"
-            ></p-progressSpinner>
-          </div>
-        } @else {
+      } @else if (panelMode === 'detail' && selectedMail) {
+        <div class="relative">
           <div class="border-b border-slate-200 pb-4">
             <div class="flex flex-wrap items-start justify-between gap-3">
               <div>
@@ -242,6 +349,7 @@
                   >
                     <span class="sr-only">Edit this message</span>
                   </button>
+
                   <button
                     pButton
                     type="button"
@@ -266,35 +374,42 @@
                 >
                   Your message
                 </div>
-                <p class="whitespace-pre-line text-sm leading-7 text-slate-700">
-                  {{ getBody(selectedMail) || '-' }}
-                </p>
+                <p-editor
+                  [ngModel]="getBody(selectedMail)"
+                  [readonly]="true"
+                  class="reply-display-editor"
+                ></p-editor>
               </div>
             </div>
 
             @if (hasAdminReply(selectedMail)) {
               <div
-                class="relative overflow-hidden rounded-xl border border-emerald-200 bg-emerald-50/40 p-0 shadow-sm"
+                class="relative overflow-hidden rounded-xl border border-emerald-200 bg-emerald-50/40 p-0 shadow-sm max-w-full"
               >
                 <div
                   class="absolute left-0 top-0 h-full w-1.5 bg-gradient-to-b from-emerald-400 to-emerald-500"
                 ></div>
-                <div class="pl-5 pr-5 py-4">
+
+                <div class="pl-5 pr-5 py-4 min-w-0">
                   <div class="mb-2 flex items-center justify-between gap-3">
                     <div
-                      class="text-xs font-semibold uppercase tracking-wide text-emerald-700"
+                      class="min-w-0 text-xs font-semibold uppercase tracking-wide text-emerald-700 break-words"
                     >
                       {{ selectedMail.modifiedBy || 'Admin Reply' }}
                     </div>
-                    <div class="text-xs text-slate-500">
+
+                    <div class="shrink-0 text-xs text-slate-500">
                       {{ formatDate(selectedMail.repliedAt) }}
                     </div>
                   </div>
-                  <p
-                    class="whitespace-pre-line text-sm leading-7 text-slate-700"
-                  >
-                    {{ selectedMail.reply }}
-                  </p>
+
+                  <div class="max-w-full min-w-0">
+                    <p-editor
+                      [ngModel]="selectedMail.reply || '<p>-</p>'"
+                      [readonly]="true"
+                      class="reply-display-editor"
+                    ></p-editor>
+                  </div>
                 </div>
               </div>
             } @else if (shouldShowNoReply(selectedMail)) {
@@ -305,7 +420,29 @@
               </div>
             }
           </div>
-        }
+        </div>
+      } @else if (detailLoading) {
+        <div>
+          <app-skeleton-loading></app-skeleton-loading>
+        </div>
+      } @else {
+        <div class="flex h-[420px] items-center justify-center">
+          <div class="max-w-sm text-center">
+            <div
+              class="mx-auto mb-4 flex h-14 w-14 items-center justify-center rounded-full bg-slate-100"
+            >
+              <i class="pi pi-envelope text-xl text-slate-400"></i>
+            </div>
+            <h3 class="text-lg font-semibold text-slate-800">
+              Select a message
+            </h3>
+            <p class="mt-2 text-sm leading-6 text-slate-500">
+              Choose a message from the list to view its details, or click
+              <span class="font-medium text-slate-700">New Message</span>
+              to create one.
+            </p>
+          </div>
+        </div>
       }
     </section>
   </div>
