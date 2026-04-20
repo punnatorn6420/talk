@@ -31,6 +31,11 @@ namespace NokAir.TalkToCeo.Shared.Repositories
         public DbSet<Messages> Messages { get; set; }
 
         /// <summary>
+        /// Gets or sets dbSet property for the MessageAttachment entity, which represents the attachments associated with messages in the application. This property allows you to perform CRUD operations on the MessageAttachment table in the database using Entity Framework Core's LINQ queries and other data manipulation methods, enabling you to manage attachments related to messages effectively within the TalkToCeo system.
+        /// </summary>
+        public DbSet<MessageAttachment> MessageAttachments { get; set; }
+
+        /// <summary>
         /// Overrides the OnModelCreating method to configure the entity mappings and relationships for the TalkToCeoDbContext. This method is called by Entity Framework Core when the model is being created, and it allows you to specify how the entities should be mapped to the database tables, as well as any relationships between them. In this implementation, we configure the data types for DateTime properties, and we define the mappings for the User, Role, UserRole, and Messages entities using Fluent API.
         /// </summary>
         /// <param name="modelBuilder">The model builder used to configure the entity mappings and relationships.</param>
@@ -57,6 +62,49 @@ namespace NokAir.TalkToCeo.Shared.Repositories
             ConfigureUserRole(modelBuilder);
 
             ConfigureMessage(modelBuilder);
+
+            ConfigureMessageAttachment(modelBuilder);
+        }
+
+        private static void ConfigureMessageAttachment(ModelBuilder modelBuilder)
+        {
+            modelBuilder.Entity<MessageAttachment>(entity =>
+            {
+                entity.ToTable("message_attachments");
+
+                entity.HasKey(a => a.Id);
+
+                entity.Property(a => a.Id)
+                    .HasColumnName("id");
+
+                entity.Property(a => a.MessageId)
+                    .HasColumnName("message_id")
+                    .IsRequired();
+
+                entity.Property(a => a.FilePath)
+                    .HasColumnName("file_path")
+                    .IsRequired()
+                    .HasMaxLength(500);
+
+                entity.Property(a => a.CreatedAt)
+                    .HasColumnName("created_at")
+                    .IsRequired();
+
+                entity.Property(a => a.ModifiedAt)
+                    .HasColumnName("modified_at")
+                    .IsRequired();
+
+                entity.Property(a => a.CreatedBy)
+                    .HasColumnName("created_by");
+
+                entity.Property(a => a.ModifiedBy)
+                    .HasColumnName("modified_by");
+
+                entity.HasOne(a => a.Message)
+                    .WithMany(m => m.Attachments)
+                    .HasForeignKey(a => a.MessageId)
+                    .OnDelete(DeleteBehavior.Cascade);
+            });
         }
 
         private static void ConfigureUser(ModelBuilder modelBuilder)

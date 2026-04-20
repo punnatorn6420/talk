@@ -531,6 +531,144 @@
                     }
                 }
             }
+        },
+        "/messages/attachments/{id}": {
+            "get": {
+                "summary": "Download attachment",
+                "operationId": "downloadAttachmentAsync",
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "parameters": [
+                    {
+                        "$ref": "#/components/parameters/client_id"
+                    },
+                    {
+                        "$ref": "#/components/parameters/client_secret"
+                    },
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Attachment downloaded successfully",
+                        "content": {
+                            "application/octet-stream": {
+                                "schema": {
+                                    "type": "string",
+                                    "format": "binary"
+                                }
+                            }
+                        }
+                    },
+                    "403": {
+                        "description": "Invalid request parameters",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/InvalidRequestResponse"
+                                }
+                            }
+                        }
+                    },
+                    "404": {
+                        "description": "Attachment not found"
+                    },
+                    "500": {
+                        "description": "Internal server error",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object"
+                                },
+                                "example": {
+                                    "correlationId": "ABCD1234-1234-1234-1234-1234567890AB",
+                                    "error": {
+                                        "code": "E0001",
+                                        "userMessage": "Please contact support",
+                                        "developerMessage": "An unexpected error occurred"
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/messages/{id}attachments": {
+            "post": {
+                "summary": "Upload attachment",
+                "operationId": "uploadAttachmentAsync",
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "parameters": [
+                    {
+                        "$ref": "#/components/parameters/client_id"
+                    },
+                    {
+                        "$ref": "#/components/parameters/client_secret"
+                    },
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Attachment uploaded successfully",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/SuccessResponse"
+                                }
+                            }
+                        }
+                    },
+                    "403": {
+                        "description": "Invalid request parameters",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/InvalidRequestResponse"
+                                }
+                            }
+                        }
+                    },
+                    "500": {
+                        "description": "Internal server error",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object"
+                                },
+                                "example": {
+                                    "correlationId": "ABCD1234-1234-1234-1234-1234567890AB",
+                                    "error": {
+                                        "code": "E0001",
+                                        "userMessage": "Please contact support",
+                                        "developerMessage": "An unexpected error occurred"
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
         }
     }
 }

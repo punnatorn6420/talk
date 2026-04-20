@@ -19,6 +19,7 @@ namespace NokAir.TalkToCeo.Api.Controllers
     public class TalkToCeoApiController : TalkToCeoApiControllerBase
     {
         private readonly IMessageService messageService;
+        private readonly IMessageAttachmentService messageAttachmentService;
         private readonly IUsersService<UserDto> usersService;
 
         /// <summary>
@@ -26,14 +27,17 @@ namespace NokAir.TalkToCeo.Api.Controllers
         /// </summary>
         /// <param name="apiResponseFactory">The factory for creating API responses.</param>
         /// <param name="messageService">The service for handling message-related operations.</param>
+        /// <param name="messageAttachmentService">The service for handling message attachment-related operations.</param>
         /// <param name="usersService">The service for managing user information.</param>
         public TalkToCeoApiController(
               IResponseFactory apiResponseFactory,
               IMessageService messageService,
+              IMessageAttachmentService messageAttachmentService,
               IUsersService<UserDto> usersService)
               : base(apiResponseFactory)
         {
             this.messageService = messageService;
+            this.messageAttachmentService = messageAttachmentService;
             this.usersService = usersService;
         }
 
@@ -74,7 +78,7 @@ namespace NokAir.TalkToCeo.Api.Controllers
         /// <inheritdoc/>
         [Authorize(Policy = "UserRole")]
         [ClientApplicationValidationWithIDAndSecretAttribute]
-        public override async Task<ActionResult> DeleteMessage(int id)
+        public override async Task<ActionResult> DeleteMessageAsync(int id)
         {
             try
             {
@@ -109,7 +113,63 @@ namespace NokAir.TalkToCeo.Api.Controllers
         /// <inheritdoc/>
         [Authorize(Policy = "AllRole")]
         [ClientApplicationValidationWithIDAndSecretAttribute]
-        public override async Task<ActionResult> GetAllMessages(
+        public override async Task<ActionResult> GetAttachmentAsync(int id)
+        {
+            try
+            {
+                var file = await this.messageAttachmentService.GetDownloadFileAsync(id);
+
+                if (file == null)
+                {
+                    throw new DataValidationException("Attachment not found.");
+                }
+
+                return this.PhysicalFile(file.Value.FullPath, "application/octet-stream", file.Value.FileName);
+            }
+            catch (DataValidationException ex)
+            {
+                return this.BadRequestResponseFromMessage(ex.Message);
+            }
+            catch (Exception ex)
+            {
+                return this.InternalServerErrorResponseFromException(ex);
+            }
+        }
+
+        /// <inheritdoc/>
+        [Authorize(Policy = "AllRole")]
+        [ClientApplicationValidationWithIDAndSecretAttribute]
+        public override async Task<ActionResult> SubmitAttachmentAsync(int id)
+        {
+            try
+            {
+                var token = this.HttpContext.Request.Headers.Authorization.ToString().Replace("Bearer ", string.Empty);
+
+                var user = await this.usersService.GetUserFromTokenAsync(token);
+
+                if (user == null)
+                {
+                    throw new DataValidationException("User information in token is invalid.");
+                }
+
+                var result = await this.messageAttachmentService.StoreFilesForMessageAsync(id, this.Request.Form.Files, user);
+
+                return this.OkSuccessResponse();
+            }
+            catch (DataValidationException ex)
+            {
+                return this.BadRequestResponseFromMessage(ex.Message);
+            }
+            catch (Exception ex)
+            {
+                return this.InternalServerErrorResponseFromException(ex);
+            }
+        }
+
+        /// <inheritdoc/>
+        [Authorize(Policy = "AllRole")]
+        [ClientApplicationValidationWithIDAndSecretAttribute]
+        public override async Task<ActionResult> GetAllMessagesAsync(
             [FromQuery] string keyword,
             [FromQuery] string sortField,
             [FromQuery] int? pageNumber = 1,
@@ -163,7 +223,7 @@ namespace NokAir.TalkToCeo.Api.Controllers
         /// <inheritdoc/>
         [Authorize(Policy = "AllRole")]
         [ClientApplicationValidationWithIDAndSecretAttribute]
-        public override async Task<ActionResult> GetMessageDetail(int id)
+        public override async Task<ActionResult> GetMessageDetailAsync(int id)
         {
             try
             {
@@ -184,7 +244,7 @@ namespace NokAir.TalkToCeo.Api.Controllers
         /// <inheritdoc/>
         [Authorize(Policy = "CeoRole")]
         [ClientApplicationValidationWithIDAndSecretAttribute]
-        public override async Task<ActionResult> ReplyMessage(int id, [FromBody] ReplyMessageRequestDto body)
+        public override async Task<ActionResult> ReplyMessageAsync(int id, [FromBody] ReplyMessageRequestDto body)
         {
             try
             {
@@ -210,6 +270,7 @@ namespace NokAir.TalkToCeo.Api.Controllers
                 }
 
                 body.UserName = user.FirstName + " " + user.LastName;
+                body.CeoId = user.Id;
 
                 await this.messageService.ReplyAsync(id, body);
 
@@ -228,7 +289,7 @@ namespace NokAir.TalkToCeo.Api.Controllers
         /// <inheritdoc/>
         [Authorize(Policy = "UserRole")]
         [ClientApplicationValidationWithIDAndSecretAttribute]
-        public override async Task<ActionResult> UpdateMessage(int id, [FromBody] CreateMessageRequestDto body)
+        public override async Task<ActionResult> UpdateMessageAsync(int id, [FromBody] CreateMessageRequestDto body)
         {
             try
             {
@@ -261,7 +322,7 @@ namespace NokAir.TalkToCeo.Api.Controllers
         /// <inheritdoc/>
         [Authorize(Policy = "CeoRole")]
         [ClientApplicationValidationWithIDAndSecretAttribute]
-        public override async Task<ActionResult> UpdateReadStatus(int id)
+        public override async Task<ActionResult> UpdateReadStatusAsync(int id)
         {
             try
             {

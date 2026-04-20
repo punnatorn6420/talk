@@ -45,52 +45,103 @@ namespace TalkToCeoApi.Controllers
         /// </summary>
         /// <returns>Messages retrieved successfully</returns>
         [Microsoft.AspNetCore.Mvc.HttpGet, Microsoft.AspNetCore.Mvc.Route("messages")]
-        public abstract System.Threading.Tasks.Task<Microsoft.AspNetCore.Mvc.ActionResult> GetAllMessages(
+        public abstract System.Threading.Tasks.Task<Microsoft.AspNetCore.Mvc.ActionResult> GetAllMessagesAsync(
             [Microsoft.AspNetCore.Mvc.FromQuery] string keyword,
             [Microsoft.AspNetCore.Mvc.FromQuery] string sortField,
             [Microsoft.AspNetCore.Mvc.FromQuery] int? pageNumber = 1,
             [Microsoft.AspNetCore.Mvc.FromQuery] int? pageSize = 25,
             [Microsoft.AspNetCore.Mvc.FromQuery] bool? ascending = true,
-            [Microsoft.AspNetCore.Mvc.FromQuery] System.DateTimeOffset? searchStartDate = null,
-            [Microsoft.AspNetCore.Mvc.FromQuery] System.DateTimeOffset? searchEndDate = null);
-
-        /// <summary>
-        /// Update message
-        /// </summary>
-        /// <returns>Message updated successfully</returns>
-        [Microsoft.AspNetCore.Mvc.HttpPut, Microsoft.AspNetCore.Mvc.Route("messages/{id}/update")]
-        public abstract System.Threading.Tasks.Task<Microsoft.AspNetCore.Mvc.ActionResult> UpdateMessage(int id, [Microsoft.AspNetCore.Mvc.FromBody] CreateMessageRequestDto body);
+            [Microsoft.AspNetCore.Mvc.FromQuery] DateTimeOffset? searchStartDate = null,
+            [Microsoft.AspNetCore.Mvc.FromQuery] DateTimeOffset? searchEndDate = null);
 
         /// <summary>
         /// Get message detail
         /// </summary>
         /// <returns>Message detail retrieved successfully</returns>
         [Microsoft.AspNetCore.Mvc.HttpGet, Microsoft.AspNetCore.Mvc.Route("messages/{id}")]
-        public abstract System.Threading.Tasks.Task<Microsoft.AspNetCore.Mvc.ActionResult> GetMessageDetail(int id);
+        public abstract System.Threading.Tasks.Task<Microsoft.AspNetCore.Mvc.ActionResult> GetMessageDetailAsync(int id);
 
         /// <summary>
         /// Delete message
         /// </summary>
         /// <returns>Message deleted successfully</returns>
         [Microsoft.AspNetCore.Mvc.HttpDelete, Microsoft.AspNetCore.Mvc.Route("messages/{id}")]
-        public abstract System.Threading.Tasks.Task<Microsoft.AspNetCore.Mvc.ActionResult> DeleteMessage(int id);
+        public abstract System.Threading.Tasks.Task<Microsoft.AspNetCore.Mvc.ActionResult> DeleteMessageAsync(int id);
 
         /// <summary>
         /// Reply message (CEO only)
         /// </summary>
         /// <returns>The reply have been successfully retrieved</returns>
         [Microsoft.AspNetCore.Mvc.HttpPut, Microsoft.AspNetCore.Mvc.Route("messages/{id}/reply")]
-        public abstract System.Threading.Tasks.Task<Microsoft.AspNetCore.Mvc.ActionResult> ReplyMessage(int id, [Microsoft.AspNetCore.Mvc.FromBody] ReplyMessageRequestDto body);
+        public abstract System.Threading.Tasks.Task<Microsoft.AspNetCore.Mvc.ActionResult> ReplyMessageAsync(int id, [Microsoft.AspNetCore.Mvc.FromBody] ReplyMessageRequestDto body);
 
         /// <summary>
         /// Update status
         /// </summary>
         /// <returns>Status updated successfully</returns>
         [Microsoft.AspNetCore.Mvc.HttpPut, Microsoft.AspNetCore.Mvc.Route("messages/{id}/read")]
-        public abstract System.Threading.Tasks.Task<Microsoft.AspNetCore.Mvc.ActionResult> UpdateReadStatus(int id);
+        public abstract System.Threading.Tasks.Task<Microsoft.AspNetCore.Mvc.ActionResult> UpdateReadStatusAsync(int id);
+
+        /// <summary>
+        /// Update message
+        /// </summary>
+        /// <returns>Message updated successfully</returns>
+        [Microsoft.AspNetCore.Mvc.HttpPut, Microsoft.AspNetCore.Mvc.Route("messages/{id}/update")]
+        public abstract System.Threading.Tasks.Task<Microsoft.AspNetCore.Mvc.ActionResult> UpdateMessageAsync(int id, [Microsoft.AspNetCore.Mvc.FromBody] CreateMessageRequestDto body);
+
+        /// <summary>
+        /// Download attachment
+        /// </summary>
+        /// <returns>Attachment downloaded successfully</returns>
+        [Microsoft.AspNetCore.Mvc.HttpGet, Microsoft.AspNetCore.Mvc.Route("messages/attachments/{id}")]
+        public abstract System.Threading.Tasks.Task<Microsoft.AspNetCore.Mvc.ActionResult> GetAttachmentAsync(int id);
+
+        /// <summary>
+        /// Upload attachment
+        /// </summary>
+        /// <returns>Attachment uploaded successfully</returns>
+        [Microsoft.AspNetCore.Mvc.HttpPost, Microsoft.AspNetCore.Mvc.Route("messages/{id}/attachments")]
+        public abstract System.Threading.Tasks.Task<Microsoft.AspNetCore.Mvc.ActionResult> SubmitAttachmentAsync(int id);
 
     }
 
+
+
+    [System.CodeDom.Compiler.GeneratedCode("NSwag", "14.2.0.0 (NJsonSchema v11.1.0.0 (Newtonsoft.Json v13.0.0.0))")]
+    public partial class FileResponse : System.IDisposable
+    {
+        private System.IDisposable _client;
+        private System.IDisposable _response;
+
+        public int StatusCode { get; private set; }
+
+        public System.Collections.Generic.IReadOnlyDictionary<string, System.Collections.Generic.IEnumerable<string>> Headers { get; private set; }
+
+        public System.IO.Stream Stream { get; private set; }
+
+        public bool IsPartial
+        {
+            get { return StatusCode == 206; }
+        }
+
+        public FileResponse(int statusCode, System.Collections.Generic.IReadOnlyDictionary<string, System.Collections.Generic.IEnumerable<string>> headers, System.IO.Stream stream, System.IDisposable client, System.IDisposable response)
+        {
+            StatusCode = statusCode;
+            Headers = headers;
+            Stream = stream;
+            _client = client;
+            _response = response;
+        }
+
+        public void Dispose()
+        {
+            Stream.Dispose();
+            if (_response != null)
+                _response.Dispose();
+            if (_client != null)
+                _client.Dispose();
+        }
+    }
 
 
 
