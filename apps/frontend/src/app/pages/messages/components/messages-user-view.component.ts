@@ -34,6 +34,7 @@ import {
 } from '../../../types/message.model';
 import { ScrollPanelModule } from 'primeng/scrollpanel';
 import { SkeletonLoadingModule } from '../../../shared/skeleton-loading/skeleton-loading.module';
+import { DateTimePipe } from '../../../shared/core/pipes/date-time.pipe';
 
 type PanelMode = 'empty' | 'create' | 'edit' | 'detail';
 
@@ -56,6 +57,7 @@ type PanelMode = 'empty' | 'create' | 'edit' | 'detail';
     EditorModule,
     FileUploadModule,
     SkeletonLoadingModule,
+    DateTimePipe,
   ],
   templateUrl: './messages-user-view.component.html',
   styleUrls: ['./messages-user-view.component.scss'],
@@ -288,6 +290,14 @@ export class MessagesUserViewComponent
     return formData;
   }
 
+  private buildPayload(status: string): IMessageRequest {
+    return {
+      subject: this.messageForm.controls.subject.value.trim(),
+      detail: this.messageForm.controls.detail.value.trim(),
+      status,
+    };
+  }
+
   submitCreate(): void {
     if (this.messageForm.invalid || this.creating) {
       this.messageForm.markAllAsTouched();
@@ -297,7 +307,7 @@ export class MessagesUserViewComponent
     this.creating = true;
 
     this.messageApi
-      .postMessageThreadWithFiles(this.buildFormData('draft'))
+      .postMessageThread(this.buildPayload('draft'))
       .pipe(
         finalize(() => {
           this.creating = false;
@@ -345,9 +355,9 @@ export class MessagesUserViewComponent
     this.updating = true;
 
     this.messageApi
-      .putMessageThreadWithFiles(
+      .putMessageThread(
         this.editingMailId,
-        this.buildFormData(this.selectedMail.status || 'pending'),
+        this.buildPayload(this.selectedMail.status || 'pending'),
       )
       .pipe(
         finalize(() => {
@@ -530,21 +540,6 @@ export class MessagesUserViewComponent
       default:
         return 'bg-slate-100 text-slate-700';
     }
-  }
-
-  formatDate(value?: string | null): string {
-    if (!value) return '-';
-
-    const date = new Date(value);
-    if (Number.isNaN(date.getTime())) return '-';
-
-    return new Intl.DateTimeFormat('en-GB', {
-      day: '2-digit',
-      month: 'short',
-      year: 'numeric',
-      hour: '2-digit',
-      minute: '2-digit',
-    }).format(date);
   }
 
   formatFileSize(size: number): string {

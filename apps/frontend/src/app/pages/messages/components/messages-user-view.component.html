@@ -83,7 +83,7 @@
                 </p>
 
                 <div class="mt-2 text-[11px] text-slate-400">
-                  {{ formatDate(mail.postedAt) }}
+                  {{ mail.postedAt | appDateTime }}
                 </div>
               </button>
             }
@@ -315,7 +315,7 @@
                 <div
                   class="mt-2 flex items-center gap-2 text-sm text-slate-500"
                 >
-                  <span>Sent: {{ formatDate(selectedMail.postedAt) }}</span>
+                  <span>Sent: {{ selectedMail.postedAt | appDateTime }}</span>
                   <span
                     class="rounded-md px-2 py-1 text-xs font-medium"
                     [ngClass]="getStatusClass(selectedMail.status)"
@@ -399,13 +399,13 @@
                     </div>
 
                     <div class="shrink-0 text-xs text-slate-500">
-                      {{ formatDate(selectedMail.repliedAt) }}
+                      {{ selectedMail.repliedAt | appDateTime }}
                     </div>
                   </div>
 
                   <div class="max-w-full min-w-0">
                     <p-editor
-                      [ngModel]="selectedMail.reply || '<p>-</p>'"
+                      [ngModel]="selectedMail.reply"
                       [readonly]="true"
                       class="reply-display-editor"
                     ></p-editor>
