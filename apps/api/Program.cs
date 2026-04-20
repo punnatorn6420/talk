@@ -25,6 +25,7 @@ using NokAir.Shared.Resources.BookingLocalize;
 using NokAir.Shared.Security.AuthorizationHandlers;
 using NokAir.Shared.Security.Models.Common;
 using NokAir.Shared.Security.Services.InHouse;
+using NokAir.TalkToCeo.Shared.Configurations;
 using NokAir.TalkToCeo.Shared.Dtos;
 using NokAir.TalkToCeo.Shared.Entities.Common;
 using NokAir.TalkToCeo.Shared.Repositories;
@@ -98,6 +99,7 @@ builder.Configuration.AddConfiguration(configuration);
 builder.Services.Configure<AppLoggerConfiguration>(builder.Configuration.GetSection("AppLogger"));
 builder.Services.Configure<List<ClientIDAndClientSecretValidation>>(builder.Configuration.GetSection("ClientApplications"));
 builder.Services.Configure<JwtSettingsModel>(builder.Configuration.GetSection("JwtSettings"));
+builder.Services.Configure<FileUploadOptions>(builder.Configuration.GetSection("FileUpload"));
 builder.Services.AddScoped<IResponseFactory, ResponseFactory<BookingLocalize>>();
 
 builder.Services.AddDbContext<TalkToCeoDbContext>(options => options.UseNpgsql(voucherDbConnection));
@@ -140,6 +142,7 @@ builder.Services.AddScoped<IMessageRepository, MessageRepository>();
 builder.Services.AddScoped<IRoleRepository<Role>, RoleRepository>();
 builder.Services.AddScoped<IUserRoleRepository, UserRoleRepository>();
 builder.Services.AddScoped<IUsersRepository<UserDto>, UsersRepository>();
+builder.Services.AddScoped<IMessageAttachmentRepository, MessageAttachmentRepository>();
 
 // Configure services
 builder.Services.AddScoped<IMessageService, MessageService>();
@@ -147,6 +150,7 @@ builder.Services.AddScoped<IRoleService, RoleService>();
 builder.Services.AddScoped<IUsersService<UserDto>, UsersService>();
 builder.Services.AddScoped<IJwtTalkToCeo, JwtTalkToCeoService>();
 builder.Services.AddScoped<IJwtService, JwtService>();
+builder.Services.AddScoped<IMessageAttachmentService, MessageAttachmentService>();
 
 // Role service
 builder.Services.AddScoped<IAuthorizationHandler, RoleAuthorizationHandler>();

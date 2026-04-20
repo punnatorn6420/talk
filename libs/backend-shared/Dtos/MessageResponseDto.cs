@@ -54,6 +54,11 @@ namespace NokAir.TalkToCeo.Shared.Dtos
         public string FullName { get; set; } = string.Empty;
 
         /// <summary>
+        /// Gets or sets the list of attachments associated with the message. This property contains a collection of MessageAttachmentDto objects, each representing an attachment that is linked to the message. The Attachments property allows for the inclusion of additional files or documents that may be relevant to the message content, providing a more comprehensive context for the communication between the user and the CEO. Each MessageAttachmentDto includes details such as the attachment's unique identifier and file name, enabling easy management and display of attachments in the frontend or other layers of the application.
+        /// </summary>
+        public List<MessageAttachmentDto> Attachments { get; set; } = new();
+
+        /// <summary>
         /// Gets or sets the date and time when the message was posted. This timestamp is crucial for tracking when the message was created and can be used for sorting, filtering, and displaying the message in chronological order. The PostedAt property is of type DateTime, which allows it to store both the date and time information accurately.
         /// </summary>
         public DateTime PostedAt { get; set; }

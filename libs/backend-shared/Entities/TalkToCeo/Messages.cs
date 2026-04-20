@@ -68,5 +68,10 @@ namespace NokAir.TalkToCeo.Shared.Entities.TalkToCeo
         /// Gets or sets the CEO to whom the message is directed, establishing a relationship between the Messages entity and the User entity. This allows for easy access to the CEO's information when retrieving messages, enabling features such as displaying the CEO's name or contact details alongside their reply. The CEO property is nullable, indicating that a message may not always be directed to a specific CEO, allowing for flexibility in handling messages that may not require a CEO response or are intended for general inquiries.
         /// </summary>
         public User? Ceo { get; set; }
+
+        /// <summary>
+        /// Gets or sets the collection of attachments associated with the message, establishing a relationship between the Messages entity and the MessageAttachment entity. This allows for easy access to all attachments related to a specific message, enabling features such as displaying attachment details or providing download links when retrieving messages. The Attachments property is initialized as an empty list to ensure that it is always ready to hold any attachments that may be added to the message, preventing null reference issues and allowing for seamless management of attachments within the TalkToCeo system.
+        /// </summary>
+        public ICollection<MessageAttachment> Attachments { get; set; } = new List<MessageAttachment>();
     }
 }

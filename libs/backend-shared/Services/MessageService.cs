@@ -1,5 +1,6 @@
 using System;
 using System.ComponentModel.DataAnnotations;
+using System.Text.RegularExpressions;
 using NokAir.Core.Exceptions;
 using NokAir.TalkToCeo.Shared.Dtos;
 using NokAir.TalkToCeo.Shared.Entities.TalkToCeo;
@@ -11,17 +12,20 @@ namespace NokAir.TalkToCeo.Shared.Services
     /// <summary>
     /// Implements the IMessageService interface to provide functionality for managing messages in the "Talk to CEO" application. The MessageService class is responsible for handling operations related to messages, such as creating, retrieving, updating, deleting, and replying to messages. It interacts with the IMessageRepository to perform data access operations and ensures that the business logic for message management is properly implemented. This service allows users to communicate effectively with the CEO by managing their messages and providing necessary functionalities to handle various message-related actions within the application.
     /// </summary>
-    public class MessageService : IMessageService
+    public partial class MessageService : IMessageService
     {
         private readonly IMessageRepository repository;
+        private readonly IMessageAttachmentRepository attachmentRepository;
 
         /// <summary>
-        /// Initializes a new instance of the <see cref="MessageService"/> class with the specified IMessageRepository. The constructor takes an IMessageRepository as a parameter and assigns it to a private readonly field, allowing the service to interact with the repository for performing data access operations related to messages. This setup enables the MessageService to manage message data effectively while maintaining a clear separation of concerns between the service layer and the data access layer of the application.
+        /// Initializes a new instance of the <see cref="MessageService"/> class with the specified IMessageRepository and IMessageAttachmentRepository. The constructor takes an IMessageRepository and an IMessageAttachmentRepository as parameters and assigns them to private readonly fields, allowing the service to interact with the repositories for performing data access operations related to messages and their attachments. This setup enables the MessageService to manage message data effectively while maintaining a clear separation of concerns between the service layer and the data access layer of the application.
         /// </summary>
         /// <param name="repository">The message repository.</param>
-        public MessageService(IMessageRepository repository)
+        /// <param name="attachmentRepository">The message attachment repository.</param>
+        public MessageService(IMessageRepository repository, IMessageAttachmentRepository attachmentRepository)
         {
             this.repository = repository;
+            this.attachmentRepository = attachmentRepository;
         }
 
         /// <inheritdoc/>
@@ -65,6 +69,8 @@ namespace NokAir.TalkToCeo.Shared.Services
                 return null;
             }
 
+            var attachments = await this.attachmentRepository.FindAttachmentsByMessageIdAsync(id);
+
             return new MessageResponseDto
             {
                 Id = message.Id,
@@ -82,6 +88,14 @@ namespace NokAir.TalkToCeo.Shared.Services
                 JobTitle = message.User.JobTitle,
                 Department = message.User.Department,
                 FullName = $"{message.User.FirstName} {message.User.LastName}",
+                Attachments =
+                    attachments.Select(x =>
+                        new MessageAttachmentDto
+                        {
+                            Id = x.Id,
+                            FileName = Path.GetFileName(x.FilePath),
+                        })
+                    .ToList(),
             };
         }
 
@@ -134,6 +148,7 @@ namespace NokAir.TalkToCeo.Shared.Services
                 throw new DataValidationException("Message not found");
             }
 
+            entity.CeoId = dto.CeoId;
             entity.CeoReply = dto.Reply;
             entity.Status = ActionStatus.Replied;
             entity.ModifiedAt = DateTime.Now;
@@ -196,8 +211,7 @@ namespace NokAir.TalkToCeo.Shared.Services
                     {
                         Id = x.Id,
                         Subject = x.Subject,
-                        Message = x.Detail,
-                        Reply = x.CeoReply,
+                        Message = TrimToFirstWords(x.Detail, 100),
                         Status = x.Status,
                         PostedAt = x.PostedAt,
                         CreatedBy = x.CreatedBy,
@@ -215,5 +229,33 @@ namespace NokAir.TalkToCeo.Shared.Services
 
             return result;
         }
+
+        private static string TrimToFirstWords(string? input, int wordLimit)
+        {
+            if (string.IsNullOrWhiteSpace(input))
+            {
+                return string.Empty;
+            }
+
+            // remove html tags
+            var noHtml = MyRegex().Replace(input, string.Empty);
+
+            // split words
+            var words =
+                noHtml
+                    .Split(
+                        ' ',
+                        StringSplitOptions.RemoveEmptyEntries);
+
+            if (words.Length <= wordLimit)
+            {
+                return noHtml;
+            }
+
+            return string.Join(" ", words.Take(wordLimit)) + "...";
+        }
+
+        [GeneratedRegex("<.*?>")]
+        private static partial Regex MyRegex();
     }
 }
