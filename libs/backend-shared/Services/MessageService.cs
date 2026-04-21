@@ -29,7 +29,7 @@ namespace NokAir.TalkToCeo.Shared.Services
         }
 
         /// <inheritdoc/>
-        public async Task CreateAsync(CreateMessageRequestDto dto)
+        public async Task<int> CreateAsync(CreateMessageRequestDto dto)
         {
             var entity = new Messages
             {
@@ -44,6 +44,7 @@ namespace NokAir.TalkToCeo.Shared.Services
                 ModifiedBy = dto.UserName,
             };
             await this.repository.AddMessageAsync(entity);
+            return entity.Id;
         }
 
         /// <inheritdoc/>
@@ -203,29 +204,54 @@ namespace NokAir.TalkToCeo.Shared.Services
                     searchStartDate,
                     searchEndDate);
 
-            var result = new MessageResponseListDto
-            {
-                TotalCount = messages.TotalCount,
-                Items = messages.Items.Select(x =>
-                    new MessageResponseDto
-                    {
-                        Id = x.Id,
-                        Subject = x.Subject,
-                        Message = TrimToFirstWords(x.Detail, 100),
-                        Status = x.Status,
-                        PostedAt = x.PostedAt,
-                        CreatedBy = x.CreatedBy,
-                        ModifiedBy = x.ModifiedBy,
-                        CreatedAt = x.CreatedAt,
-                        ModifiedAt = x.ModifiedAt,
-                        RepliedAt = x.RepliedAt ?? DateTime.MinValue,
-                        Email = x.User.Email,
-                        JobTitle = x.User.JobTitle,
-                        Department = x.User.Department,
-                        FullName = $"{x.User.FirstName} {x.User.LastName}",
-                    })
-                    .ToList(),
-            };
+            var messageIds = messages.Items.Select(x => x.Id).ToList();
+
+            var attachments = await this.attachmentRepository.FindAttachmentsByMessageIdsAsync(messageIds);
+
+            var attachmentLookup =
+                attachments
+                    .GroupBy(x => x.MessageId)
+                    .ToDictionary(g => g.Key, g => g.ToList());
+
+            var result =
+                new MessageResponseListDto
+                {
+                    TotalCount = messages.TotalCount,
+                    Items =
+                        messages.Items.Select(x =>
+                            new MessageResponseDto
+                            {
+                                Id = x.Id,
+                                Subject = x.Subject,
+                                Message = TrimToFirstWords(x.Detail, 100),
+                                Status = x.Status,
+                                PostedAt = x.PostedAt,
+                                CreatedBy = x.CreatedBy,
+                                ModifiedBy = x.ModifiedBy,
+                                CreatedAt = x.CreatedAt,
+                                ModifiedAt = x.ModifiedAt,
+                                RepliedAt = x.RepliedAt ?? DateTime.MinValue,
+                                Email = x.User.Email,
+                                JobTitle = x.User.JobTitle,
+                                Department = x.User.Department,
+                                FullName =
+                                    $"{x.User.FirstName} {x.User.LastName}",
+
+                                Attachments =
+                                    attachmentLookup.TryGetValue(x.Id, out List<MessageAttachment>? value)
+                                        ? value.Select(a =>
+                                                new MessageAttachmentDto
+                                                {
+                                                    Id = a.Id,
+                                                    FileName =
+                                                        Path.GetFileName(
+                                                            a.FilePath),
+                                                })
+                                            .ToList()
+                                        : new List<MessageAttachmentDto>(),
+                            })
+                        .ToList(),
+                };
 
             return result;
         }

@@ -13,7 +13,7 @@ namespace NokAir.TalkToCeo.Shared.Services
         /// </summary>
         /// <param name="dto">The DTO containing the information required to create a new message.</param>
         /// <returns>A task representing the asynchronous operation.</returns>
-        Task CreateAsync(CreateMessageRequestDto dto);
+        Task<int> CreateAsync(CreateMessageRequestDto dto);
 
         /// <summary>
         /// Asynchronously retrieves all messages in the "Talk to CEO" system. The method returns a list of MessageResponseDto objects, which contain the details of each message. This allows for the retrieval of all messages stored in the system, enabling features such as displaying a list of messages to users or performing operations on multiple messages at once.
