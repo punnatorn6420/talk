@@ -28,9 +28,16 @@ namespace NokAir.TalkToCeo.Shared.Repositories
         }
 
         /// <inheritdoc/>
-        public async Task<MessageAttachment?> FindAttachmentByIdAsync(int id)
+        public async Task RemoveMessageAttachmentAsync(MessageAttachment attachment)
         {
-            return await this.dbContext.MessageAttachments.FirstOrDefaultAsync(x => x.Id == id);
+            this.dbContext.MessageAttachments.Remove(attachment);
+            await this.dbContext.SaveChangesAsync();
+        }
+
+        /// <inheritdoc/>
+        public async Task<MessageAttachment?> FindAttachmentByIdAsync(int messageId, int attachmentId)
+        {
+            return await this.dbContext.MessageAttachments.FirstOrDefaultAsync(x => x.MessageId == messageId && x.Id == attachmentId);
         }
 
         /// <inheritdoc/>
@@ -38,6 +45,14 @@ namespace NokAir.TalkToCeo.Shared.Repositories
         {
             return await this.dbContext.MessageAttachments
                 .Where(x => x.MessageId == messageId)
+                .ToListAsync();
+        }
+
+        /// <inheritdoc/>
+        public async Task<List<MessageAttachment>> FindAttachmentsByMessageIdsAsync(List<int> messageIds)
+        {
+            return await this.dbContext.MessageAttachments
+                .Where(x => messageIds.Contains(x.MessageId))
                 .ToListAsync();
         }
     }

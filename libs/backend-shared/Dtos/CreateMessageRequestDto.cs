@@ -1,4 +1,5 @@
 using System.Text.Json.Serialization;
+using Microsoft.AspNetCore.Http;
 using NokAir.TalkToCeo.Shared.Enums;
 
 namespace NokAir.TalkToCeo.Shared.Dtos
@@ -22,6 +23,11 @@ namespace NokAir.TalkToCeo.Shared.Dtos
         /// Gets or sets message status.
         /// </summary>
         public ActionStatus Status { get; set; } = ActionStatus.Draft;
+
+        /// <summary>
+        /// Gets or sets the collection of files attached to the message. This property is used to hold any files that the user may want to include with their message, such as screenshots, documents, or other relevant files. The attachments are represented as an IFormFileCollection, which allows for multiple files to be uploaded and processed by the backend when the message is created.
+        /// </summary>
+        public IFormFileCollection? Attachments { get; set; }
 
         /// <summary>
         /// Gets or sets the ID of the user creating the message.

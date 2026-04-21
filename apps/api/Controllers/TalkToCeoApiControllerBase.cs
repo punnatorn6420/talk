@@ -38,7 +38,7 @@ namespace TalkToCeoApi.Controllers
         /// </summary>
         /// <returns>Message created successfully</returns>
         [Microsoft.AspNetCore.Mvc.HttpPost, Microsoft.AspNetCore.Mvc.Route("messages")]
-        public abstract System.Threading.Tasks.Task<Microsoft.AspNetCore.Mvc.ActionResult> CreateMessageAsync([Microsoft.AspNetCore.Mvc.FromBody] CreateMessageRequestDto body);
+        public abstract System.Threading.Tasks.Task<Microsoft.AspNetCore.Mvc.ActionResult> CreateMessageAsync([Microsoft.AspNetCore.Mvc.FromForm] CreateMessageRequestDto body);
 
         /// <summary>
         /// Get all messages (CEO view)
@@ -51,8 +51,8 @@ namespace TalkToCeoApi.Controllers
             [Microsoft.AspNetCore.Mvc.FromQuery] int? pageNumber = 1,
             [Microsoft.AspNetCore.Mvc.FromQuery] int? pageSize = 25,
             [Microsoft.AspNetCore.Mvc.FromQuery] bool? ascending = true,
-            [Microsoft.AspNetCore.Mvc.FromQuery] DateTimeOffset? searchStartDate = null,
-            [Microsoft.AspNetCore.Mvc.FromQuery] DateTimeOffset? searchEndDate = null);
+            [Microsoft.AspNetCore.Mvc.FromQuery] System.DateTimeOffset? searchStartDate = null,
+            [Microsoft.AspNetCore.Mvc.FromQuery] System.DateTimeOffset? searchEndDate = null);
 
         /// <summary>
         /// Get message detail
@@ -93,19 +93,53 @@ namespace TalkToCeoApi.Controllers
         /// Download attachment
         /// </summary>
         /// <returns>Attachment downloaded successfully</returns>
-        [Microsoft.AspNetCore.Mvc.HttpGet, Microsoft.AspNetCore.Mvc.Route("messages/attachments/{id}")]
-        public abstract System.Threading.Tasks.Task<Microsoft.AspNetCore.Mvc.ActionResult> GetAttachmentAsync(int id);
+        [Microsoft.AspNetCore.Mvc.HttpGet, Microsoft.AspNetCore.Mvc.Route("messages/{messageId}/attachments/{attachmentId}")]
+        public abstract System.Threading.Tasks.Task<Microsoft.AspNetCore.Mvc.ActionResult> GetAttachmentAsync(int messageId, int attachmentId);
+
+        /// <summary>
+        /// Delete attachment
+        /// </summary>
+        /// <returns>Attachment deleted successfully</returns>
+        [Microsoft.AspNetCore.Mvc.HttpDelete, Microsoft.AspNetCore.Mvc.Route("messages/{messageId}/attachments/{attachmentId}")]
+        public abstract System.Threading.Tasks.Task<Microsoft.AspNetCore.Mvc.ActionResult> DeleteAttachmentAsync(int messageId, int attachmentId);
 
         /// <summary>
         /// Upload attachment
         /// </summary>
         /// <returns>Attachment uploaded successfully</returns>
-        [Microsoft.AspNetCore.Mvc.HttpPost, Microsoft.AspNetCore.Mvc.Route("messages/{id}/attachments")]
-        public abstract System.Threading.Tasks.Task<Microsoft.AspNetCore.Mvc.ActionResult> SubmitAttachmentAsync(int id);
+        [Microsoft.AspNetCore.Mvc.HttpPost, Microsoft.AspNetCore.Mvc.Route("messages/{messageId}/attachments")]
+        public abstract System.Threading.Tasks.Task<Microsoft.AspNetCore.Mvc.ActionResult> SubmitAttachmentAsync(int messageId, [Microsoft.AspNetCore.Mvc.FromForm] IFormFileCollection attachments);
 
     }
 
 
+
+    [System.CodeDom.Compiler.GeneratedCode("NSwag", "14.2.0.0 (NJsonSchema v11.1.0.0 (Newtonsoft.Json v13.0.0.0))")]
+    public partial class FileParameter
+    {
+        public FileParameter(System.IO.Stream data)
+            : this(data, null, null)
+        {
+        }
+
+        public FileParameter(System.IO.Stream data, string fileName)
+            : this(data, fileName, null)
+        {
+        }
+
+        public FileParameter(System.IO.Stream data, string fileName, string contentType)
+        {
+            Data = data;
+            FileName = fileName;
+            ContentType = contentType;
+        }
+
+        public System.IO.Stream Data { get; private set; }
+
+        public string FileName { get; private set; }
+
+        public string ContentType { get; private set; }
+    }
 
     [System.CodeDom.Compiler.GeneratedCode("NSwag", "14.2.0.0 (NJsonSchema v11.1.0.0 (Newtonsoft.Json v13.0.0.0))")]
     public partial class FileResponse : System.IDisposable

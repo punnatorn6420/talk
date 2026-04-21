@@ -44,7 +44,7 @@ namespace NokAir.TalkToCeo.Api.Controllers
         /// <inheritdoc/>
         [Authorize(Policy = "UserRole")]
         [ClientApplicationValidationWithIDAndSecretAttribute]
-        public override async Task<ActionResult> CreateMessageAsync([FromBody] CreateMessageRequestDto body)
+        public override async Task<ActionResult> CreateMessageAsync([FromForm] CreateMessageRequestDto body)
         {
             try
             {
@@ -61,7 +61,17 @@ namespace NokAir.TalkToCeo.Api.Controllers
 
                 body.UserId = user.Id;
                 body.UserName = userNameAcc;
-                await this.messageService.CreateAsync(body);
+                var messageId = await this.messageService.CreateAsync(body);
+
+                if (body.Attachments != null &&
+                    body.Attachments.Count > 0)
+                {
+                    await this.messageAttachmentService
+                        .StoreFilesForMessageAsync(
+                            messageId,
+                            body.Attachments,
+                            user);
+                }
 
                 return this.OkSuccessResponse();
             }
@@ -113,11 +123,11 @@ namespace NokAir.TalkToCeo.Api.Controllers
         /// <inheritdoc/>
         [Authorize(Policy = "AllRole")]
         [ClientApplicationValidationWithIDAndSecretAttribute]
-        public override async Task<ActionResult> GetAttachmentAsync(int id)
+        public override async Task<ActionResult> GetAttachmentAsync(int messageId, int attachmentId)
         {
             try
             {
-                var file = await this.messageAttachmentService.GetDownloadFileAsync(id);
+                var file = await this.messageAttachmentService.GetDownloadFileAsync(messageId, attachmentId);
 
                 if (file == null)
                 {
@@ -139,7 +149,42 @@ namespace NokAir.TalkToCeo.Api.Controllers
         /// <inheritdoc/>
         [Authorize(Policy = "AllRole")]
         [ClientApplicationValidationWithIDAndSecretAttribute]
-        public override async Task<ActionResult> SubmitAttachmentAsync(int id)
+        public override async Task<ActionResult> DeleteAttachmentAsync(int messageId, int attachmentId)
+        {
+            try
+            {
+                var result = await this.messageService.GetByIdAsync(messageId);
+
+                if (result == null)
+                {
+                    throw new DataValidationException("Message not found.");
+                }
+
+                if (result.Status == ActionStatus.Draft)
+                {
+                    await this.messageAttachmentService.RemoveAttachmentAsync(messageId, attachmentId);
+                }
+                else
+                {
+                    throw new DataValidationException("Only messages with Draft status can be deleted.");
+                }
+
+                return this.OkSuccessResponse();
+            }
+            catch (DataValidationException ex)
+            {
+                return this.BadRequestResponseFromMessage(ex.Message);
+            }
+            catch (Exception ex)
+            {
+                return this.InternalServerErrorResponseFromException(ex);
+            }
+        }
+
+        /// <inheritdoc/>
+        [Authorize(Policy = "AllRole")]
+        [ClientApplicationValidationWithIDAndSecretAttribute]
+        public override async Task<ActionResult> SubmitAttachmentAsync(int messageId, [FromForm] IFormFileCollection attachments)
         {
             try
             {
@@ -152,7 +197,12 @@ namespace NokAir.TalkToCeo.Api.Controllers
                     throw new DataValidationException("User information in token is invalid.");
                 }
 
-                var result = await this.messageAttachmentService.StoreFilesForMessageAsync(id, this.Request.Form.Files, user);
+                if (attachments == null || attachments.Count == 0)
+                {
+                    throw new DataValidationException("No attachments provided.");
+                }
+
+                var result = await this.messageAttachmentService.StoreFilesForMessageAsync(messageId, attachments, user);
 
                 return this.OkSuccessResponse();
             }

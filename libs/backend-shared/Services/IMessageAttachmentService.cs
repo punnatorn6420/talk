@@ -21,8 +21,17 @@ namespace NokAir.TalkToCeo.Shared.Services
         /// <summary>
         /// Gets the download information for a specific attachment.
         /// </summary>
+        /// <param name="messageId">The ID of the message to which the attachment belongs.</param>
         /// <param name="attachmentId">The ID of the attachment.</param>
         /// <returns>A task representing the asynchronous operation, containing the full path and file name of the attachment if found; otherwise, null.</returns>
-        Task<(string FullPath, string FileName)?> GetDownloadFileAsync(int attachmentId);
+        Task<(string FullPath, string FileName)?> GetDownloadFileAsync(int messageId, int attachmentId);
+
+        /// <summary>
+        /// Deletes a specific attachment associated with a message.
+        /// </summary>
+        /// <param name="messageId">The ID of the message to which the attachment belongs.</param>
+        /// <param name="attachmentId">The ID of the attachment to be deleted.</param>
+        /// <returns>A task representing the asynchronous operation.</returns>
+        Task RemoveAttachmentAsync(int messageId, int attachmentId);
     }
 }

@@ -153,9 +153,9 @@ namespace NokAir.TalkToCeo.Shared.Services
         }
 
         /// <inheritdoc/>
-        public async Task<(string FullPath, string FileName)?> GetDownloadFileAsync(int attachmentId)
+        public async Task<(string FullPath, string FileName)?> GetDownloadFileAsync(int messageId, int attachmentId)
         {
-            var attachment = await this.attachmentRepository.FindAttachmentByIdAsync(attachmentId);
+            var attachment = await this.attachmentRepository.FindAttachmentByIdAsync(messageId, attachmentId);
 
             if (attachment == null)
             {
@@ -173,6 +173,38 @@ namespace NokAir.TalkToCeo.Shared.Services
             }
 
             return (fullPath, Path.GetFileName(fullPath));
+        }
+
+        /// <inheritdoc/>
+        public async Task RemoveAttachmentAsync(int messageId, int attachmentId)
+        {
+            var attachment = await this.attachmentRepository.FindAttachmentByIdAsync(messageId, attachmentId);
+
+            if (attachment == null)
+            {
+                throw new DataValidationException(
+                    "Attachment not found");
+            }
+
+            if (attachment.MessageId != messageId)
+            {
+                throw new DataValidationException(
+                    "Attachment does not belong to this message");
+            }
+
+            var fullPath =
+                Path.Combine(
+                    this.env.WebRootPath,
+                    attachment.FilePath);
+
+            if (File.Exists(fullPath))
+            {
+                File.Delete(fullPath);
+            }
+
+            await this.attachmentRepository.RemoveMessageAttachmentAsync(attachment);
+
+            await this.dbContext.SaveChangesAsync();
         }
     }
 }
