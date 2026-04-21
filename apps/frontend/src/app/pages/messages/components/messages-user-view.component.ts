@@ -29,6 +29,7 @@ import { _MessageService } from '../../../service/message.service';
 import { SubscriptionDestroyer } from '../../../shared/core/helper/SubscriptionDestroyer.helper';
 import {
   IMail,
+  IMessageAttachment,
   IMessageParams,
   IMessageRequest,
 } from '../../../types/message.model';
@@ -106,6 +107,8 @@ export class MessagesUserViewComponent
     subject: ['', Validators.required],
     detail: ['', Validators.required],
   });
+
+  existingAttachments: IMessageAttachment[] = [];
 
   ngOnInit(): void {
     this.loadMyMessages();
@@ -219,12 +222,18 @@ export class MessagesUserViewComponent
 
     this.panelMode = 'edit';
     this.editingMailId = String(this.selectedMail.id);
+
     this.messageForm.reset({
       subject: this.selectedMail.subject ?? '',
       detail: this.getBody(this.selectedMail),
     });
+
     this.messageForm.markAsPristine();
+
+    this.existingAttachments = [...(this.selectedMail.attachments ?? [])];
+
     this.pendingFiles = [];
+
     this.cdr.markForCheck();
   }
 
@@ -284,7 +293,7 @@ export class MessagesUserViewComponent
     formData.append('status', status);
 
     this.pendingFiles.forEach((file) => {
-      formData.append('files', file, file.name);
+      formData.append('attachments', file, file.name);
     });
 
     return formData;
@@ -307,7 +316,7 @@ export class MessagesUserViewComponent
     this.creating = true;
 
     this.messageApi
-      .postMessageThread(this.buildPayload('draft'))
+      .postMessageThreadWithFiles(this.buildFormData('draft'))
       .pipe(
         finalize(() => {
           this.creating = false;
@@ -354,11 +363,18 @@ export class MessagesUserViewComponent
 
     this.updating = true;
 
+    const formData = new FormData();
+
+    formData.append('subject', this.messageForm.controls.subject.value.trim());
+    formData.append('detail', this.messageForm.controls.detail.value.trim());
+    formData.append('status', this.selectedMail.status || 'draft');
+
+    this.pendingFiles.forEach((file) => {
+      formData.append('attachments', file, file.name);
+    });
+
     this.messageApi
-      .putMessageThread(
-        this.editingMailId,
-        this.buildPayload(this.selectedMail.status || 'pending'),
-      )
+      .putMessageThreadWithFiles(this.editingMailId, formData)
       .pipe(
         finalize(() => {
           this.updating = false;
@@ -373,16 +389,11 @@ export class MessagesUserViewComponent
             detail: 'Your message has been updated.',
           });
 
-          const id = this.editingMailId;
-          this.editingMailId = null;
           this.pendingFiles = [];
+          this.editingMailId = null;
           this.panelMode = 'detail';
 
-          if (id) {
-            this.selectedMailId = id;
-            this.loadMessageDetail(id);
-          }
-
+          this.loadMessageDetail(this.selectedMail!.id as string);
           this.loadMyMessages();
         },
         error: () => {
@@ -638,5 +649,70 @@ export class MessagesUserViewComponent
     const status = (mail.status || '').toLowerCase();
 
     return status !== 'draft' && !this.hasAdminReply(mail);
+  }
+
+  getAttachments(mail: IMail | null): IMessageAttachment[] {
+    return mail?.attachments ?? [];
+  }
+
+  hasAttachments(mail: IMail | null): boolean {
+    return this.getAttachments(mail).length > 0;
+  }
+
+  downloadAttachment(mail: IMail | null, attachment: IMessageAttachment): void {
+    if (!mail?.id || !attachment?.id) return;
+
+    this.messageApi
+      .downloadMessageAttachment(mail.id, attachment.id)
+      .subscribe({
+        next: (blob) => {
+          const url = window.URL.createObjectURL(blob);
+          const anchor = document.createElement('a');
+          anchor.href = url;
+          anchor.download = attachment.fileName || 'attachment';
+          anchor.click();
+          window.URL.revokeObjectURL(url);
+        },
+        error: () => {
+          this.toast.add({
+            severity: 'error',
+            summary: 'Download failed',
+            detail: 'Unable to download attachment.',
+          });
+          this.cdr.markForCheck();
+        },
+      });
+  }
+
+  removeExistingAttachment(index: number): void {
+    if (!this.editingMailId) return;
+
+    const file = this.existingAttachments[index];
+    if (!file) return;
+
+    this.messageApi
+      .deleteMessageAttachment(this.editingMailId, file.id)
+      .subscribe({
+        next: () => {
+          this.toast.add({
+            severity: 'success',
+            summary: 'Removed',
+            detail: 'Attachment removed successfully.',
+          });
+
+          this.existingAttachments = this.existingAttachments.filter(
+            (_, i) => i !== index,
+          );
+
+          this.cdr.markForCheck();
+        },
+        error: () => {
+          this.toast.add({
+            severity: 'error',
+            summary: 'Delete failed',
+            detail: 'Unable to remove attachment.',
+          });
+        },
+      });
   }
 }

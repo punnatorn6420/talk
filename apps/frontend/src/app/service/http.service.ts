@@ -82,4 +82,11 @@ export class HttpService {
     headers = headers.delete('Content-Type');
     return this.http.put<B>(url, data, { headers });
   }
+
+  getBlob(url: string, includeAuth = true): Observable<Blob> {
+    return this.http.get(url, {
+      headers: this.getHeaders(includeAuth),
+      responseType: 'blob',
+    });
+  }
 }

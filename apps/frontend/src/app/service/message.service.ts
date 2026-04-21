@@ -47,6 +47,14 @@ export class _MessageService {
     );
   }
 
+  postMessageThreadWithFiles(formData: FormData) {
+    return this.http.postFormData<FormData, IResponse<IMail>>(
+      this.baseUrl,
+      formData,
+      true,
+    );
+  }
+
   putMessageThread(
     id: string | number,
     payload: IMessageRequest,
@@ -54,6 +62,14 @@ export class _MessageService {
     return this.http.put<IMessageRequest, IResponse<IMail>>(
       `${this.baseUrl}/${id}/update`,
       payload,
+      true,
+    );
+  }
+
+  putMessageThreadWithFiles(id: string, formData: FormData) {
+    return this.http.putFormData<FormData, IResponse<IMail>>(
+      `${this.baseUrl}/${id}/update`,
+      formData,
       true,
     );
   }
@@ -86,26 +102,30 @@ export class _MessageService {
     );
   }
 
-  postMessageThreadWithFiles(formData: FormData) {
-    return this.http.postFormData<FormData, IResponse<IMail>>(
-      `${this.baseUrl}`,
-      formData,
-      true,
-    );
-  }
-
-  putMessageThreadWithFiles(id: string, formData: FormData) {
-    return this.http.putFormData<FormData, IResponse<IMail>>(
-      `${this.baseUrl}/${id}`,
-      formData,
-      true,
-    );
-  }
-
   putReplyMessageThreadWithFiles(id: string, formData: FormData) {
     return this.http.putFormData<FormData, IResponse<IMail>>(
       `${this.baseUrl}/${id}/reply`,
       formData,
+      true,
+    );
+  }
+
+  downloadMessageAttachment(
+    messageId: string | number,
+    attachmentId: string | number,
+  ): Observable<Blob> {
+    return this.http.getBlob(
+      `${this.baseUrl}/${messageId}/attachments/${attachmentId}`,
+      true,
+    );
+  }
+
+  deleteMessageAttachment(
+    messageId: string | number,
+    attachmentId: string | number,
+  ) {
+    return this.http.delete(
+      `${this.baseUrl}/${messageId}/attachments/${attachmentId}`,
       true,
     );
   }

@@ -3,23 +3,28 @@ export interface IMailResponse {
   items: IMail[];
 }
 
+export interface IMessageAttachment {
+  id: number;
+  fileName: string;
+}
+
 export interface IMail {
   id: number | string;
-  subject: string;
-  message?: string;
-  detail?: string;
-  reply: string;
-  status: string;
-  email?: string;
-  jobTitle?: string;
-  department?: string;
-  fullName?: string;
-  postedAt: string;
-  repliedAt: string | null;
-  createdAt: string;
-  modifiedAt: string;
-  createdBy?: string;
-  modifiedBy?: string;
+  subject?: string | null;
+  detail?: string | null;
+  message?: string | null;
+  reply?: string | null;
+  status?: string | null;
+  email?: string | null;
+  fullName?: string | null;
+  postedAt?: string | null;
+  repliedAt?: string | null;
+  createdAt?: string | null;
+  modifiedAt?: string | null;
+  createdBy?: string | null;
+  modifiedBy?: string | null;
+
+  attachments?: IMessageAttachment[];
 }
 
 export interface IMessageParams {
@@ -36,6 +41,7 @@ export interface IMessageRequest {
   subject: string;
   detail: string;
   status: string;
+  attachments?: File[];
 }
 
 export interface IReplyRequest {

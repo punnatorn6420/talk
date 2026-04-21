@@ -17,7 +17,7 @@ import { ToastModule } from 'primeng/toast';
 import { EditorModule } from 'primeng/editor';
 import { FileSelectEvent, FileUploadModule } from 'primeng/fileupload';
 import { _MessageService } from '../../../service/message.service';
-import { IMail } from '../../../types/message.model';
+import { IMail, IMessageAttachment } from '../../../types/message.model';
 import { CardModule } from 'primeng/card';
 import { DateTimePipe } from '../../../shared/core/pipes/date-time.pipe';
 
@@ -261,11 +261,6 @@ export class MessageAdminDetailComponent implements OnInit {
     return this.mail?.reply?.trim() || '<p>-</p>';
   }
 
-  getOriginalAttachments(): unknown[] {
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    return (this.mail as any)?.attachments ?? [];
-  }
-
   getReplyAttachments(): unknown[] {
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     return (this.mail as any)?.replyAttachments ?? [];
@@ -279,10 +274,6 @@ export class MessageAdminDetailComponent implements OnInit {
   getAttachmentUrl(file: unknown): string | null {
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     return (file as any)?.url || (file as any)?.downloadUrl || null;
-  }
-
-  hasOriginalAttachments(): boolean {
-    return this.getOriginalAttachments().length > 0;
   }
 
   hasReplyAttachments(): boolean {
@@ -302,5 +293,38 @@ export class MessageAdminDetailComponent implements OnInit {
     }
 
     return `${value.toFixed(value >= 10 || unitIndex === 0 ? 0 : 1)} ${units[unitIndex]}`;
+  }
+
+  getOriginalAttachments(): IMessageAttachment[] {
+    return this.mail?.attachments ?? [];
+  }
+
+  hasOriginalAttachments(): boolean {
+    return this.getOriginalAttachments().length > 0;
+  }
+
+  downloadAttachment(attachment: IMessageAttachment): void {
+    if (!this.mail?.id || !attachment?.id) return;
+
+    this.messageApi
+      .downloadMessageAttachment(this.mail.id, attachment.id)
+      .subscribe({
+        next: (blob) => {
+          const url = window.URL.createObjectURL(blob);
+          const anchor = document.createElement('a');
+          anchor.href = url;
+          anchor.download = attachment.fileName || 'attachment';
+          anchor.click();
+          window.URL.revokeObjectURL(url);
+        },
+        error: () => {
+          this.toast.add({
+            severity: 'error',
+            summary: 'Download failed',
+            detail: 'Unable to download attachment.',
+          });
+          this.cdr.markForCheck();
+        },
+      });
   }
 }
