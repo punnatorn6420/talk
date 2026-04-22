@@ -22,10 +22,12 @@ import { EditorModule } from 'primeng/editor';
 import { FileSelectEvent, FileUploadModule } from 'primeng/fileupload';
 import { InputTextModule } from 'primeng/inputtext';
 import { PaginatorModule, PaginatorState } from 'primeng/paginator';
-import { ProgressSpinnerModule } from 'primeng/progressspinner';
 import { TagModule } from 'primeng/tag';
 import { ToastModule } from 'primeng/toast';
+import { ScrollPanelModule } from 'primeng/scrollpanel';
+
 import { _MessageService } from '../../../service/message.service';
+import { _BroadcastService } from '../../../service/broadcast.service';
 import { SubscriptionDestroyer } from '../../../shared/core/helper/SubscriptionDestroyer.helper';
 import {
   IMail,
@@ -33,11 +35,12 @@ import {
   IMessageParams,
   IMessageRequest,
 } from '../../../types/message.model';
-import { ScrollPanelModule } from 'primeng/scrollpanel';
+import { IBroadcastItem, IBroadcast } from '../../../types/broadcast.model';
 import { SkeletonLoadingModule } from '../../../shared/skeleton-loading/skeleton-loading.module';
 import { DateTimePipe } from '../../../shared/core/pipes/date-time.pipe';
 
 type PanelMode = 'empty' | 'create' | 'edit' | 'detail';
+type InboxTab = 'messages' | 'broadcasts';
 
 @Component({
   selector: 'app-messages-user-view',
@@ -52,7 +55,6 @@ type PanelMode = 'empty' | 'create' | 'edit' | 'detail';
     TagModule,
     ToastModule,
     PaginatorModule,
-    ProgressSpinnerModule,
     ConfirmDialogModule,
     ScrollPanelModule,
     EditorModule,
@@ -71,12 +73,16 @@ export class MessagesUserViewComponent
 {
   private readonly fb = inject(FormBuilder);
   private readonly messageApi = inject(_MessageService);
+  private readonly broadcastApi = inject(_BroadcastService);
   private readonly toast = inject(MessageService);
   private readonly cdr = inject(ChangeDetectorRef);
   private readonly confirmationService = inject(ConfirmationService);
 
+  activeTab: InboxTab = 'messages';
+
+  // message states
   mails: IMail[] = [];
-  totalCount = 0;
+  messageTotalCount = 0;
   loading = false;
   creating = false;
   updating = false;
@@ -89,14 +95,30 @@ export class MessagesUserViewComponent
   editingMailId: string | null = null;
   panelMode: PanelMode = 'empty';
 
-  keyword = '';
   pendingFiles: File[] = [];
+  existingAttachments: IMessageAttachment[] = [];
 
-  params: IMessageParams = {
+  messageParams: IMessageParams = {
     keyword: '',
     pageNumber: 1,
     pageSize: 10,
     sortField: 'postedAt',
+    ascending: false,
+  };
+
+  // broadcast states
+  broadcasts: IBroadcastItem[] = [];
+  broadcastTotalCount = 0;
+  broadcastLoading = false;
+  broadcastDetailLoading = false;
+  selectedBroadcast: IBroadcastItem | null = null;
+  selectedBroadcastId: number | null = null;
+
+  broadcastParams: IMessageParams = {
+    keyword: '',
+    pageNumber: 1,
+    pageSize: 10,
+    sortField: 'createdAt',
     ascending: false,
   };
 
@@ -108,21 +130,68 @@ export class MessagesUserViewComponent
     detail: ['', Validators.required],
   });
 
-  existingAttachments: IMessageAttachment[] = [];
-
   ngOnInit(): void {
     this.loadMyMessages();
+    this.loadMyBroadcasts();
   }
 
   get isComposeMode(): boolean {
     return this.panelMode === 'create' || this.panelMode === 'edit';
   }
 
+  get keyword(): string {
+    return this.activeTab === 'messages'
+      ? (this.messageParams.keyword ?? '')
+      : (this.broadcastParams.keyword ?? '');
+  }
+
+  set keyword(value: string) {
+    if (this.activeTab === 'messages') {
+      this.messageParams = { ...this.messageParams, keyword: value };
+    } else {
+      this.broadcastParams = { ...this.broadcastParams, keyword: value };
+    }
+  }
+
+  get currentRows(): number {
+    return this.activeTab === 'messages'
+      ? (this.messageParams.pageSize ?? 10)
+      : (this.broadcastParams.pageSize ?? 10);
+  }
+
+  get currentFirst(): number {
+    const params =
+      this.activeTab === 'messages' ? this.messageParams : this.broadcastParams;
+
+    return ((params.pageNumber ?? 1) - 1) * (params.pageSize ?? 10);
+  }
+
+  get currentTotalCount(): number {
+    return this.activeTab === 'messages'
+      ? this.messageTotalCount
+      : this.broadcastTotalCount;
+  }
+
+  onTabChange(tab: InboxTab): void {
+    this.activeTab = tab;
+
+    if (tab === 'messages') {
+      if (!this.mails.length) this.loadMyMessages();
+    } else {
+      if (!this.broadcasts.length) this.loadMyBroadcasts();
+    }
+
+    this.cdr.markForCheck();
+  }
+
+  // ----------------------------
+  // Messages
+  // ----------------------------
   loadMyMessages(): void {
     this.loading = true;
 
     this.messageApi
-      .getMessageCriteria(this.params)
+      .getMessageCriteria(this.messageParams)
       .pipe(
         finalize(() => {
           this.loading = false;
@@ -132,7 +201,7 @@ export class MessagesUserViewComponent
       .subscribe({
         next: (res) => {
           this.mails = res.data?.items ?? [];
-          this.totalCount = res.data?.totalCount ?? 0;
+          this.messageTotalCount = res.data?.totalCount ?? 0;
 
           if (this.selectedMailId != null) {
             const latest = this.mails.find(
@@ -152,7 +221,11 @@ export class MessagesUserViewComponent
             }
           }
 
-          if (!this.mails.length && this.panelMode === 'detail') {
+          if (
+            !this.mails.length &&
+            this.activeTab === 'messages' &&
+            this.panelMode === 'detail'
+          ) {
             this.panelMode = 'empty';
             this.selectedMail = null;
             this.selectedMailId = null;
@@ -171,29 +244,6 @@ export class MessagesUserViewComponent
       });
   }
 
-  onSearch(): void {
-    this.params = {
-      ...this.params,
-      keyword: this.keyword.trim(),
-      pageNumber: 1,
-    };
-
-    this.selectedMail = null;
-    this.selectedMailId = null;
-    this.panelMode = 'empty';
-
-    this.loadMyMessages();
-  }
-
-  onPageChange(event: PaginatorState): void {
-    this.params = {
-      ...this.params,
-      pageNumber: (event.page ?? 0) + 1,
-      pageSize: event.rows ?? 10,
-    };
-    this.loadMyMessages();
-  }
-
   onSelectMessage(mail: IMail): void {
     this.editingMailId = null;
     this.pendingFiles = [];
@@ -207,6 +257,7 @@ export class MessagesUserViewComponent
   }
 
   startCreate(): void {
+    this.activeTab = 'messages';
     this.panelMode = 'create';
     this.selectedMail = null;
     this.selectedMailId = null;
@@ -214,6 +265,7 @@ export class MessagesUserViewComponent
     this.messageForm.reset({ subject: '', detail: '' });
     this.messageForm.markAsPristine();
     this.pendingFiles = [];
+    this.existingAttachments = [];
     this.cdr.markForCheck();
   }
 
@@ -229,9 +281,7 @@ export class MessagesUserViewComponent
     });
 
     this.messageForm.markAsPristine();
-
     this.existingAttachments = [...(this.selectedMail.attachments ?? [])];
-
     this.pendingFiles = [];
 
     this.cdr.markForCheck();
@@ -240,6 +290,7 @@ export class MessagesUserViewComponent
   cancelEdit(): void {
     this.editingMailId = null;
     this.pendingFiles = [];
+    this.existingAttachments = [];
 
     if (this.selectedMailId != null) {
       this.panelMode = 'detail';
@@ -299,14 +350,6 @@ export class MessagesUserViewComponent
     return formData;
   }
 
-  private buildPayload(status: string): IMessageRequest {
-    return {
-      subject: this.messageForm.controls.subject.value.trim(),
-      detail: this.messageForm.controls.detail.value.trim(),
-      status,
-    };
-  }
-
   submitCreate(): void {
     if (this.messageForm.invalid || this.creating) {
       this.messageForm.markAllAsTouched();
@@ -327,14 +370,16 @@ export class MessagesUserViewComponent
         next: () => {
           this.toast.add({
             severity: 'success',
-            summary: 'Sent',
-            detail: 'Your message has been submitted.',
+            summary: 'Created',
+            detail: 'Your message has been saved.',
           });
+
           this.panelMode = 'empty';
           this.selectedMail = null;
           this.selectedMailId = null;
           this.editingMailId = null;
           this.pendingFiles = [];
+          this.existingAttachments = [];
           this.messageForm.reset({ subject: '', detail: '' });
 
           this.loadMyMessages();
@@ -364,7 +409,6 @@ export class MessagesUserViewComponent
     this.updating = true;
 
     const formData = new FormData();
-
     formData.append('subject', this.messageForm.controls.subject.value.trim());
     formData.append('detail', this.messageForm.controls.detail.value.trim());
     formData.append('status', this.selectedMail.status || 'draft');
@@ -390,10 +434,11 @@ export class MessagesUserViewComponent
           });
 
           this.pendingFiles = [];
+          this.existingAttachments = [];
           this.editingMailId = null;
           this.panelMode = 'detail';
 
-          this.loadMessageDetail(this.selectedMail!.id as string);
+          this.loadMessageDetail(String(this.selectedMail?.id));
           this.loadMyMessages();
         },
         error: () => {
@@ -442,6 +487,7 @@ export class MessagesUserViewComponent
               this.selectedMailId = null;
               this.panelMode = 'empty';
               this.pendingFiles = [];
+              this.existingAttachments = [];
               this.messageForm.reset({ subject: '', detail: '' });
 
               this.loadMyMessages();
@@ -469,7 +515,6 @@ export class MessagesUserViewComponent
         if (requestSeq !== this.detailRequestSeq) return;
 
         const nextMail = res.data ?? null;
-
         this.selectedMail = nextMail;
 
         if (!this.selectedMail) {
@@ -503,69 +548,6 @@ export class MessagesUserViewComponent
         this.cdr.detectChanges();
       },
     });
-  }
-
-  getBody(mail: IMail): string {
-    return mail.detail?.trim() || mail.message?.trim() || '';
-  }
-
-  getPlainTextPreview(mail: IMail): string {
-    const html = this.getBody(mail);
-    if (!html) return '';
-
-    return html
-      .replace(/<[^>]*>/g, ' ')
-      .replace(/&nbsp;/g, ' ')
-      .replace(/\s+/g, ' ')
-      .trim();
-  }
-
-  getStatusLabel(status?: string | null): string {
-    const normalized = (status || '').trim().toLowerCase();
-
-    switch (normalized) {
-      case 'draft':
-        return 'Draft';
-      case 'sent':
-        return 'Sent';
-      case 'read':
-        return 'Read';
-      case 'replied':
-        return 'Replied';
-      default:
-        return normalized ? status || 'Draft' : 'Draft';
-    }
-  }
-
-  getStatusClass(status?: string | null): string {
-    const normalized = (status || '').trim().toLowerCase();
-    switch (normalized) {
-      case 'draft':
-        return 'bg-gray-100 text-gray-700';
-      case 'sent':
-        return 'bg-orange-100 text-orange-700';
-      case 'read':
-        return 'bg-blue-100 text-blue-700';
-      case 'replied':
-        return 'bg-emerald-100 text-emerald-700';
-      default:
-        return 'bg-slate-100 text-slate-700';
-    }
-  }
-
-  formatFileSize(size: number): string {
-    if (!size) return '-';
-
-    const units = ['B', 'KB', 'MB', 'GB'];
-    let value = size;
-    let unitIndex = 0;
-
-    while (value >= 1024 && unitIndex < units.length - 1) {
-      value /= 1024;
-      unitIndex++;
-    }
-
-    return `${value.toFixed(value >= 10 || unitIndex === 0 ? 0 : 1)} ${units[unitIndex]}`;
   }
 
   sendDraftSelected(): void {
@@ -635,6 +617,217 @@ export class MessagesUserViewComponent
     });
   }
 
+  loadMyBroadcasts(): void {
+    this.broadcastLoading = true;
+
+    this.broadcastApi
+      .getMyBroadcasts(this.broadcastParams)
+      .pipe(
+        finalize(() => {
+          this.broadcastLoading = false;
+          this.cdr.markForCheck();
+        }),
+      )
+      .subscribe({
+        next: (res) => {
+          const items = Array.isArray(res.data) ? res.data : [];
+
+          this.broadcasts = items;
+          this.broadcastTotalCount = items.length;
+
+          if (!this.broadcasts.length && this.activeTab === 'broadcasts') {
+            this.selectedBroadcast = null;
+            this.selectedBroadcastId = null;
+          }
+
+          if (this.selectedBroadcastId != null) {
+            const latest = this.broadcasts.find(
+              (item) => item.id === this.selectedBroadcastId,
+            );
+
+            if (latest) {
+              this.selectedBroadcast = { ...latest };
+            }
+          }
+
+          this.cdr.markForCheck();
+        },
+        error: () => {
+          this.toast.add({
+            severity: 'error',
+            summary: 'Load failed',
+            detail: 'Unable to load broadcasts.',
+          });
+          this.cdr.markForCheck();
+        },
+      });
+  }
+
+  onSelectBroadcast(item: IBroadcastItem): void {
+    this.selectedBroadcastId = item.id;
+    this.selectedBroadcast = { ...item };
+    this.broadcastDetailLoading = true;
+    this.cdr.markForCheck();
+
+    if (item.isRead) {
+      this.broadcastDetailLoading = false;
+      this.cdr.markForCheck();
+      return;
+    }
+
+    this.broadcastApi
+      .markBroadcastAsRead(item.id)
+      .pipe(
+        finalize(() => {
+          this.broadcastDetailLoading = false;
+          this.cdr.markForCheck();
+        }),
+      )
+      .subscribe({
+        next: () => {
+          this.broadcasts = this.broadcasts.map((broadcast) =>
+            broadcast.id === item.id
+              ? { ...broadcast, isRead: true }
+              : broadcast,
+          );
+
+          if (this.selectedBroadcast?.id === item.id) {
+            this.selectedBroadcast = {
+              ...this.selectedBroadcast,
+              isRead: true,
+            };
+          }
+
+          this.cdr.markForCheck();
+        },
+        error: () => {
+          this.toast.add({
+            severity: 'error',
+            summary: 'Read failed',
+            detail: 'Unable to mark this broadcast as read.',
+          });
+        },
+      });
+  }
+
+  // ----------------------------
+  // Shared helpers
+  // ----------------------------
+  onSearch(): void {
+    if (this.activeTab === 'messages') {
+      this.messageParams = {
+        ...this.messageParams,
+        keyword: this.messageParams.keyword?.trim() ?? '',
+        pageNumber: 1,
+      };
+
+      this.selectedMail = null;
+      this.selectedMailId = null;
+      this.panelMode = 'empty';
+      this.loadMyMessages();
+      return;
+    }
+
+    this.broadcastParams = {
+      ...this.broadcastParams,
+      keyword: this.broadcastParams.keyword?.trim() ?? '',
+      pageNumber: 1,
+    };
+
+    this.selectedBroadcast = null;
+    this.selectedBroadcastId = null;
+    this.loadMyBroadcasts();
+  }
+
+  onPageChange(event: PaginatorState): void {
+    if (this.activeTab === 'messages') {
+      this.messageParams = {
+        ...this.messageParams,
+        pageNumber: (event.page ?? 0) + 1,
+        pageSize: event.rows ?? 10,
+      };
+      this.loadMyMessages();
+      return;
+    }
+
+    this.broadcastParams = {
+      ...this.broadcastParams,
+      pageNumber: (event.page ?? 0) + 1,
+      pageSize: event.rows ?? 10,
+    };
+    this.loadMyBroadcasts();
+  }
+
+  getBody(mail: IMail): string {
+    return mail.detail?.trim() || mail.message?.trim() || '';
+  }
+
+  getPlainTextPreview(mail: IMail): string {
+    const html = this.getBody(mail);
+    if (!html) return '';
+
+    return html
+      .replace(/<[^>]*>/g, ' ')
+      .replace(/&nbsp;/g, ' ')
+      .replace(/\s+/g, ' ')
+      .trim();
+  }
+
+  getBroadcastPreview(item: IBroadcastItem): string {
+    const html = item.detail?.trim() || '';
+    if (!html) return '';
+
+    return html
+      .replace(/<[^>]*>/g, ' ')
+      .replace(/&nbsp;/g, ' ')
+      .replace(/\s+/g, ' ')
+      .trim();
+  }
+
+  getStatusLabel(status?: string | null): string {
+    const normalized = (status || '').trim().toLowerCase();
+
+    switch (normalized) {
+      case 'draft':
+        return 'Draft';
+      case 'sent':
+        return 'Sent';
+      case 'read':
+        return 'Read';
+      case 'replied':
+        return 'Replied';
+      default:
+        return normalized ? status || 'Draft' : 'Draft';
+    }
+  }
+
+  getStatusClass(status?: string | null): string {
+    const normalized = (status || '').trim().toLowerCase();
+
+    switch (normalized) {
+      case 'draft':
+        return 'bg-gray-100 text-gray-700';
+      case 'sent':
+        return 'bg-orange-100 text-orange-700';
+      case 'read':
+        return 'bg-blue-100 text-blue-700';
+      case 'replied':
+        return 'bg-emerald-100 text-emerald-700';
+      default:
+        return 'bg-slate-100 text-slate-700';
+    }
+  }
+
+  getBroadcastReadLabel(item: IBroadcastItem): string {
+    return item.isRead ? 'Read' : 'Unread';
+  }
+
+  getBroadcastReadClass(item: IBroadcastItem): string {
+    return item.isRead
+      ? 'bg-slate-100 text-slate-700'
+      : 'bg-violet-100 text-violet-700';
+  }
+
   hasAdminReply(mail: IMail | null): boolean {
     if (!mail) return false;
 
@@ -647,7 +840,6 @@ export class MessagesUserViewComponent
     if (!mail) return false;
 
     const status = (mail.status || '').toLowerCase();
-
     return status !== 'draft' && !this.hasAdminReply(mail);
   }
 
@@ -714,5 +906,20 @@ export class MessagesUserViewComponent
           });
         },
       });
+  }
+
+  formatFileSize(size: number): string {
+    if (!size) return '-';
+
+    const units = ['B', 'KB', 'MB', 'GB'];
+    let value = size;
+    let unitIndex = 0;
+
+    while (value >= 1024 && unitIndex < units.length - 1) {
+      value /= 1024;
+      unitIndex++;
+    }
+
+    return `${value.toFixed(value >= 10 || unitIndex === 0 ? 0 : 1)} ${units[unitIndex]}`;
   }
 }

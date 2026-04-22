@@ -64,7 +64,13 @@
                     : 'bg-slate-100 text-slate-600'
                 "
               >
-                {{ item.key === 'inbox' ? totalCount : 0 }}
+                {{
+                  item.key === 'inbox'
+                    ? inboxTotalCount
+                    : item.key === 'sent'
+                      ? broadcastTotalCount
+                      : 0
+                }}
               </span>
             </button>
           }
@@ -73,101 +79,218 @@
     </aside>
 
     <section class="flex min-w-0 flex-1 flex-col">
-      <div class="flex-1 bg-white p-4 md:p-6">
-        <p-table
-          [value]="mails"
-          [loading]="loading"
-          [tableStyle]="{
-            'min-width': '100%',
-            'table-layout': 'fixed',
-          }"
-          class="p-datatable-sm mail-table"
-          [rowHover]="true"
-        >
-          <ng-template pTemplate="header">
-            <tr>
-              <th class="w-[280px] !text-start">From</th>
-              <th class="!text-start">Message</th>
-              <th class="w-[160px] !text-center">Time</th>
-              <th class="w-[100px] !text-center">Status</th>
-            </tr>
-          </ng-template>
+      <div class="flex-1 bg-white p-2 md:p-4">
+        @if (selectedMenu === 'inbox') {
+          <p-table
+            [value]="mails"
+            [loading]="loading"
+            [tableStyle]="{
+              'min-width': '100%',
+              'table-layout': 'fixed',
+            }"
+            class="p-datatable-sm mail-table"
+            [rowHover]="true"
+          >
+            <ng-template pTemplate="header">
+              <tr>
+                <th class="w-[280px] !text-start">From</th>
+                <th class="!text-start">Message</th>
+                <th class="w-[160px] !text-center">Time</th>
+                <th class="w-[100px] !text-center">Status</th>
+              </tr>
+            </ng-template>
 
-          <ng-template pTemplate="body" let-mail>
-            <tr class="cursor-pointer" (click)="openMail(mail)">
-              <td class="!text-start">
-                <div class="flex min-w-0 items-center gap-3 overflow-hidden">
-                  <div
-                    class="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-slate-200 text-sm font-semibold text-slate-700"
-                  >
-                    {{ getInitials(mail.fullName) }}
-                  </div>
-
-                  <div class="min-w-0 overflow-hidden">
+            <ng-template pTemplate="body" let-mail>
+              <tr class="cursor-pointer" (click)="openMail(mail)">
+                <td class="!text-start">
+                  <div class="flex min-w-0 items-center gap-3 overflow-hidden">
                     <div
-                      class="truncate text-base font-semibold text-slate-800"
+                      class="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-slate-200 text-sm font-semibold text-slate-700"
                     >
-                      {{ mail.fullName || 'Unknown Sender' }}
+                      {{ getInitials(mail.fullName) }}
+                    </div>
+
+                    <div class="min-w-0 overflow-hidden">
+                      <div
+                        class="truncate text-base font-semibold text-slate-800"
+                      >
+                        {{ mail.fullName || 'Unknown Sender' }}
+                      </div>
+                      <div class="truncate text-sm text-slate-500">
+                        {{ mail.email || '-' }}
+                      </div>
+                    </div>
+                  </div>
+                </td>
+
+                <td class="overflow-hidden">
+                  <div class="min-w-0 overflow-hidden">
+                    <div class="truncate text-base font-medium text-slate-800">
+                      {{ mail.subject }}
                     </div>
                     <div class="truncate text-sm text-slate-500">
-                      {{ mail.email || '-' }}
+                      {{ getPreview(mail) }}
                     </div>
                   </div>
-                </div>
-              </td>
+                </td>
 
-              <td class="overflow-hidden">
-                <div class="min-w-0 overflow-hidden">
-                  <div class="truncate text-base font-medium text-slate-800">
-                    {{ mail.subject }}
+                <td class="!text-center text-sm text-slate-500">
+                  {{ mail.postedAt | appDateTime }}
+                </td>
+
+                <td class="!text-center">
+                  <span [class]="getStatusClass(mail.status)">
+                    {{ getStatusLabel(mail.status) }}
+                  </span>
+                </td>
+              </tr>
+            </ng-template>
+
+            <ng-template pTemplate="emptymessage">
+              <tr>
+                <td colspan="4">
+                  <div class="px-6 py-16 text-center">
+                    <div
+                      class="mx-auto flex h-14 w-14 items-center justify-center rounded-full bg-slate-100"
+                    >
+                      <i class="pi pi-inbox text-slate-400"></i>
+                    </div>
+                    <h3 class="mt-4 text-lg font-semibold text-slate-800">
+                      No messages found
+                    </h3>
+                    <p class="mt-1 text-sm text-slate-500">
+                      Try a different keyword or clear your filters.
+                    </p>
                   </div>
-                  <div class="truncate text-sm text-slate-500">
-                    {{ getPreview(mail) }}
+                </td>
+              </tr>
+            </ng-template>
+          </p-table>
+        } @else if (selectedMenu === 'sent') {
+          <p-table
+            [value]="broadcasts"
+            [loading]="broadcastLoading"
+            [tableStyle]="{
+              'min-width': '100%',
+              'table-layout': 'fixed',
+            }"
+            class="p-datatable-sm mail-table"
+            [rowHover]="true"
+          >
+            <ng-template pTemplate="header">
+              <tr>
+                <th class="!text-start">Message</th>
+                <th class="w-[180px] !text-center">Time</th>
+                <th class="w-[120px] !text-center">Status</th>
+                <th class="w-[160px] !text-center">Actions</th>
+              </tr>
+            </ng-template>
+
+            <ng-template pTemplate="body" let-item>
+              <tr>
+                <td class="overflow-hidden !text-start">
+                  <div class="min-w-0 overflow-hidden">
+                    <div class="truncate text-base font-medium text-slate-800">
+                      {{ item.subject }}
+                    </div>
+                    <div class="truncate text-sm text-slate-500">
+                      {{
+                item.detail
+                  ?.replace(/<[^>]*>/g, ' ')
+                  ?.replace(/&nbsp;/g, ' ')
+                  ?.replace(/\s+/g, ' ')
+                  ?.trim() || '-'
+                      }}
+                    </div>
                   </div>
-                </div>
-              </td>
+                </td>
 
-              <td class="!text-center text-sm text-slate-500">
-                {{ mail.postedAt | appDateTime }}
-              </td>
+                <td class="!text-center text-sm text-slate-500">
+                  {{ item.createdAt | appDateTime }}
+                </td>
 
-              <td class="!text-center">
-                <span [class]="getStatusClass(mail.status)">
-                  {{ getStatusLabel(mail.status) }}
-                </span>
-              </td>
-            </tr>
-          </ng-template>
+                <td class="!text-center">
+                  <span [class]="getStatusClass(item.status)">
+                    {{ item.status }}
+                  </span>
+                </td>
 
-          <ng-template pTemplate="emptymessage">
-            <tr>
-              <td colspan="4">
-                <div class="px-6 py-16 text-center">
-                  <div
-                    class="mx-auto flex h-14 w-14 items-center justify-center rounded-full bg-slate-100"
-                  >
-                    <i class="pi pi-inbox text-slate-400"></i>
+                <td class="!text-center">
+                  <div class="flex items-center justify-center">
+                    <p-menu
+                      #broadcastActionMenu
+                      [model]="getBroadcastActionItems(item)"
+                      [popup]="true"
+                      appendTo="body"
+                      styleClass="broadcast-action-menu"
+                    ></p-menu>
+
+                    <button
+                      aria-label="Broadcast actions"
+                      pButton
+                      type="button"
+                      icon="pi pi-ellipsis-v"
+                      class="p-button-text p-button-sm"
+                      (click)="
+                        openBroadcastActionMenu(broadcastActionMenu, $event)
+                      "
+                    ></button>
                   </div>
-                  <h3 class="mt-4 text-lg font-semibold text-slate-800">
-                    No messages found
-                  </h3>
-                  <p class="mt-1 text-sm text-slate-500">
-                    Try a different keyword or clear your filters.
-                  </p>
-                </div>
-              </td>
-            </tr>
-          </ng-template>
-        </p-table>
+                </td>
+              </tr>
+            </ng-template>
+
+            <ng-template pTemplate="emptymessage">
+              <tr>
+                <td colspan="5">
+                  <div class="px-6 py-16 text-center">
+                    <div
+                      class="mx-auto flex h-14 w-14 items-center justify-center rounded-full bg-slate-100"
+                    >
+                      <i class="pi pi-send text-slate-400"></i>
+                    </div>
+                    <h3 class="mt-4 text-lg font-semibold text-slate-800">
+                      No broadcasts found
+                    </h3>
+                    <p class="mt-1 text-sm text-slate-500">
+                      Try a different keyword or create a new broadcast.
+                    </p>
+                  </div>
+                </td>
+              </tr>
+            </ng-template>
+          </p-table>
+        }
       </div>
-
-      <p-paginator
-        [rows]="params.pageSize || 10"
-        [first]="((params.pageNumber || 1) - 1) * (params.pageSize || 10)"
-        [totalRecords]="totalCount"
-        [rowsPerPageOptions]="[10, 20, 50]"
-        (onPageChange)="onPageChange($event)"
-      ></p-paginator>
+      <div class="relative p-2 md:p-4">
+        <div
+          class="flex justify-center sm:absolute sm:left-1/2 sm:-translate-x-1/2 sm:top-1/2 sm:-translate-y-1/2"
+        >
+          <p-paginator
+            [rows]="params.pageSize || 10"
+            [first]="((params.pageNumber || 1) - 1) * (params.pageSize || 10)"
+            [totalRecords]="totalCount"
+            [rowsPerPageOptions]="[10, 20, 50]"
+            (onPageChange)="onPageChange($event)"
+          ></p-paginator>
+        </div>
+        <div
+          class="flex justify-end justify-self-center sm:justify-self-auto items-center gap-2 sm:mt-0"
+        >
+          <small class="text-gray-500 text-sm">
+            Last refreshed:
+            {{ lastRefreshedAt ? (lastRefreshedAt | date: 'hh:mm a') : '-' }}
+          </small>
+          <button
+            aria-label="Refresh"
+            pButton
+            icon="pi pi-refresh"
+            class="p-button-text p-button-sm"
+            label="Refresh now"
+            (click)="refreshCurrentMenu(true)"
+          ></button>
+        </div>
+      </div>
     </section>
   </div>
 </p-card>
