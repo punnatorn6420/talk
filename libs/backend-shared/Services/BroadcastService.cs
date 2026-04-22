@@ -177,7 +177,7 @@ namespace NokAir.TalkToCeo.Shared.Services
         }
 
         /// <inheritdoc/>
-        public async Task<PagedResult<BroadcastResponseDto>> GetBroadcastsAsync(
+        public async Task<BroadcastResponseListDto> GetBroadcastsAsync(
             string keyword,
             string sortField,
             int pageNumber,
@@ -207,7 +207,7 @@ namespace NokAir.TalkToCeo.Shared.Services
                     .GroupBy(x => x.MessageId)
                     .ToDictionary(g => g.Key, g => g.ToList());
 
-            return new PagedResult<BroadcastResponseDto>
+            return new BroadcastResponseListDto
             {
                 TotalCount = pagedResult.TotalCount,
                 Items = pagedResult.Items.Select(x => new BroadcastResponseDto
