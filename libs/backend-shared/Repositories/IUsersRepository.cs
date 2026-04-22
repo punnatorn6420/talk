@@ -30,5 +30,11 @@ namespace NokAir.TalkToCeo.Shared.Repositories
         /// A task that represents the asynchronous operation. The task result contains the user if found; otherwise, <c>null</c>.
         /// </returns>
         Task<User?> FindUserByCriteriaAsync(string? email = null, string? firstname = null, string? lastname = null, string? objectId = null, CancellationToken cancellationToken = default);
+
+        /// <summary>
+        /// Counts the total number of users in the repository. This method is used to retrieve the total count of user entities stored in the underlying data store. The implementation of this method will handle the specifics of how the data is retrieved and counted, allowing for separation of concerns and easier maintenance of the codebase.
+        /// </summary>
+        /// <returns>A task that represents the asynchronous operation. The task result contains the total number of users.</returns>
+        Task<int> FindUserCountAsync();
     }
 }

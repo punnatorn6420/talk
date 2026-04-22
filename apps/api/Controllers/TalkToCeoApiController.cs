@@ -339,10 +339,19 @@ namespace NokAir.TalkToCeo.Api.Controllers
         /// <inheritdoc/>
         [Authorize(Policy = "UserRole")]
         [ClientApplicationValidationWithIDAndSecretAttribute]
-        public override async Task<ActionResult> UpdateMessageAsync(int id, [FromBody] CreateMessageRequestDto body)
+        public override async Task<ActionResult> UpdateMessageAsync(int id, [FromForm] CreateMessageRequestDto body)
         {
             try
             {
+                var token = this.HttpContext.Request.Headers.Authorization.ToString().Replace("Bearer ", string.Empty);
+
+                var user = await this.usersService.GetUserFromTokenAsync(token);
+
+                if (user == null)
+                {
+                    throw new DataValidationException("User information in token is invalid.");
+                }
+
                 var result = await this.messageService.GetByIdAsync(id);
 
                 if (result == null)
@@ -356,6 +365,16 @@ namespace NokAir.TalkToCeo.Api.Controllers
                 }
 
                 await this.messageService.UpdateAsync(id, body);
+
+                if (body.Attachments != null &&
+                body.Attachments.Count > 0)
+                {
+                    await this.messageAttachmentService
+                        .StoreFilesForMessageAsync(
+                            id,
+                            body.Attachments,
+                            user);
+                }
 
                 return this.OkSuccessResponse();
             }

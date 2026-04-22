@@ -532,7 +532,7 @@
                 }
             }
         },
-        "/messages/{messageId}/attachments/{attachmentId}": {
+        "/messages/{id}/attachments/{attachmentId}": {
             "get": {
                 "summary": "Download attachment",
                 "operationId": "downloadAttachmentAsync",
@@ -684,7 +684,7 @@
                 }
             }
         },
-        "/messages/{messageId}/attachments": {
+        "/messages/{id}/attachments": {
             "post": {
                 "summary": "Upload attachment",
                 "operationId": "uploadAttachmentAsync",

@@ -1,0 +1,39 @@
+{
+    "type": "object",
+    "required": [
+        "broadcastId",
+        "totalUsers",
+        "readCount",
+        "unreadCount",
+        "readPercentage"
+    ],
+    "properties": {
+        "broadcastId": {
+            "type": "integer",
+            "example": 101
+        },
+        "totalUsers": {
+            "type": "integer",
+            "example": 500
+        },
+        "readCount": {
+            "type": "integer",
+            "example": 375
+        },
+        "unreadCount": {
+            "type": "integer",
+            "example": 125
+        },
+        "readPercentage": {
+            "type": "number",
+            "format": "double",
+            "example": 75.0
+        },
+        "lastReadAt": {
+            "type": "string",
+            "format": "date-time",
+            "nullable": true,
+            "example": "2026-04-21T12:45:02Z"
+        }
+    }
+}

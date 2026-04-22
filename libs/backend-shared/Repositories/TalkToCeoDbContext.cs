@@ -36,6 +36,16 @@ namespace NokAir.TalkToCeo.Shared.Repositories
         public DbSet<MessageAttachment> MessageAttachments { get; set; }
 
         /// <summary>
+        /// Gets or sets dbSet property for the BroadcastMessages entity, which represents the broadcast messages in the application. This property allows you to perform CRUD operations on the BroadcastMessages table in the database using Entity Framework Core's LINQ queries and other data manipulation methods, enabling you to manage broadcast messages effectively within the TalkToCeo system.
+        /// </summary>
+        public DbSet<BroadcastMessages> BroadcastMessages { get; set; }
+
+        /// <summary>
+        /// Gets or sets dbSet property for the BroadcastMessageRead entity, which represents the read status of broadcast messages for users in the application. This property allows you to perform CRUD operations on the BroadcastMessageRead table in the database using Entity Framework Core's LINQ queries and other data manipulation methods, enabling you to track and manage the read status of broadcast messages for individual users effectively within the TalkToCeo system.
+        /// </summary>
+        public DbSet<BroadcastMessageRead> BroadcastMessageReads { get; set; }
+
+        /// <summary>
         /// Overrides the OnModelCreating method to configure the entity mappings and relationships for the TalkToCeoDbContext. This method is called by Entity Framework Core when the model is being created, and it allows you to specify how the entities should be mapped to the database tables, as well as any relationships between them. In this implementation, we configure the data types for DateTime properties, and we define the mappings for the User, Role, UserRole, and Messages entities using Fluent API.
         /// </summary>
         /// <param name="modelBuilder">The model builder used to configure the entity mappings and relationships.</param>
@@ -64,6 +74,95 @@ namespace NokAir.TalkToCeo.Shared.Repositories
             ConfigureMessage(modelBuilder);
 
             ConfigureMessageAttachment(modelBuilder);
+
+            ConfigureBroadcastMessage(modelBuilder);
+
+            ConfigureBroadcastMessageRead(modelBuilder);
+        }
+
+        private static void ConfigureBroadcastMessage(ModelBuilder modelBuilder)
+        {
+            modelBuilder.Entity<BroadcastMessages>(entity =>
+            {
+                entity.ToTable("broadcast_messages");
+
+                entity.HasKey(x => x.Id);
+
+                entity.Property(x => x.Id)
+                    .HasColumnName("id")
+                    .ValueGeneratedOnAdd();
+
+                entity.Property(x => x.Subject)
+                    .HasColumnName("subject")
+                    .IsRequired();
+
+                entity.Property(x => x.Detail)
+                    .HasColumnName("detail")
+                    .IsRequired();
+
+                entity.Property(x => x.CeoId)
+                    .HasColumnName("ceo_id")
+                    .IsRequired();
+
+                entity.Property(x => x.Status)
+                    .HasColumnName("status")
+                    .HasConversion<int>() // enum → int
+                    .IsRequired();
+
+                entity.Property(x => x.StartDisplayAt)
+                    .HasColumnName("start_display_at");
+
+                entity.Property(x => x.ExpireDisplayAt)
+                    .HasColumnName("expire_display_at");
+
+                entity.Property(x => x.CreatedAt)
+                    .HasColumnName("created_at");
+
+                entity.Property(x => x.ModifiedAt)
+                    .HasColumnName("modified_at");
+
+                entity.Property(x => x.CreatedBy)
+                    .HasColumnName("created_by");
+
+                entity.Property(x => x.ModifiedBy)
+                    .HasColumnName("modified_by");
+
+                entity.HasOne(x => x.User)
+                    .WithMany()
+                    .HasForeignKey(x => x.CeoId)
+                    .OnDelete(DeleteBehavior.Restrict);
+            });
+        }
+
+        private static void ConfigureBroadcastMessageRead(ModelBuilder modelBuilder)
+        {
+            modelBuilder.Entity<BroadcastMessageRead>(entity =>
+            {
+                entity.ToTable("broadcast_message_reads");
+
+                entity.HasKey(x => new
+                {
+                    x.BroadcastMessageId,
+                    x.UserId,
+                });
+
+                entity.Property(x => x.BroadcastMessageId)
+                    .HasColumnName("broadcast_message_id");
+
+                entity.Property(x => x.UserId)
+                    .HasColumnName("user_id");
+
+                entity.Property(x => x.ReadAt)
+                    .HasColumnName("read_at");
+
+                entity.HasOne(x => x.BroadcastMessage)
+                    .WithMany(x => x.Reads)
+                    .HasForeignKey(x => x.BroadcastMessageId);
+
+                entity.HasOne(x => x.User)
+                    .WithMany()
+                    .HasForeignKey(x => x.UserId);
+            });
         }
 
         private static void ConfigureMessageAttachment(ModelBuilder modelBuilder)

@@ -1,0 +1,66 @@
+{
+    "type": "object",
+    "required": [
+        "id",
+        "subject",
+        "detail",
+        "status",
+        "startDisplayAt",
+        "expireDisplayAt"
+    ],
+    "properties": {
+        "id": {
+            "type": "integer",
+            "example": 101
+        },
+        "subject": {
+            "type": "string",
+            "example": "CEO Announcement: Company Strategy Update"
+        },
+        "detail": {
+            "type": "string",
+            "example": "We are entering a new growth phase in 2026..."
+        },
+        "status": {
+            "type": "string",
+            "enum": [
+                "Draft",
+                "Sent"
+            ],
+            "example": "Sent"
+        },
+        "isPinned": {
+            "type": "boolean",
+            "example": true
+        },
+        "startDisplayAt": {
+            "type": "string",
+            "format": "date-time",
+            "example": "2026-04-01T09:00:00Z"
+        },
+        "expireDisplayAt": {
+            "type": "string",
+            "format": "date-time",
+            "example": "2026-07-01T09:00:00Z"
+        },
+        "isRead": {
+            "type": "boolean",
+            "description": "Employee read status (employee view only)",
+            "example": false
+        },
+        "readCount": {
+            "type": "integer",
+            "description": "Total number of readers (CEO view)",
+            "example": 325
+        },
+        "createdAt": {
+            "type": "string",
+            "format": "date-time",
+            "example": "2026-03-31T12:00:00Z"
+        },
+        "createdBy": {
+            "type": "string",
+            "example": "ceo@company.com"
+        }
+    }
+}
