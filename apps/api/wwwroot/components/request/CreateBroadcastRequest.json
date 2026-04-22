@@ -1,0 +1,35 @@
+{
+    "type": "object",
+    "properties": {
+        "id": {
+            "type": "integer"
+        },
+        "subject": {
+            "type": "string"
+        },
+        "detail": {
+            "type": "string"
+        },
+        "status": {
+            "type": "string",
+            "enum": [
+                "Draft",
+                "Sent"
+            ]
+        },
+        "isPinned": {
+            "type": "boolean"
+        },
+        "startDisplayAt": {
+            "type": "string",
+            "format": "date-time"
+        },
+        "expireDisplayAt": {
+            "type": "string",
+            "format": "date-time"
+        },
+        "isRead": {
+            "type": "boolean"
+        }
+    }
+}

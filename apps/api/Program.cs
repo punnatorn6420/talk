@@ -143,6 +143,7 @@ builder.Services.AddScoped<IRoleRepository<Role>, RoleRepository>();
 builder.Services.AddScoped<IUserRoleRepository, UserRoleRepository>();
 builder.Services.AddScoped<IUsersRepository<UserDto>, UsersRepository>();
 builder.Services.AddScoped<IMessageAttachmentRepository, MessageAttachmentRepository>();
+builder.Services.AddScoped<IBroadcastRepository, BroadcastRepository>();
 
 // Configure services
 builder.Services.AddScoped<IMessageService, MessageService>();
@@ -151,6 +152,7 @@ builder.Services.AddScoped<IUsersService<UserDto>, UsersService>();
 builder.Services.AddScoped<IJwtTalkToCeo, JwtTalkToCeoService>();
 builder.Services.AddScoped<IJwtService, JwtService>();
 builder.Services.AddScoped<IMessageAttachmentService, MessageAttachmentService>();
+builder.Services.AddScoped<IBroadcastService, BroadcastService>();
 
 // Role service
 builder.Services.AddScoped<IAuthorizationHandler, RoleAuthorizationHandler>();
@@ -307,6 +309,7 @@ if (app.Environment.IsDevelopment())
         // Add all YAML files in the wwwroot folder
         c.SwaggerEndpoint("/TalkToCeo-api-spec.json", "Talk To CEO API");
         c.SwaggerEndpoint("/TalkToCeo-users-api-spec.json", "Talk To CEO Users API");
+        c.SwaggerEndpoint("/TalkToCeo-broadcast-api-spec.json", "Talk To CEO Broadcast API");
         c.RoutePrefix = string.Empty;
     });
 }

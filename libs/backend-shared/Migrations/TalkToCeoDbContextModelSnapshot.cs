@@ -129,6 +129,87 @@ namespace backend_shared.Migrations
                     b.ToTable("user_roles", (string)null);
                 });
 
+            modelBuilder.Entity("NokAir.TalkToCeo.Shared.Entities.TalkToCeo.BroadcastMessageRead", b =>
+                {
+                    b.Property<int>("BroadcastMessageId")
+                        .HasColumnType("integer")
+                        .HasColumnName("broadcast_message_id");
+
+                    b.Property<int>("UserId")
+                        .HasColumnType("integer")
+                        .HasColumnName("user_id");
+
+                    b.Property<DateTime>("ReadAt")
+                        .HasColumnType("timestamp without time zone")
+                        .HasColumnName("read_at");
+
+                    b.HasKey("BroadcastMessageId", "UserId");
+
+                    b.HasIndex("UserId");
+
+                    b.ToTable("broadcast_message_reads", (string)null);
+                });
+
+            modelBuilder.Entity("NokAir.TalkToCeo.Shared.Entities.TalkToCeo.BroadcastMessages", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("integer")
+                        .HasColumnName("id");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
+
+                    b.Property<int>("CeoId")
+                        .HasColumnType("integer")
+                        .HasColumnName("ceo_id");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("timestamp without time zone")
+                        .HasColumnName("created_at");
+
+                    b.Property<string>("CreatedBy")
+                        .IsRequired()
+                        .HasColumnType("text")
+                        .HasColumnName("created_by");
+
+                    b.Property<string>("Detail")
+                        .IsRequired()
+                        .HasColumnType("text")
+                        .HasColumnName("detail");
+
+                    b.Property<DateTime?>("ExpireDisplayAt")
+                        .HasColumnType("timestamp without time zone")
+                        .HasColumnName("expire_display_at");
+
+                    b.Property<DateTime>("ModifiedAt")
+                        .HasColumnType("timestamp without time zone")
+                        .HasColumnName("modified_at");
+
+                    b.Property<string>("ModifiedBy")
+                        .IsRequired()
+                        .HasColumnType("text")
+                        .HasColumnName("modified_by");
+
+                    b.Property<DateTime>("StartDisplayAt")
+                        .HasColumnType("timestamp without time zone")
+                        .HasColumnName("start_display_at");
+
+                    b.Property<int>("Status")
+                        .HasColumnType("integer")
+                        .HasColumnName("status");
+
+                    b.Property<string>("Subject")
+                        .IsRequired()
+                        .HasColumnType("text")
+                        .HasColumnName("subject");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("CeoId");
+
+                    b.ToTable("broadcast_messages", (string)null);
+                });
+
             modelBuilder.Entity("NokAir.TalkToCeo.Shared.Entities.TalkToCeo.MessageAttachment", b =>
                 {
                     b.Property<int>("Id")
@@ -266,6 +347,36 @@ namespace backend_shared.Migrations
                     b.Navigation("User");
                 });
 
+            modelBuilder.Entity("NokAir.TalkToCeo.Shared.Entities.TalkToCeo.BroadcastMessageRead", b =>
+                {
+                    b.HasOne("NokAir.TalkToCeo.Shared.Entities.TalkToCeo.BroadcastMessages", "BroadcastMessage")
+                        .WithMany("Reads")
+                        .HasForeignKey("BroadcastMessageId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("NokAir.TalkToCeo.Shared.Entities.Common.User", "User")
+                        .WithMany()
+                        .HasForeignKey("UserId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("BroadcastMessage");
+
+                    b.Navigation("User");
+                });
+
+            modelBuilder.Entity("NokAir.TalkToCeo.Shared.Entities.TalkToCeo.BroadcastMessages", b =>
+                {
+                    b.HasOne("NokAir.TalkToCeo.Shared.Entities.Common.User", "User")
+                        .WithMany()
+                        .HasForeignKey("CeoId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.Navigation("User");
+                });
+
             modelBuilder.Entity("NokAir.TalkToCeo.Shared.Entities.TalkToCeo.MessageAttachment", b =>
                 {
                     b.HasOne("NokAir.TalkToCeo.Shared.Entities.TalkToCeo.Messages", "Message")
@@ -303,6 +414,11 @@ namespace backend_shared.Migrations
             modelBuilder.Entity("NokAir.TalkToCeo.Shared.Entities.Common.User", b =>
                 {
                     b.Navigation("UserRoles");
+                });
+
+            modelBuilder.Entity("NokAir.TalkToCeo.Shared.Entities.TalkToCeo.BroadcastMessages", b =>
+                {
+                    b.Navigation("Reads");
                 });
 
             modelBuilder.Entity("NokAir.TalkToCeo.Shared.Entities.TalkToCeo.Messages", b =>

@@ -1,0 +1,307 @@
+{
+  "openapi": "3.0.1",
+  "info": {
+    "version": "1.0.0",
+    "title": "Talk to CEO Broadcast API",
+    "description": "Broadcast announcement API specification",
+    "contact": {
+      "name": "TalkToCeo Platform Team",
+      "email": "platform@company.com"
+    }
+  },
+  "servers": [
+    {
+      "url": "/v1",
+      "description": "Production server"
+    }
+  ],
+  "components": {
+    "securitySchemes": {
+      "BearerAuth": {
+        "type": "http",
+        "scheme": "bearer",
+        "bearerFormat": "JWT"
+      }
+    },
+    "parameters": {
+      "client_id": {
+        "name": "client_id",
+        "in": "header",
+        "required": true,
+        "schema": { "type": "string" }
+      },
+      "client_secret": {
+        "name": "client_secret",
+        "in": "header",
+        "required": true,
+        "schema": { "type": "string" }
+      },
+      "broadcastId": {
+        "name": "id",
+        "in": "path",
+        "required": true,
+        "schema": { "type": "integer" }
+      }
+    },
+    "schemas": {
+      "CreateBroadcastRequest": {
+        "$ref": "./components/request/CreateBroadcastRequest.json"
+      },
+      "UpdateBroadcastRequest": {
+        "$ref": "./components/request/UpdateBroadcastRequest.json"
+      },
+      "BroadcastResponse": {
+        "$ref": "./components/response/BroadcastResponse.json"
+      },
+      "BroadcastReaderResponse": {
+        "$ref": "./components/response/BroadcastReaderResponse.json"
+      },
+      "BroadcastReadSummaryResponse": {
+        "$ref": "./components/response/BroadcastReadSummaryResponse.json"
+      },
+      "SuccessResponse": {
+        "$ref": "./components/response/SuccessResponse.json"
+      },
+      "InvalidRequestResponse": {
+        "$ref": "./components/response/InvalidRequestResponse.json"
+      }
+    }
+  },
+  "paths": {
+    "/broadcasts": {
+      "post": {
+        "summary": "Create broadcast (CEO only)",
+        "operationId": "createBroadcastAsync",
+        "security": [{ "BearerAuth": [] }],
+        "parameters": [
+          { "$ref": "#/components/parameters/client_id" },
+          { "$ref": "#/components/parameters/client_secret" }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreateBroadcastRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Broadcast created successfully",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SuccessResponse"
+                }
+              }
+            }
+          }
+        }
+      },
+      "get": {
+        "summary": "Get broadcast list (CEO view)",
+        "operationId": "getBroadcastsAsync",
+        "security": [{ "BearerAuth": [] }],
+        "parameters": [
+          { "$ref": "#/components/parameters/client_id" },
+          { "$ref": "#/components/parameters/client_secret" },
+          {
+            "name": "keyword",
+            "in": "query",
+            "schema": { "type": "string" }
+          },
+          {
+            "name": "pageNumber",
+            "in": "query",
+            "schema": { "type": "integer", "default": 1 }
+          },
+          {
+            "name": "pageSize",
+            "in": "query",
+            "schema": { "type": "integer", "default": 25 }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Broadcast list retrieved",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/BroadcastResponse"
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+
+    "/broadcasts/my": {
+      "get": {
+        "summary": "Get broadcast list (employee view)",
+        "operationId": "getMyBroadcastsAsync",
+        "security": [{ "BearerAuth": [] }],
+        "parameters": [
+          { "$ref": "#/components/parameters/client_id" },
+          { "$ref": "#/components/parameters/client_secret" }
+        ],
+        "responses": {
+          "200": {
+            "description": "Employee broadcast list retrieved",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/BroadcastResponse"
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+
+    "/broadcasts/{id}": {
+      "put": {
+        "summary": "Update broadcast",
+        "operationId": "updateBroadcastAsync",
+        "security": [{ "BearerAuth": [] }],
+        "parameters": [
+          { "$ref": "#/components/parameters/client_id" },
+          { "$ref": "#/components/parameters/client_secret" },
+          { "$ref": "#/components/parameters/broadcastId" }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UpdateBroadcastRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Broadcast updated successfully",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SuccessResponse"
+                }
+              }
+            }
+          }
+        }
+      },
+
+      "delete": {
+        "summary": "Delete broadcast",
+        "operationId": "deleteBroadcastAsync",
+        "security": [{ "BearerAuth": [] }],
+        "parameters": [
+          { "$ref": "#/components/parameters/client_id" },
+          { "$ref": "#/components/parameters/client_secret" },
+          { "$ref": "#/components/parameters/broadcastId" }
+        ],
+        "responses": {
+          "200": {
+            "description": "Broadcast deleted successfully",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SuccessResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+
+    "/broadcasts/{id}/read": {
+      "put": {
+        "summary": "Mark broadcast as read",
+        "operationId": "readBroadcastAsync",
+        "security": [{ "BearerAuth": [] }],
+        "parameters": [
+          { "$ref": "#/components/parameters/client_id" },
+          { "$ref": "#/components/parameters/client_secret" },
+          { "$ref": "#/components/parameters/broadcastId" }
+        ],
+        "responses": {
+          "200": {
+            "description": "Marked as read",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SuccessResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+
+    "/broadcasts/{id}/readers": {
+      "get": {
+        "summary": "Get broadcast readers",
+        "operationId": "getBroadcastReadersAsync",
+        "security": [{ "BearerAuth": [] }],
+        "parameters": [
+          { "$ref": "#/components/parameters/client_id" },
+          { "$ref": "#/components/parameters/client_secret" },
+          { "$ref": "#/components/parameters/broadcastId" }
+        ],
+        "responses": {
+          "200": {
+            "description": "Readers retrieved",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/BroadcastReaderResponse"
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+
+    "/broadcasts/{id}/read-summary": {
+      "get": {
+        "summary": "Get broadcast read summary",
+        "operationId": "getBroadcastReadSummaryAsync",
+        "security": [{ "BearerAuth": [] }],
+        "parameters": [
+          { "$ref": "#/components/parameters/client_id" },
+          { "$ref": "#/components/parameters/client_secret" },
+          { "$ref": "#/components/parameters/broadcastId" }
+        ],
+        "responses": {
+          "200": {
+            "description": "Summary retrieved",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/BroadcastReadSummaryResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+}

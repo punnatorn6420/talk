@@ -87,7 +87,7 @@ namespace TalkToCeoApi.Controllers
         /// </summary>
         /// <returns>Message updated successfully</returns>
         [Microsoft.AspNetCore.Mvc.HttpPut, Microsoft.AspNetCore.Mvc.Route("messages/{id}/update")]
-        public abstract System.Threading.Tasks.Task<Microsoft.AspNetCore.Mvc.ActionResult> UpdateMessageAsync(int id, [Microsoft.AspNetCore.Mvc.FromBody] CreateMessageRequestDto body);
+        public abstract System.Threading.Tasks.Task<Microsoft.AspNetCore.Mvc.ActionResult> UpdateMessageAsync(int id, [Microsoft.AspNetCore.Mvc.FromForm] CreateMessageRequestDto body);
 
         /// <summary>
         /// Download attachment

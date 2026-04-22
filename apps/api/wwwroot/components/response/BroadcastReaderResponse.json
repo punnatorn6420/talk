@@ -1,0 +1,40 @@
+{
+    "type": "object",
+    "required": [
+        "userId",
+        "firstName",
+        "lastName"
+    ],
+    "properties": {
+        "userId": {
+            "type": "integer",
+            "example": 8821
+        },
+        "firstName": {
+            "type": "string",
+            "example": "Somchai"
+        },
+        "lastName": {
+            "type": "string",
+            "example": "Prasert"
+        },
+        "email": {
+            "type": "string",
+            "example": "somchai.prasert@company.com"
+        },
+        "department": {
+            "type": "string",
+            "example": "Engineering"
+        },
+        "jobTitle": {
+            "type": "string",
+            "example": "Software Engineer"
+        },
+        "readAt": {
+            "type": "string",
+            "format": "date-time",
+            "nullable": true,
+            "example": "2026-04-21T10:22:11Z"
+        }
+    }
+}

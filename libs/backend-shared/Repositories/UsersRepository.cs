@@ -35,6 +35,12 @@ namespace NokAir.TalkToCeo.Shared.Repositories
         }
 
         /// <inheritdoc/>
+        public async Task<int> FindUserCountAsync()
+        {
+            return await this.dbContext.User.CountAsync();
+        }
+
+        /// <inheritdoc/>
         public async Task<User?> FindUserByCriteriaAsync(string? email = null, string? firstname = null, string? lastname = null, string? objectId = null, CancellationToken cancellationToken = default)
         {
             IQueryable<User> query = this.dbContext.User;
