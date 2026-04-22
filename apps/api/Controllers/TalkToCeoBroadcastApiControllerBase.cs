@@ -38,7 +38,7 @@ namespace TalkToCeoApi.Controllers
         /// </summary>
         /// <returns>Broadcast created successfully</returns>
         [Microsoft.AspNetCore.Mvc.HttpPost, Microsoft.AspNetCore.Mvc.Route("broadcasts")]
-        public abstract System.Threading.Tasks.Task<Microsoft.AspNetCore.Mvc.ActionResult> CreateBroadcast([Microsoft.AspNetCore.Mvc.FromBody] CreateBroadcastRequestDto body);
+        public abstract System.Threading.Tasks.Task<Microsoft.AspNetCore.Mvc.ActionResult> CreateBroadcast([Microsoft.AspNetCore.Mvc.FromForm] CreateBroadcastRequestDto body);
 
         /// <summary>
         /// Get broadcast list (CEO view)
@@ -66,7 +66,7 @@ namespace TalkToCeoApi.Controllers
         /// </summary>
         /// <returns>Broadcast updated successfully</returns>
         [Microsoft.AspNetCore.Mvc.HttpPut, Microsoft.AspNetCore.Mvc.Route("broadcasts/{id}")]
-        public abstract System.Threading.Tasks.Task<Microsoft.AspNetCore.Mvc.ActionResult> UpdateBroadcast(int id, [Microsoft.AspNetCore.Mvc.FromBody] UpdateBroadcastRequestDto body);
+        public abstract System.Threading.Tasks.Task<Microsoft.AspNetCore.Mvc.ActionResult> UpdateBroadcast(int id, [Microsoft.AspNetCore.Mvc.FromForm] UpdateBroadcastRequestDto body);
 
         /// <summary>
         /// Delete broadcast

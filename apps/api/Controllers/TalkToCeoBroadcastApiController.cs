@@ -298,7 +298,7 @@ namespace NokAir.TalkToCeo.Api.Controllers
         [Authorize(Policy = "CeoRole")]
         [ClientApplicationValidationWithIDAndSecretAttribute]
 
-        public override async Task<ActionResult> UpdateBroadcast(int id, [FromBody] UpdateBroadcastRequestDto body)
+        public override async Task<ActionResult> UpdateBroadcast(int id, [FromForm] UpdateBroadcastRequestDto body)
         {
             try
             {
