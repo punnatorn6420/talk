@@ -58,5 +58,15 @@ namespace NokAir.TalkToCeo.Shared.QueryModels.Broadcast
         /// Gets or sets the date and time when the message was last read by any user. This property is important for tracking the engagement of users with the broadcast message and can be used to determine how many users have read the message and when it was last read. The ReadAt property is of type DateTime?, which allows it to store both the date and time information accurately, while also allowing for null values in cases where the message has not been read by any user.
         /// </summary>
         public DateTime? ReadAt { get; set; }
+
+        /// <summary>
+        /// Gets or sets the date and time when the message was last modified. This property is important for tracking changes to the broadcast message and can be used for auditing purposes to keep a record of when messages were modified in the system. The ModifiedAt property is of type DateTime, which allows it to store both the date and time information accurately. Additionally, this property can be used to determine how recently a message was updated, which can be useful for users who want to stay informed about the latest changes to the broadcast message.
+        /// </summary>
+        public DateTime ModifiedAt { get; set; }
+
+        /// <summary>
+        /// Gets or sets the username of the user who last modified the message. This information is important for tracking who made changes to the communication and can be used for auditing purposes. The ModifiedBy property is a string that stores the username of the last modifier, allowing for easy identification of who made changes to the message in the system. This can help maintain accountability and transparency regarding modifications to broadcast messages over time.
+        /// </summary>
+        public string ModifiedBy { get; set; } = string.Empty;
     }
 }

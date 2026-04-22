@@ -19,27 +19,32 @@ namespace NokAir.TalkToCeo.Api.Controllers
 
         private readonly IBroadcastService broadcastService;
 
+        private readonly IMessageAttachmentService messageAttachmentService;
+
         /// <summary>
         /// Initializes a new instance of the <see cref="TalkToCeoBroadcastApiController"/> class with the specified response factory. The response factory is used to create standardized API responses for the endpoints defined in this controller. This constructor allows for dependency injection of the response factory, enabling better testability and separation of concerns in the application architecture.
         /// </summary>
         /// <param name="apiResponseFactory">The response factory used to create standardized API responses.</param>
         /// <param name="usersService">The service used to manage user-related operations.</param>
         /// <param name="broadcastService">The service used to manage broadcast-related operations.</param>
+        /// <param name="messageAttachmentService">The service used to manage message attachments.</param>
         public TalkToCeoBroadcastApiController(
             IResponseFactory apiResponseFactory,
             IUsersService<UserDto> usersService,
-            IBroadcastService broadcastService)
+            IBroadcastService broadcastService,
+            IMessageAttachmentService messageAttachmentService)
         : base(apiResponseFactory)
         {
             this.usersService = usersService;
             this.broadcastService = broadcastService;
+            this.messageAttachmentService = messageAttachmentService;
         }
 
         /// <inheritdoc/>
         [Authorize(Policy = "CeoRole")]
         [ClientApplicationValidationWithIDAndSecretAttribute]
 
-        public override async Task<ActionResult> CreateBroadcast([FromBody] CreateBroadcastRequestDto body)
+        public override async Task<ActionResult> CreateBroadcast([FromForm] CreateBroadcastRequestDto body)
         {
             try
             {
@@ -54,7 +59,17 @@ namespace NokAir.TalkToCeo.Api.Controllers
                     throw new DataValidationException("User information in token is invalid.");
                 }
 
-                await this.broadcastService.CreateBroadcastAsync(body, user.Id, user);
+                var broadcastId = await this.broadcastService.CreateBroadcastAsync(body, user.Id, user);
+
+                if (body.Attachments != null &&
+              body.Attachments.Count > 0)
+                {
+                    await this.messageAttachmentService
+                        .StoreFilesForMessageAsync(
+                            broadcastId,
+                            body.Attachments,
+                            user);
+                }
 
                 return this.OkSuccessResponse();
             }
@@ -302,6 +317,16 @@ namespace NokAir.TalkToCeo.Api.Controllers
                     id,
                     body,
                     user.Id);
+
+                if (body.Attachments != null &&
+                    body.Attachments.Count > 0)
+                {
+                    await this.messageAttachmentService
+                        .StoreFilesForMessageAsync(
+                            id,
+                            body.Attachments,
+                            user);
+                }
 
                 return this.OkSuccessResponse();
             }

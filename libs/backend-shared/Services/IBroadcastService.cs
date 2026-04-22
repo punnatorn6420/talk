@@ -16,7 +16,7 @@ namespace NokAir.TalkToCeo.Shared.Services
         /// <param name="ceoId">The ID of the CEO creating the broadcast.</param>
         /// <param name="user">The user creating the broadcast.</param>
         /// <returns>A task representing the asynchronous operation.</returns>
-        Task CreateBroadcastAsync(CreateBroadcastRequestDto dto, int ceoId, UserDto user);
+        Task<int> CreateBroadcastAsync(CreateBroadcastRequestDto dto, int ceoId, UserDto user);
 
         /// <summary>
         /// Deletes an existing broadcast message. This method takes the ID of the broadcast to be deleted and the ID of the CEO as parameters. Implementations of this method should ensure that the specified broadcast exists and that the CEO has the necessary permissions to delete it before performing the deletion operation. Proper error handling should be implemented to manage cases where the broadcast does not exist or the CEO does not have permission to delete it.
