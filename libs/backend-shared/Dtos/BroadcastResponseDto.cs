@@ -63,5 +63,10 @@ namespace NokAir.TalkToCeo.Shared.Dtos
         /// Gets or sets the username of the user who last modified the message. This information is important for tracking who made the most recent changes to the message and can be used for auditing purposes. The ModifiedBy property is a string that stores the username of the last modifier, allowing for easy identification of who updated the message in the system. This helps maintain a clear record of changes and accountability for modifications made to messages over time.
         /// </summary>
         public string ModifiedBy { get; set; } = string.Empty;
+
+        /// <summary>
+        /// Gets or sets the list of attachments associated with the message. This property contains a collection of MessageAttachmentDto objects, each representing an attachment that is linked to the message. The Attachments property allows for the inclusion of additional files or documents that may be relevant to the message content, providing a more comprehensive context for the communication between the user and the CEO. Each MessageAttachmentDto includes details such as the attachment's unique identifier and file name, enabling easy management and display of attachments in the frontend or other layers of the application.
+        /// </summary>
+        public List<MessageAttachmentDto> Attachments { get; set; } = new();
     }
 }

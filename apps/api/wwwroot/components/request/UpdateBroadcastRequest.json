@@ -24,6 +24,13 @@
         "expireDisplayAt": {
             "type": "string",
             "format": "date-time"
+        },
+        "attachments": {
+            "type": "array",
+            "items": {
+                "type": "string",
+                "format": "binary"
+            }
         }
     }
 }
