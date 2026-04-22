@@ -54,7 +54,7 @@ namespace NokAir.TalkToCeo.Shared.Services
         /// <param name="searchEndDate">The end date for filtering broadcasts.</param>
         /// <param name="ceoId">The ID of the CEO attempting to view the broadcasts.</param>
         /// <returns>A task representing the asynchronous operation, containing a paginated list of broadcast response DTOs.</returns>
-        Task<PagedResult<BroadcastResponseDto>> GetBroadcastsAsync(
+        Task<BroadcastResponseListDto> GetBroadcastsAsync(
             string keyword,
             string sortField,
             int pageNumber,
