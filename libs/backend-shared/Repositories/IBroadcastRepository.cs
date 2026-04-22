@@ -14,8 +14,8 @@ namespace NokAir.TalkToCeo.Shared.Repositories
         /// Creates a new broadcast message in the repository. This method takes a BroadcastMessage entity as input and is responsible for saving it to the underlying data store. The implementation of this method will handle the specifics of how the broadcast message is persisted, such as using an ORM or direct database access. This allows for flexibility in how the data is stored while keeping the business logic separate from the data access logic.
         /// </summary>
         /// <param name="entity">The broadcast message entity to be created.</param>
-        /// <returns>A task that represents the asynchronous operation.</returns>
-        Task AddBroadcastMessageAsync(BroadcastMessages entity);
+        /// <returns>A task that represents the asynchronous operation. The task result contains the created broadcast message entity.</returns>
+        Task<BroadcastMessages> AddBroadcastMessageAsync(BroadcastMessages entity);
 
         /// <summary>
         /// Retrieves a broadcast message by its unique identifier. This method takes an integer ID as input and returns the corresponding BroadcastMessage entity from the repository. The implementation of this method will handle the specifics of how the data is retrieved from the underlying data store, allowing for separation of concerns and easier maintenance of the codebase.

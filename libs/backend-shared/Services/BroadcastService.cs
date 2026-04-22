@@ -30,7 +30,7 @@ namespace NokAir.TalkToCeo.Shared.Services
         }
 
         /// <inheritdoc/>
-        public async Task CreateBroadcastAsync(CreateBroadcastRequestDto dto, int ceoId, UserDto user)
+        public async Task<int> CreateBroadcastAsync(CreateBroadcastRequestDto dto, int ceoId, UserDto user)
         {
             if (string.IsNullOrWhiteSpace(dto.Subject))
             {
@@ -72,7 +72,8 @@ namespace NokAir.TalkToCeo.Shared.Services
                 CreatedBy = userNameAcc,
             };
 
-            await this.broadcastRepository.AddBroadcastMessageAsync(entity);
+            var createdEntity = await this.broadcastRepository.AddBroadcastMessageAsync(entity);
+            return createdEntity.Id;
         }
 
         /// <inheritdoc/>
@@ -206,6 +207,8 @@ namespace NokAir.TalkToCeo.Shared.Services
                     ExpireDisplayDate = x.ExpireDisplayAt,
                     CreatedAt = x.CreatedAt,
                     CreatedBy = x.User.FirstName + " " + x.User.LastName,
+                    ModifiedAt = x.ModifiedAt,
+                    ModifiedBy = x.ModifiedBy,
                 }).ToList(),
             };
         }
@@ -222,12 +225,13 @@ namespace NokAir.TalkToCeo.Shared.Services
                 Subject = x.Subject,
                 Detail = x.Detail,
                 Status = x.Status,
-                IsPinned = x.IsPinned,
                 StartDisplayDate = x.StartDisplayAt,
                 ExpireDisplayDate = x.ExpireDisplayAt,
                 CreatedAt = x.CreatedAt,
                 CreatedBy = x.Ceo.FirstName + " " + x.Ceo.LastName,
                 IsRead = x.ReadAt != null,
+                ModifiedAt = x.ModifiedAt,
+                ModifiedBy = x.ModifiedBy,
             }).ToList();
         }
 

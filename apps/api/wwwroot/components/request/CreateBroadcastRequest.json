@@ -1,9 +1,6 @@
 {
     "type": "object",
     "properties": {
-        "id": {
-            "type": "integer"
-        },
         "subject": {
             "type": "string"
         },
@@ -17,9 +14,6 @@
                 "Sent"
             ]
         },
-        "isPinned": {
-            "type": "boolean"
-        },
         "startDisplayAt": {
             "type": "string",
             "format": "date-time"
@@ -27,9 +21,6 @@
         "expireDisplayAt": {
             "type": "string",
             "format": "date-time"
-        },
-        "isRead": {
-            "type": "boolean"
         }
     }
 }

@@ -1,5 +1,6 @@
 using System;
 using System.Runtime.CompilerServices;
+using Microsoft.AspNetCore.Http;
 using NokAir.TalkToCeo.Shared.Entities.Common;
 using NokAir.TalkToCeo.Shared.Enums;
 
@@ -39,5 +40,10 @@ namespace NokAir.TalkToCeo.Shared.Dtos
         /// Gets or sets the current status of the broadcast message. This field helps track the lifecycle of the broadcast, such as whether it is in draft, published, or archived state.
         /// </summary>
         public BroadcastStatus Status { get; set; } = BroadcastStatus.Draft;
+
+        /// <summary>
+        /// Gets or sets the collection of files attached to the message. This property is used to hold any files that the user may want to include with their message, such as screenshots, documents, or other relevant files. The attachments are represented as an IFormFileCollection, which allows for multiple files to be uploaded and processed by the backend when the message is created.
+        /// </summary>
+        public IFormFileCollection? Attachments { get; set; }
     }
 }

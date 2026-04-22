@@ -26,18 +26,11 @@ namespace NokAir.TalkToCeo.Shared.Repositories
         }
 
         /// <inheritdoc/>
-        public async Task AddBroadcastMessageAsync(BroadcastMessages entity)
+        public async Task<BroadcastMessages> AddBroadcastMessageAsync(BroadcastMessages entity)
         {
             await this.dbContext.BroadcastMessages.AddAsync(entity);
-
-            try
-            {
-                await this.dbContext.SaveChangesAsync();
-            }
-            catch (Exception ex)
-            {
-                throw new InvalidOperationException(ex.InnerException?.Message ?? ex.Message, ex);
-            }
+            await this.dbContext.SaveChangesAsync();
+            return entity;
         }
 
         /// <inheritdoc/>
@@ -181,6 +174,8 @@ namespace NokAir.TalkToCeo.Shared.Repositories
                     CreatedAt = broadcast.CreatedAt,
                     Ceo = broadcast.User,
                     ReadAt = read.ReadAt,
+                    ModifiedAt = broadcast.ModifiedAt,
+                    ModifiedBy = broadcast.ModifiedBy,
                 };
 
             return await query.ToListAsync();

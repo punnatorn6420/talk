@@ -1,5 +1,6 @@
 using System;
 using System.Runtime.CompilerServices;
+using Microsoft.AspNetCore.Http;
 using NokAir.TalkToCeo.Shared.Entities.Common;
 using NokAir.TalkToCeo.Shared.Enums;
 
@@ -41,23 +42,8 @@ namespace NokAir.TalkToCeo.Shared.Dtos
         public BroadcastStatus Status { get; set; }
 
         /// <summary>
-        /// Gets or sets the date and time when the message was created. This timestamp is crucial for tracking when the message was created and can be used for sorting, filtering, and displaying the message in chronological order. The CreatedAt property is of type DateTime, which allows it to store both the date and time information accurately. Additionally, this property can be used for auditing purposes to keep a record of when messages were created in the system.
+        /// Gets or sets the collection of files attached to the message. This property is used to hold any files that the user may want to include with their message, such as screenshots, documents, or other relevant files. The attachments are represented as an IFormFileCollection, which allows for multiple files to be uploaded and processed by the backend when the message is created.
         /// </summary>
-        public DateTime CreatedAt { get; set; }
-
-        /// <summary>
-        /// Gets or sets the date and time when the message was last modified. This timestamp is important for tracking changes to the message and for displaying the message in chronological order based on when it was last updated. The ModifiedAt property is of type DateTime, which allows it to store both the date and time information accurately. This property can also be used for auditing purposes to keep a record of when messages were modified in the system.
-        /// </summary>
-        public DateTime ModifiedAt { get; set; }
-
-        /// <summary>
-        /// Gets or sets the username of the user who created the message. This information is important for tracking who initiated the communication and can be used for auditing purposes. The CreatedBy property is a string that stores the username of the creator, allowing for easy identification of the message's originator in the system. Similarly, the ModifiedBy property stores the username of the last user who modified the message, providing a clear record of who made changes to the message over time.
-        /// </summary>
-        public string CreatedBy { get; set; } = string.Empty;
-
-        /// <summary>
-        /// Gets or sets the username of the user who last modified the message. This information is important for tracking who made the most recent changes to the message and can be used for auditing purposes. The ModifiedBy property is a string that stores the username of the last modifier, allowing for easy identification of who updated the message in the system. This helps maintain a clear record of changes and accountability for modifications made to messages over time.
-        /// </summary>
-        public string ModifiedBy { get; set; } = string.Empty;
+        public IFormFileCollection? Attachments { get; set; }
     }
 }
