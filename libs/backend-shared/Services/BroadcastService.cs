@@ -15,18 +15,22 @@ namespace NokAir.TalkToCeo.Shared.Services
     {
         private readonly IBroadcastRepository broadcastRepository;
         private readonly IUsersRepository<UserDto> usersRepository;
+        private readonly IMessageAttachmentRepository attachmentRepository;
 
         /// <summary>
         /// Initializes a new instance of the <see cref="BroadcastService"/> class with the specified broadcast repository. The constructor takes an <see cref="IBroadcastRepository"/> as a parameter, which is used to interact with the underlying data store for managing broadcast messages. This allows the service to perform operations such as creating new broadcast messages and retrieving existing ones. By injecting the repository through the constructor, we can easily manage dependencies and promote better testability of the service class.
         /// </summary>
         /// <param name="broadcastRepository">The broadcast repository used to interact with the underlying data store.</param>
         /// <param name="usersRepository">The users repository used to interact with the underlying data store for user-related operations.</param>
+        /// <param name="attachmentRepository">The attachment repository used to interact with the underlying data store for attachment-related operations.</param>
         public BroadcastService(
               IBroadcastRepository broadcastRepository,
-              IUsersRepository<UserDto> usersRepository)
+              IUsersRepository<UserDto> usersRepository,
+              IMessageAttachmentRepository attachmentRepository)
         {
             this.broadcastRepository = broadcastRepository;
             this.usersRepository = usersRepository;
+            this.attachmentRepository = attachmentRepository;
         }
 
         /// <inheritdoc/>
@@ -194,6 +198,15 @@ namespace NokAir.TalkToCeo.Shared.Services
                     searchEndDate,
                     ceoId);
 
+            var messageIds = pagedResult.Items.Select(x => x.Id).ToList();
+
+            var attachments = await this.attachmentRepository.FindAttachmentsByMessageIdsAsync(messageIds);
+
+            var attachmentLookup =
+                attachments
+                    .GroupBy(x => x.MessageId)
+                    .ToDictionary(g => g.Key, g => g.ToList());
+
             return new PagedResult<BroadcastResponseDto>
             {
                 TotalCount = pagedResult.TotalCount,
@@ -209,6 +222,18 @@ namespace NokAir.TalkToCeo.Shared.Services
                     CreatedBy = x.User.FirstName + " " + x.User.LastName,
                     ModifiedAt = x.ModifiedAt,
                     ModifiedBy = x.ModifiedBy,
+                    Attachments =
+                        attachmentLookup.TryGetValue(x.Id, out List<MessageAttachment>? value)
+                            ? value.Select(a =>
+                                    new MessageAttachmentDto
+                                    {
+                                        Id = a.Id,
+                                        FileName =
+                                            Path.GetFileName(
+                                                a.FilePath),
+                                    })
+                                .ToList()
+                            : new List<MessageAttachmentDto>(),
                 }).ToList(),
             };
         }
@@ -218,6 +243,8 @@ namespace NokAir.TalkToCeo.Shared.Services
         {
             var broadcasts = await this.broadcastRepository
                 .FindVisibleBroadcastsAsync(userId);
+
+            var attachments = await this.attachmentRepository.FindAttachmentsByMessageIdAsync(userId);
 
             return broadcasts.Select(x => new BroadcastResponseDto
             {
@@ -232,6 +259,14 @@ namespace NokAir.TalkToCeo.Shared.Services
                 IsRead = x.ReadAt != null,
                 ModifiedAt = x.ModifiedAt,
                 ModifiedBy = x.ModifiedBy,
+                Attachments =
+                    attachments.Select(x =>
+                        new MessageAttachmentDto
+                        {
+                            Id = x.Id,
+                            FileName = Path.GetFileName(x.FilePath),
+                        })
+                    .ToList(),
             }).ToList();
         }
 
