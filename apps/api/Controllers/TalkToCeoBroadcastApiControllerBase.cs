@@ -96,6 +96,15 @@ namespace TalkToCeoApi.Controllers
         [Microsoft.AspNetCore.Mvc.HttpGet, Microsoft.AspNetCore.Mvc.Route("broadcasts/{id}/read-summary")]
         public abstract System.Threading.Tasks.Task<Microsoft.AspNetCore.Mvc.ActionResult> GetBroadcastReadSummary(int id);
 
+
+        /// <summary>
+        /// Get broadcast by ID
+        /// </summary>
+        /// <param name="id">The ID of the broadcast</param>
+        /// <returns>The broadcast retrieved</returns>
+        [Microsoft.AspNetCore.Mvc.HttpGet, Microsoft.AspNetCore.Mvc.Route("broadcasts/{id}")]
+        public abstract System.Threading.Tasks.Task<Microsoft.AspNetCore.Mvc.ActionResult> GetBroadcastByIdAsync(int id);
+
     }
 
 

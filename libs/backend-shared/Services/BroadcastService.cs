@@ -16,6 +16,7 @@ namespace NokAir.TalkToCeo.Shared.Services
         private readonly IBroadcastRepository broadcastRepository;
         private readonly IUsersRepository<UserDto> usersRepository;
         private readonly IMessageAttachmentRepository attachmentRepository;
+        private readonly IBroadcastAttachmentRepository broadcastAttachmentRepository;
 
         /// <summary>
         /// Initializes a new instance of the <see cref="BroadcastService"/> class with the specified broadcast repository. The constructor takes an <see cref="IBroadcastRepository"/> as a parameter, which is used to interact with the underlying data store for managing broadcast messages. This allows the service to perform operations such as creating new broadcast messages and retrieving existing ones. By injecting the repository through the constructor, we can easily manage dependencies and promote better testability of the service class.
@@ -23,14 +24,17 @@ namespace NokAir.TalkToCeo.Shared.Services
         /// <param name="broadcastRepository">The broadcast repository used to interact with the underlying data store.</param>
         /// <param name="usersRepository">The users repository used to interact with the underlying data store for user-related operations.</param>
         /// <param name="attachmentRepository">The attachment repository used to interact with the underlying data store for attachment-related operations.</param>
+        /// <param name="broadcastAttachmentRepository">The broadcast attachment repository used to interact with the underlying data store for broadcast attachment-related operations.</param>
         public BroadcastService(
               IBroadcastRepository broadcastRepository,
               IUsersRepository<UserDto> usersRepository,
-              IMessageAttachmentRepository attachmentRepository)
+              IMessageAttachmentRepository attachmentRepository,
+              IBroadcastAttachmentRepository broadcastAttachmentRepository)
         {
             this.broadcastRepository = broadcastRepository;
             this.usersRepository = usersRepository;
             this.attachmentRepository = attachmentRepository;
+            this.broadcastAttachmentRepository = broadcastAttachmentRepository;
         }
 
         /// <inheritdoc/>
@@ -96,6 +100,38 @@ namespace NokAir.TalkToCeo.Shared.Services
             }
 
             await this.broadcastRepository.RemoveBroadcastMessageAsync(entity);
+        }
+
+        /// <inheritdoc/>
+        public async Task<BroadcastResponseDto> GetBroadcastByIdAsync(int id, int userId)
+        {
+            var broadcast = await this.broadcastRepository.FindBroadcastByIdAsync(id);
+
+            if (broadcast == null)
+            {
+                throw new DataValidationException("Broadcast not found.");
+            }
+
+            var attachments = await this.broadcastAttachmentRepository.FindAttachmentsByBroadcastIdAsync(id);
+
+            var isRead = broadcast.Reads.Any(x => x.UserId == userId);
+
+            return new BroadcastResponseDto
+            {
+                Id = broadcast.Id,
+                Subject = broadcast.Subject,
+                Detail = broadcast.Detail,
+                CreatedAt = broadcast.CreatedAt,
+                CreatedBy = broadcast.CreatedBy,
+                Attachments = attachments.Select(x =>
+                        new MessageAttachmentDto
+                        {
+                            Id = x.Id,
+                            FileName = Path.GetFileName(x.FilePath),
+                        })
+                    .ToList(),
+                IsRead = isRead,
+            };
         }
 
         /// <inheritdoc/>
@@ -198,13 +234,13 @@ namespace NokAir.TalkToCeo.Shared.Services
                     searchEndDate,
                     ceoId);
 
-            var messageIds = pagedResult.Items.Select(x => x.Id).ToList();
+            var broadcastIds = pagedResult.Items.Select(x => x.Id).ToList();
 
-            var attachments = await this.attachmentRepository.FindAttachmentsByMessageIdsAsync(messageIds);
+            var attachments = await this.broadcastAttachmentRepository.FindAttachmentsByBroadcastIdsAsync(broadcastIds);
 
             var attachmentLookup =
                 attachments
-                    .GroupBy(x => x.MessageId)
+                    .GroupBy(x => x.BroadcastMessageId)
                     .ToDictionary(g => g.Key, g => g.ToList());
 
             return new BroadcastResponseListDto
@@ -223,7 +259,7 @@ namespace NokAir.TalkToCeo.Shared.Services
                     ModifiedAt = x.ModifiedAt,
                     ModifiedBy = x.ModifiedBy,
                     Attachments =
-                        attachmentLookup.TryGetValue(x.Id, out List<MessageAttachment>? value)
+                        attachmentLookup.TryGetValue(x.Id, out List<BroadcastMessageAttachment>? value)
                             ? value.Select(a =>
                                     new MessageAttachmentDto
                                     {

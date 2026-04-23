@@ -104,5 +104,12 @@ namespace NokAir.TalkToCeo.Shared.Repositories
         /// <param name="entity">The broadcast message entity to update.</param>
         /// <returns>A task representing the asynchronous operation.</returns>
         Task UpdateAsync(BroadcastMessages entity);
+
+        /// <summary>
+        /// Retrieves the details of a specific broadcast message by its ID. This method takes the ID of the broadcast message as a parameter and returns the corresponding Broadcast entity from the repository. The implementation of this method will handle the specifics of how the data is retrieved from the underlying data store, allowing for separation of concerns and easier maintenance of the codebase.
+        /// </summary>
+        /// <param name="id">The ID of the broadcast message to retrieve.</param>
+        /// <returns>A task representing the asynchronous operation, containing the broadcast message entity.</returns>
+        Task<BroadcastMessages?> FindBroadcastByIdAsync(int id);
     }
 }

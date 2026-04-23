@@ -144,6 +144,7 @@ builder.Services.AddScoped<IUserRoleRepository, UserRoleRepository>();
 builder.Services.AddScoped<IUsersRepository<UserDto>, UsersRepository>();
 builder.Services.AddScoped<IMessageAttachmentRepository, MessageAttachmentRepository>();
 builder.Services.AddScoped<IBroadcastRepository, BroadcastRepository>();
+builder.Services.AddScoped<IBroadcastAttachmentRepository, BroadcastAttachmentRepository>();
 
 // Configure services
 builder.Services.AddScoped<IMessageService, MessageService>();
@@ -153,6 +154,7 @@ builder.Services.AddScoped<IJwtTalkToCeo, JwtTalkToCeoService>();
 builder.Services.AddScoped<IJwtService, JwtService>();
 builder.Services.AddScoped<IMessageAttachmentService, MessageAttachmentService>();
 builder.Services.AddScoped<IBroadcastService, BroadcastService>();
+builder.Services.AddScoped<IBroadcastAttachmentService, BroadcastAttachmentService>();
 
 // Role service
 builder.Services.AddScoped<IAuthorizationHandler, RoleAuthorizationHandler>();
