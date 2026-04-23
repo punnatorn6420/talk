@@ -55,8 +55,6 @@ namespace NokAir.TalkToCeo.Shared.Services
               IFormFileCollection files,
               UserDto userDto)
         {
-            using var transaction = await this.dbContext.Database.BeginTransactionAsync();
-
             try
             {
                 var message = await this.messageRepository.FindMessageByIdAsync(messageId);
@@ -153,13 +151,10 @@ namespace NokAir.TalkToCeo.Shared.Services
 
                 await this.dbContext.SaveChangesAsync();
 
-                await transaction.CommitAsync();
-
                 return uploadedFiles;
             }
             catch
             {
-                await transaction.RollbackAsync();
                 throw;
             }
         }
