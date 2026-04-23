@@ -111,7 +111,7 @@ namespace NokAir.TalkToCeo.Shared.Services
         }
 
         /// <inheritdoc/>
-        public async Task<BroadcastResponseDto> GetBroadcastByIdAsync(int id, int userId)
+        public async Task<BroadcastResponseDto?> GetBroadcastByIdAsync(int id, int userId)
         {
             var broadcast = await this.broadcastRepository.FindBroadcastByIdAsync(id);
 

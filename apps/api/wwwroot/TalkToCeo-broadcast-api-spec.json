@@ -416,6 +416,158 @@
           }
         }
       }
+    },
+    "/broadcasts/{id}/attachments/{attachmentId}": {
+      "get": {
+        "summary": "Download attachment",
+        "operationId": "downloadAttachmentAsync",
+        "security": [
+          {
+            "BearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/client_id"
+          },
+          {
+            "$ref": "#/components/parameters/client_secret"
+          },
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "format": "int32"
+            }
+          },
+          {
+            "name": "attachmentId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "format": "int32"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Attachment downloaded successfully",
+            "content": {
+              "application/octet-stream": {
+                "schema": {
+                  "type": "string",
+                  "format": "binary"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Invalid request parameters",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/InvalidRequestResponse"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Attachment not found"
+          },
+          "500": {
+            "description": "Internal server error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object"
+                },
+                "example": {
+                  "correlationId": "ABCD1234-1234-1234-1234-1234567890AB",
+                  "error": {
+                    "code": "E0001",
+                    "userMessage": "Please contact support",
+                    "developerMessage": "An unexpected error occurred"
+                  }
+                }
+              }
+            }
+          }
+        }
+      },
+      "delete": {
+        "summary": "Delete attachment",
+        "operationId": "deleteAttachmentAsync",
+        "security": [
+          {
+            "BearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/client_id"
+          },
+          {
+            "$ref": "#/components/parameters/client_secret"
+          },
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "format": "int32"
+            }
+          },
+          {
+            "name": "attachmentId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "format": "int32"
+            }
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "Attachment deleted successfully"
+          },
+          "403": {
+            "description": "Invalid request parameters",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/InvalidRequestResponse"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Attachment not found"
+          },
+          "500": {
+            "description": "Internal server error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object"
+                },
+                "example": {
+                  "correlationId": "ABCD1234-1234-1234-1234-1234567890AB",
+                  "error": {
+                    "code": "E0001",
+                    "userMessage": "Please contact support",
+                    "developerMessage": "An unexpected error occurred"
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
     }
   }
 }
