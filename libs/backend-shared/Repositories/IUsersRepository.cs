@@ -36,5 +36,12 @@ namespace NokAir.TalkToCeo.Shared.Repositories
         /// </summary>
         /// <returns>A task that represents the asynchronous operation. The task result contains the total number of users.</returns>
         Task<int> FindUserCountAsync();
+
+        /// <summary>
+        /// Determines whether a user with the specified ID has the CEO role. This method checks if the user associated with the given user ID has been assigned the CEO role within the application's role management system. The implementation will typically involve querying the user-role relationships and role definitions to verify if the user holds the CEO role, returning a boolean value indicating the result.
+        /// </summary>
+        /// <param name="userId">The ID of the user to check.</param>
+        /// <returns>A task that represents the asynchronous operation. The task result contains <c>true</c> if the user is a CEO; otherwise, <c>false</c>.</returns>
+        Task<bool> FindIsUserCeoAsync(int userId);
     }
 }

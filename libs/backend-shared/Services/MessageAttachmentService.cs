@@ -8,6 +8,7 @@ using NokAir.Core.Exceptions;
 using NokAir.TalkToCeo.Shared.Configurations;
 using NokAir.TalkToCeo.Shared.Dtos;
 using NokAir.TalkToCeo.Shared.Entities.TalkToCeo;
+using NokAir.TalkToCeo.Shared.Enums;
 using NokAir.TalkToCeo.Shared.Repositories;
 
 namespace NokAir.TalkToCeo.Shared.Services
@@ -53,7 +54,8 @@ namespace NokAir.TalkToCeo.Shared.Services
         public async Task<List<string>> StoreFilesForMessageAsync(
               int messageId,
               IFormFileCollection files,
-              UserDto userDto)
+              UserDto userDto,
+              AttachmentOwnerType ownerType)
         {
             try
             {
@@ -142,6 +144,7 @@ namespace NokAir.TalkToCeo.Shared.Services
                             FilePath = relativePath,
                             CreatedBy = userNameAcc,
                             ModifiedBy = userNameAcc,
+                            OwnerType = ownerType,
                         });
 
                     uploadedFiles.Add(relativePath);

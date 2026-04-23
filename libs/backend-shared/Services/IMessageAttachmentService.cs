@@ -1,6 +1,7 @@
 using System;
 using Microsoft.AspNetCore.Http;
 using NokAir.TalkToCeo.Shared.Dtos;
+using NokAir.TalkToCeo.Shared.Enums;
 
 namespace NokAir.TalkToCeo.Shared.Services
 {
@@ -15,8 +16,9 @@ namespace NokAir.TalkToCeo.Shared.Services
         /// <param name="messageId">The ID of the message to which the attachments belong.</param>
         /// <param name="files">The collection of files to be uploaded as attachments.</param>
         /// <param name="userDto">The user information of the person uploading the attachments, used for auditing purposes.</param>
+        /// <param name="ownerType">The type of owner for the attachment, indicating whether it belongs to a user message or a CEO reply.</param>
         /// <returns>A task representing the asynchronous operation, containing a list of file paths where the attachments are stored.</returns>
-        Task<List<string>> StoreFilesForMessageAsync(int messageId, IFormFileCollection files, UserDto userDto);
+        Task<List<string>> StoreFilesForMessageAsync(int messageId, IFormFileCollection files, UserDto userDto, AttachmentOwnerType ownerType);
 
         /// <summary>
         /// Gets the download information for a specific attachment.

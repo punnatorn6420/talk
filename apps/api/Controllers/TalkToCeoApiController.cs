@@ -188,7 +188,20 @@ namespace NokAir.TalkToCeo.Api.Controllers
                     throw new DataValidationException("No attachments provided.");
                 }
 
-                var result = await this.messageAttachmentService.StoreFilesForMessageAsync(messageId, attachments, user);
+                var isCeo = await this.usersService.IsUserCeoAsync(user.Id);
+
+                var ownerType =
+                    isCeo
+                        ? AttachmentOwnerType.Ceo
+                        : AttachmentOwnerType.User;
+
+                var result =
+                    await this.messageAttachmentService
+                        .StoreFilesForMessageAsync(
+                            messageId,
+                            attachments,
+                            user,
+                            ownerType);
 
                 return this.OkSuccessResponse();
             }

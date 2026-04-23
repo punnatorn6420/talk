@@ -30,5 +30,12 @@ namespace NokAir.TalkToCeo.Shared.Services
         /// A task that represents the asynchronous operation. The task result contains the flight IROP user DTO if found; otherwise, <c>null</c>.
         /// </returns>
         Task<UserDto?> GetUserFromTokenAsync(string token, CancellationToken cancellationToken = default);
+
+        /// <summary>
+        /// Determines whether the specified user is a CEO asynchronously.
+        /// </summary>
+        /// <param name="userId">The ID of the user to check.</param>
+        /// <returns>A task that represents the asynchronous operation. The task result contains <c>true</c> if the user is a CEO; otherwise, <c>false</c>.</returns>
+        Task<bool> IsUserCeoAsync(int userId);
     }
 }

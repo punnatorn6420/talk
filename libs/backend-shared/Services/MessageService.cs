@@ -64,7 +64,8 @@ namespace NokAir.TalkToCeo.Shared.Services
                         .StoreFilesForMessageAsync(
                             messageId.Id,
                             dto.Attachments,
-                            user);
+                            user,
+                            AttachmentOwnerType.User);
                 }
 
                 await transaction.CommitAsync();
@@ -118,14 +119,25 @@ namespace NokAir.TalkToCeo.Shared.Services
                 JobTitle = message.User.JobTitle,
                 Department = message.User.Department,
                 FullName = $"{message.User.FirstName} {message.User.LastName}",
-                Attachments =
-                    attachments.Select(x =>
-                        new MessageAttachmentDto
+                UserAttachments =
+                    attachments
+                        .Where(x => x.OwnerType == AttachmentOwnerType.User)
+                        .Select(x => new MessageAttachmentDto
                         {
                             Id = x.Id,
                             FileName = Path.GetFileName(x.FilePath),
                         })
-                    .ToList(),
+                        .ToList(),
+
+                CeoAttachments =
+                    attachments
+                        .Where(x => x.OwnerType == AttachmentOwnerType.Ceo)
+                        .Select(x => new MessageAttachmentDto
+                        {
+                            Id = x.Id,
+                            FileName = Path.GetFileName(x.FilePath),
+                        })
+                        .ToList(),
             };
         }
 
@@ -171,7 +183,8 @@ namespace NokAir.TalkToCeo.Shared.Services
                         .StoreFilesForMessageAsync(
                             id,
                             dto.Attachments,
-                            user);
+                            user,
+                            AttachmentOwnerType.User);
                 }
 
                 await transaction.CommitAsync();
@@ -217,7 +230,8 @@ namespace NokAir.TalkToCeo.Shared.Services
                     .StoreFilesForMessageAsync(
                         id,
                         dto.Attachments,
-                        user);
+                        user,
+                        AttachmentOwnerType.Ceo);
             }
         }
 
@@ -315,16 +329,27 @@ namespace NokAir.TalkToCeo.Shared.Services
                                 FullName =
                                     $"{x.User.FirstName} {x.User.LastName}",
 
-                                Attachments =
+                                UserAttachments =
                                     attachmentLookup.TryGetValue(x.Id, out List<MessageAttachment>? value)
-                                        ? value.Select(a =>
-                                                new MessageAttachmentDto
-                                                {
-                                                    Id = a.Id,
-                                                    FileName =
-                                                        Path.GetFileName(
-                                                            a.FilePath),
-                                                })
+                                        ? value
+                                            .Where(a => a.OwnerType == AttachmentOwnerType.User)
+                                            .Select(a => new MessageAttachmentDto
+                                            {
+                                                Id = a.Id,
+                                                FileName = Path.GetFileName(a.FilePath),
+                                            })
+                                            .ToList()
+                                        : new List<MessageAttachmentDto>(),
+
+                                CeoAttachments =
+                                    attachmentLookup.TryGetValue(x.Id, out List<MessageAttachment>? value2)
+                                        ? value2
+                                            .Where(a => a.OwnerType == AttachmentOwnerType.Ceo)
+                                            .Select(a => new MessageAttachmentDto
+                                            {
+                                                Id = a.Id,
+                                                FileName = Path.GetFileName(a.FilePath),
+                                            })
                                             .ToList()
                                         : new List<MessageAttachmentDto>(),
                             })

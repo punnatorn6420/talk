@@ -177,6 +177,12 @@ namespace NokAir.TalkToCeo.Shared.Services
         }
 
         /// <inheritdoc/>
+        public Task<bool> IsUserCeoAsync(int userId)
+        {
+            return this.usersRepository.FindIsUserCeoAsync(userId);
+        }
+
+        /// <inheritdoc/>
         public Task<bool> UpdateUserAsync(UserDto user, CancellationToken cancellationToken = default)
         {
             throw new NotImplementedException();

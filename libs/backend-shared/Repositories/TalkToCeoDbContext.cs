@@ -231,8 +231,12 @@ namespace NokAir.TalkToCeo.Shared.Repositories
 
                 entity.Property(a => a.FilePath)
                     .HasColumnName("file_path")
-                    .IsRequired()
-                    .HasMaxLength(500);
+                    .IsRequired();
+
+                entity.Property(a => a.OwnerType)
+                    .HasColumnName("owner_type")
+                    .HasConversion<int>() // enum → int
+                    .IsRequired();
 
                 entity.Property(a => a.CreatedAt)
                     .HasColumnName("created_at")

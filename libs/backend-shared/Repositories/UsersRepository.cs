@@ -84,5 +84,15 @@ namespace NokAir.TalkToCeo.Shared.Repositories
         {
             throw new NotImplementedException();
         }
+
+        /// <inheritdoc/>
+        public async Task<bool> FindIsUserCeoAsync(int userId)
+        {
+            return await this.dbContext.UserRole
+                   .Include(x => x.Role)
+                   .AnyAsync(x =>
+                       x.UserId == userId &&
+                       (x.Role.Name == "CEO" || x.Role.Name == "Ceo"));
+        }
     }
 }
