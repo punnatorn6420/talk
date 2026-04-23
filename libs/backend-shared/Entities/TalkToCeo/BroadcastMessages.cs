@@ -53,5 +53,10 @@ namespace NokAir.TalkToCeo.Shared.Entities.TalkToCeo
         /// Gets or sets a collection of BroadcastMessageRead entities that represent the read status of the broadcast message for each user. This allows the system to track which users have read the message and which have not, enabling features such as marking messages as read or unread for individual users.
         /// </summary>
         public ICollection<BroadcastMessageRead> Reads { get; set; } = new List<BroadcastMessageRead>();
+
+        /// <summary>
+        /// Gets or sets a collection of BroadcastMessageAttachment entities that represent the attachments associated with the broadcast message. This allows the system to manage and display attachments alongside the broadcast message, enabling features such as downloading or viewing attached files.
+        /// </summary>
+        public ICollection<BroadcastMessageAttachment> Attachments { get; set; } = new List<BroadcastMessageAttachment>();
     }
 }

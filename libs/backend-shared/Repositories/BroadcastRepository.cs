@@ -45,6 +45,7 @@ namespace NokAir.TalkToCeo.Shared.Repositories
         public async Task<BroadcastMessages?> FindBroadcastMessageByIdAsync(int id)
         {
             return await this.dbContext.BroadcastMessages
+            .AsNoTracking()
             .Include(x => x.User)
                 .FirstOrDefaultAsync(x =>
                     x.Id == id);
@@ -64,6 +65,7 @@ namespace NokAir.TalkToCeo.Shared.Repositories
         public async Task<int> FindCountReadersAsync(int broadcastId)
         {
             return await this.dbContext.BroadcastMessageReads
+                .AsNoTracking()
                 .CountAsync(x => x.BroadcastMessageId == broadcastId);
         }
 
@@ -71,6 +73,7 @@ namespace NokAir.TalkToCeo.Shared.Repositories
         public async Task<DateTime?> FindGetLastReadAtAsync(int broadcastId)
         {
             return await this.dbContext.BroadcastMessageReads
+                .AsNoTracking()
                 .Where(x => x.BroadcastMessageId == broadcastId)
                 .MaxAsync(x => (DateTime?)x.ReadAt);
         }
@@ -90,6 +93,7 @@ namespace NokAir.TalkToCeo.Shared.Repositories
                 .Include(x => x.User)
                 .Where(x =>
                     x.CeoId == ceoId)
+                .AsNoTracking()
                 .AsQueryable();
 
             if (!string.IsNullOrWhiteSpace(keyword))
@@ -150,7 +154,9 @@ namespace NokAir.TalkToCeo.Shared.Repositories
             var now = DateTime.Now;
 
             var query =
-                from broadcast in this.dbContext.BroadcastMessages.Include(x => x.User)
+                from broadcast in this.dbContext.BroadcastMessages
+                .AsNoTracking()
+                .Include(x => x.User)
                 join read in this.dbContext.BroadcastMessageReads
                     .Where(x => x.UserId == userId)
                 on broadcast.Id equals read.BroadcastMessageId into readGroup
@@ -211,6 +217,17 @@ namespace NokAir.TalkToCeo.Shared.Repositories
             this.dbContext.BroadcastMessages.Update(entity);
 
             await this.dbContext.SaveChangesAsync();
+        }
+
+        /// <inheritdoc/>
+        public async Task<BroadcastMessages?> FindBroadcastByIdAsync(int id)
+        {
+            return await this.dbContext.BroadcastMessages
+            .AsNoTracking()
+                .Include(x => x.Reads)
+                .Include(x => x.Attachments)
+                .Include(x => x.User)
+                .FirstOrDefaultAsync(x => x.Id == id);
         }
     }
 }

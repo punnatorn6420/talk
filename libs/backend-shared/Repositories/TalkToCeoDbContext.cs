@@ -46,6 +46,11 @@ namespace NokAir.TalkToCeo.Shared.Repositories
         public DbSet<BroadcastMessageRead> BroadcastMessageReads { get; set; }
 
         /// <summary>
+        /// Gets or sets dbSet property for the BroadcastMessageAttachment entity, which represents the attachments associated with broadcast messages in the application. This property allows you to perform CRUD operations on the BroadcastMessageAttachment table in the database using Entity Framework Core's LINQ queries and other data manipulation methods, enabling you to manage attachments related to broadcast messages effectively within the TalkToCeo system.
+        /// </summary>
+        public DbSet<BroadcastMessageAttachment> BroadcastMessageAttachments { get; set; }
+
+        /// <summary>
         /// Overrides the OnModelCreating method to configure the entity mappings and relationships for the TalkToCeoDbContext. This method is called by Entity Framework Core when the model is being created, and it allows you to specify how the entities should be mapped to the database tables, as well as any relationships between them. In this implementation, we configure the data types for DateTime properties, and we define the mappings for the User, Role, UserRole, and Messages entities using Fluent API.
         /// </summary>
         /// <param name="modelBuilder">The model builder used to configure the entity mappings and relationships.</param>
@@ -78,6 +83,47 @@ namespace NokAir.TalkToCeo.Shared.Repositories
             ConfigureBroadcastMessage(modelBuilder);
 
             ConfigureBroadcastMessageRead(modelBuilder);
+
+            ConfigureBroadcastMessageAttachment(modelBuilder);
+        }
+
+        private static void ConfigureBroadcastMessageAttachment(ModelBuilder modelBuilder)
+        {
+            modelBuilder.Entity<BroadcastMessageAttachment>(entity =>
+            {
+                entity.ToTable("broadcast_message_attachments");
+
+                entity.HasKey(x => x.Id);
+
+                entity.Property(x => x.Id)
+                    .HasColumnName("id");
+
+                entity.Property(x => x.BroadcastMessageId)
+                    .HasColumnName("broadcast_message_id")
+                    .IsRequired();
+
+                entity.Property(x => x.FilePath)
+                    .HasColumnName("file_path")
+                    .IsRequired()
+                    .HasMaxLength(500);
+
+                entity.Property(x => x.CreatedAt)
+                    .HasColumnName("created_at");
+
+                entity.Property(x => x.ModifiedAt)
+                    .HasColumnName("modified_at");
+
+                entity.Property(x => x.CreatedBy)
+                    .HasColumnName("created_by");
+
+                entity.Property(x => x.ModifiedBy)
+                    .HasColumnName("modified_by");
+
+                entity.HasOne(x => x.BroadcastMessage)
+                    .WithMany(x => x.Attachments)
+                    .HasForeignKey(x => x.BroadcastMessageId)
+                    .OnDelete(DeleteBehavior.Cascade);
+            });
         }
 
         private static void ConfigureBroadcastMessage(ModelBuilder modelBuilder)

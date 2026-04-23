@@ -87,5 +87,13 @@ namespace NokAir.TalkToCeo.Shared.Services
         /// <param name="ceoId">The ID of the CEO attempting to update the broadcast.</param>
         /// <returns>A task representing the asynchronous operation.</returns>
         Task UpdateBroadcastAsync(int broadcastId, UpdateBroadcastRequestDto dto, int ceoId);
+
+        /// <summary>
+        /// Retrieves the details of a specific broadcast message by its ID. This method takes the ID of the broadcast message and the ID of the user as parameters. Implementations of this method should ensure that the specified broadcast message exists and that the user has the necessary permissions to view its details before performing the retrieval operation. Proper error handling should be implemented to manage cases where the broadcast message does not exist or the user does not have permission to view its details.
+        /// </summary>
+        /// <param name="id">The ID of the broadcast message to retrieve.</param>
+        /// <param name="userId">The ID of the user attempting to view the broadcast.</param>
+        /// <returns>A task representing the asynchronous operation, containing the broadcast details.</returns>
+        Task<BroadcastResponseDto> GetBroadcastByIdAsync(int id, int userId);
     }
 }

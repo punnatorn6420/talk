@@ -19,7 +19,7 @@ namespace NokAir.TalkToCeo.Api.Controllers
 
         private readonly IBroadcastService broadcastService;
 
-        private readonly IMessageAttachmentService messageAttachmentService;
+        private readonly IBroadcastAttachmentService broadcastAttachmentService;
 
         /// <summary>
         /// Initializes a new instance of the <see cref="TalkToCeoBroadcastApiController"/> class with the specified response factory. The response factory is used to create standardized API responses for the endpoints defined in this controller. This constructor allows for dependency injection of the response factory, enabling better testability and separation of concerns in the application architecture.
@@ -27,17 +27,17 @@ namespace NokAir.TalkToCeo.Api.Controllers
         /// <param name="apiResponseFactory">The response factory used to create standardized API responses.</param>
         /// <param name="usersService">The service used to manage user-related operations.</param>
         /// <param name="broadcastService">The service used to manage broadcast-related operations.</param>
-        /// <param name="messageAttachmentService">The service used to manage message attachments.</param>
+        /// <param name="broadcastAttachmentService">The service used to manage broadcast attachments.</param>
         public TalkToCeoBroadcastApiController(
             IResponseFactory apiResponseFactory,
             IUsersService<UserDto> usersService,
             IBroadcastService broadcastService,
-            IMessageAttachmentService messageAttachmentService)
+            IBroadcastAttachmentService broadcastAttachmentService)
         : base(apiResponseFactory)
         {
             this.usersService = usersService;
             this.broadcastService = broadcastService;
-            this.messageAttachmentService = messageAttachmentService;
+            this.broadcastAttachmentService = broadcastAttachmentService;
         }
 
         /// <inheritdoc/>
@@ -64,8 +64,8 @@ namespace NokAir.TalkToCeo.Api.Controllers
                 if (body.Attachments != null &&
               body.Attachments.Count > 0)
                 {
-                    await this.messageAttachmentService
-                        .StoreFilesForMessageAsync(
+                    await this.broadcastAttachmentService
+                        .StoreFilesForBroadcastAsync(
                             broadcastId,
                             body.Attachments,
                             user);
@@ -321,14 +321,46 @@ namespace NokAir.TalkToCeo.Api.Controllers
                 if (body.Attachments != null &&
                     body.Attachments.Count > 0)
                 {
-                    await this.messageAttachmentService
-                        .StoreFilesForMessageAsync(
+                    await this.broadcastAttachmentService
+                        .StoreFilesForBroadcastAsync(
                             id,
                             body.Attachments,
                             user);
                 }
 
                 return this.OkSuccessResponse();
+            }
+            catch (DataValidationException ex)
+            {
+                return this.BadRequestResponseFromMessage(ex.Message);
+            }
+            catch (Exception ex)
+            {
+                return this.InternalServerErrorResponseFromException(ex);
+            }
+        }
+
+        /// <inheritdoc/>
+        [Authorize(Policy = "CeoRole")]
+        [ClientApplicationValidationWithIDAndSecretAttribute]
+        public override async Task<ActionResult> GetBroadcastByIdAsync(int id)
+        {
+            try
+            {
+                var token = this.HttpContext.Request.Headers.Authorization
+                    .ToString()
+                    .Replace("Bearer ", string.Empty);
+
+                var user = await this.usersService.GetUserFromTokenAsync(token);
+
+                if (user == null)
+                {
+                    throw new DataValidationException("User information in token is invalid.");
+                }
+
+                var result = await this.broadcastService.GetBroadcastByIdAsync(id, user.Id);
+
+                return this.OkResponseWithResult(result);
             }
             catch (DataValidationException ex)
             {

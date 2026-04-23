@@ -2,18 +2,21 @@
 using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using NokAir.TalkToCeo.Shared.Repositories;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 
 #nullable disable
 
-namespace backend_shared.Migrations
+namespace NokAir.TalkToCeo.Shared.Migrations
 {
     [DbContext(typeof(TalkToCeoDbContext))]
-    partial class TalkToCeoDbContextModelSnapshot : ModelSnapshot
+    [Migration("20260423022452_AddidBroadcastAttachment")]
+    partial class AddidBroadcastAttachment
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder

@@ -28,19 +28,25 @@
         "name": "client_id",
         "in": "header",
         "required": true,
-        "schema": { "type": "string" }
+        "schema": {
+          "type": "string"
+        }
       },
       "client_secret": {
         "name": "client_secret",
         "in": "header",
         "required": true,
-        "schema": { "type": "string" }
+        "schema": {
+          "type": "string"
+        }
       },
       "broadcastId": {
         "name": "id",
         "in": "path",
         "required": true,
-        "schema": { "type": "integer" }
+        "schema": {
+          "type": "integer"
+        }
       }
     },
     "schemas": {
@@ -72,10 +78,18 @@
       "post": {
         "summary": "Create broadcast (CEO only)",
         "operationId": "createBroadcastAsync",
-        "security": [{ "BearerAuth": [] }],
+        "security": [
+          {
+            "BearerAuth": []
+          }
+        ],
         "parameters": [
-          { "$ref": "#/components/parameters/client_id" },
-          { "$ref": "#/components/parameters/client_secret" }
+          {
+            "$ref": "#/components/parameters/client_id"
+          },
+          {
+            "$ref": "#/components/parameters/client_secret"
+          }
         ],
         "requestBody": {
           "required": true,
@@ -103,24 +117,40 @@
       "get": {
         "summary": "Get broadcast list (CEO view)",
         "operationId": "getBroadcastsAsync",
-        "security": [{ "BearerAuth": [] }],
+        "security": [
+          {
+            "BearerAuth": []
+          }
+        ],
         "parameters": [
-          { "$ref": "#/components/parameters/client_id" },
-          { "$ref": "#/components/parameters/client_secret" },
+          {
+            "$ref": "#/components/parameters/client_id"
+          },
+          {
+            "$ref": "#/components/parameters/client_secret"
+          },
           {
             "name": "keyword",
             "in": "query",
-            "schema": { "type": "string" }
+            "schema": {
+              "type": "string"
+            }
           },
           {
             "name": "pageNumber",
             "in": "query",
-            "schema": { "type": "integer", "default": 1 }
+            "schema": {
+              "type": "integer",
+              "default": 1
+            }
           },
           {
             "name": "pageSize",
             "in": "query",
-            "schema": { "type": "integer", "default": 25 }
+            "schema": {
+              "type": "integer",
+              "default": 25
+            }
           }
         ],
         "responses": {
@@ -140,15 +170,22 @@
         }
       }
     },
-
     "/broadcasts/my": {
       "get": {
         "summary": "Get broadcast list (employee view)",
         "operationId": "getMyBroadcastsAsync",
-        "security": [{ "BearerAuth": [] }],
+        "security": [
+          {
+            "BearerAuth": []
+          }
+        ],
         "parameters": [
-          { "$ref": "#/components/parameters/client_id" },
-          { "$ref": "#/components/parameters/client_secret" }
+          {
+            "$ref": "#/components/parameters/client_id"
+          },
+          {
+            "$ref": "#/components/parameters/client_secret"
+          }
         ],
         "responses": {
           "200": {
@@ -167,16 +204,25 @@
         }
       }
     },
-
     "/broadcasts/{id}": {
       "put": {
         "summary": "Update broadcast",
         "operationId": "updateBroadcastAsync",
-        "security": [{ "BearerAuth": [] }],
+        "security": [
+          {
+            "BearerAuth": []
+          }
+        ],
         "parameters": [
-          { "$ref": "#/components/parameters/client_id" },
-          { "$ref": "#/components/parameters/client_secret" },
-          { "$ref": "#/components/parameters/broadcastId" }
+          {
+            "$ref": "#/components/parameters/client_id"
+          },
+          {
+            "$ref": "#/components/parameters/client_secret"
+          },
+          {
+            "$ref": "#/components/parameters/broadcastId"
+          }
         ],
         "requestBody": {
           "required": true,
@@ -201,15 +247,24 @@
           }
         }
       },
-
       "delete": {
         "summary": "Delete broadcast",
         "operationId": "deleteBroadcastAsync",
-        "security": [{ "BearerAuth": [] }],
+        "security": [
+          {
+            "BearerAuth": []
+          }
+        ],
         "parameters": [
-          { "$ref": "#/components/parameters/client_id" },
-          { "$ref": "#/components/parameters/client_secret" },
-          { "$ref": "#/components/parameters/broadcastId" }
+          {
+            "$ref": "#/components/parameters/client_id"
+          },
+          {
+            "$ref": "#/components/parameters/client_secret"
+          },
+          {
+            "$ref": "#/components/parameters/broadcastId"
+          }
         ],
         "responses": {
           "200": {
@@ -223,18 +278,59 @@
             }
           }
         }
+      },
+      "get": {
+        "summary": "Get broadcast details",
+        "operationId": "getBroadcastByIdAsync",
+        "security": [
+          {
+            "BearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/client_id"
+          },
+          {
+            "$ref": "#/components/parameters/client_secret"
+          },
+          {
+            "$ref": "#/components/parameters/broadcastId"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Broadcast details retrieved",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/BroadcastResponse"
+                }
+              }
+            }
+          }
+        }
       }
     },
-
     "/broadcasts/{id}/read": {
       "put": {
         "summary": "Mark broadcast as read",
         "operationId": "readBroadcastAsync",
-        "security": [{ "BearerAuth": [] }],
+        "security": [
+          {
+            "BearerAuth": []
+          }
+        ],
         "parameters": [
-          { "$ref": "#/components/parameters/client_id" },
-          { "$ref": "#/components/parameters/client_secret" },
-          { "$ref": "#/components/parameters/broadcastId" }
+          {
+            "$ref": "#/components/parameters/client_id"
+          },
+          {
+            "$ref": "#/components/parameters/client_secret"
+          },
+          {
+            "$ref": "#/components/parameters/broadcastId"
+          }
         ],
         "responses": {
           "200": {
@@ -250,16 +346,25 @@
         }
       }
     },
-
     "/broadcasts/{id}/readers": {
       "get": {
         "summary": "Get broadcast readers",
         "operationId": "getBroadcastReadersAsync",
-        "security": [{ "BearerAuth": [] }],
+        "security": [
+          {
+            "BearerAuth": []
+          }
+        ],
         "parameters": [
-          { "$ref": "#/components/parameters/client_id" },
-          { "$ref": "#/components/parameters/client_secret" },
-          { "$ref": "#/components/parameters/broadcastId" }
+          {
+            "$ref": "#/components/parameters/client_id"
+          },
+          {
+            "$ref": "#/components/parameters/client_secret"
+          },
+          {
+            "$ref": "#/components/parameters/broadcastId"
+          }
         ],
         "responses": {
           "200": {
@@ -278,16 +383,25 @@
         }
       }
     },
-
     "/broadcasts/{id}/read-summary": {
       "get": {
         "summary": "Get broadcast read summary",
         "operationId": "getBroadcastReadSummaryAsync",
-        "security": [{ "BearerAuth": [] }],
+        "security": [
+          {
+            "BearerAuth": []
+          }
+        ],
         "parameters": [
-          { "$ref": "#/components/parameters/client_id" },
-          { "$ref": "#/components/parameters/client_secret" },
-          { "$ref": "#/components/parameters/broadcastId" }
+          {
+            "$ref": "#/components/parameters/client_id"
+          },
+          {
+            "$ref": "#/components/parameters/client_secret"
+          },
+          {
+            "$ref": "#/components/parameters/broadcastId"
+          }
         ],
         "responses": {
           "200": {
