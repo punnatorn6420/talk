@@ -229,5 +229,13 @@ namespace NokAir.TalkToCeo.Shared.Repositories
                 .Include(x => x.User)
                 .FirstOrDefaultAsync(x => x.Id == id);
         }
+
+        /// <inheritdoc/>
+        public async Task<BroadcastMessages?> FindBroadcastForUpdateAsync(int id)
+        {
+            return await this.dbContext
+                .BroadcastMessages
+                .FirstOrDefaultAsync(x => x.Id == id);
+        }
     }
 }

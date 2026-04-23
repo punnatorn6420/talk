@@ -309,8 +309,7 @@ namespace NokAir.TalkToCeo.Shared.Services
         /// <inheritdoc/>
         public async Task UpdateBroadcastAsync(int broadcastId, UpdateBroadcastRequestDto dto, int ceoId)
         {
-            var broadcast = await this.broadcastRepository
-                .FindBroadcastMessageByIdAsync(broadcastId);
+            var broadcast = await this.broadcastRepository.FindBroadcastForUpdateAsync(broadcastId);
 
             if (broadcast == null)
             {
