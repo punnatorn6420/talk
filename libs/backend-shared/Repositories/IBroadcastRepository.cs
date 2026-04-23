@@ -25,6 +25,13 @@ namespace NokAir.TalkToCeo.Shared.Repositories
         Task<BroadcastMessages?> FindBroadcastMessageByIdAsync(int id);
 
         /// <summary>
+        /// Finds a specific broadcast message for deletion by the given broadcast ID. This method takes the ID of the broadcast message as a parameter and returns a BroadcastMessages entity if found, or null if no matching broadcast message is found. Implementations of this method should ensure that the specified broadcast ID is valid and that the retrieval process is efficient, allowing for proper management of individual broadcast messages in the TalkToCeo application when deletions are needed.
+        /// </summary>
+        /// <param name="id">The unique identifier of the broadcast message to be deleted.</param>
+        /// <returns>The broadcast message entity with the specified ID, or null if not found.</returns>
+        Task<BroadcastMessages?> FindBroadcastMessageForDeleteByIdAsync(int id);
+
+        /// <summary>
         /// Deletes a broadcast message from the repository. This method takes a BroadcastMessage entity as input and is responsible for removing it from the underlying data store. The implementation of this method will handle the specifics of how the broadcast message is deleted, allowing for separation of concerns and easier maintenance of the codebase.
         /// </summary>
         /// <param name="entity">The broadcast message entity to be deleted.</param>

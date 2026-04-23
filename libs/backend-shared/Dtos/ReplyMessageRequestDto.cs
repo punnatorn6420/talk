@@ -1,4 +1,5 @@
 using System;
+using Microsoft.AspNetCore.Http;
 using Newtonsoft.Json;
 
 namespace NokAir.TalkToCeo.Shared.Dtos
@@ -14,15 +15,8 @@ namespace NokAir.TalkToCeo.Shared.Dtos
         public string Reply { get; set; } = string.Empty;
 
         /// <summary>
-        /// Gets or sets the name of the user creating the message.
+        /// Gets or sets the collection of files attached to the reply message. This property is used to hold any files that the user may want to include with their reply, such as screenshots, documents, or other relevant files. The attachments are represented as an IFormFileCollection, which allows for multiple files to be uploaded and processed by the backend when the reply message is created.
         /// </summary>
-        [JsonIgnore]
-        public string UserName { get; set; } = string.Empty;
-
-        /// <summary>
-        /// Gets or sets the CEO ID to which the reply is directed. This property is used to identify the specific CEO that the reply message is intended for, allowing the system to route the reply appropriately and ensure that it reaches the correct recipient within the "Talk to CEO" application.
-        /// </summary>
-        [JsonIgnore]
-        public int CeoId { get; set; }
+        public IFormFileCollection? Attachments { get; set; }
     }
 }

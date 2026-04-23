@@ -47,7 +47,6 @@ namespace NokAir.TalkToCeo.Shared.Repositories
         public async Task<BroadcastMessages?> FindBroadcastMessageByIdAsync(int id)
         {
             return await this.dbContext.BroadcastMessages
-            .AsNoTracking()
             .Include(x => x.User)
                 .FirstOrDefaultAsync(x =>
                     x.Id == id);
@@ -247,6 +246,14 @@ namespace NokAir.TalkToCeo.Shared.Repositories
             return await this.dbContext
                 .BroadcastMessages
                 .FirstOrDefaultAsync(x => x.Id == id);
+        }
+
+        /// <inheritdoc/>
+        public async Task<BroadcastMessages?> FindBroadcastMessageForDeleteByIdAsync(int id)
+        {
+            return await this.dbContext.BroadcastMessages
+                .FirstOrDefaultAsync(x =>
+                    x.Id == id);
         }
     }
 }

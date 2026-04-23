@@ -50,8 +50,9 @@ namespace NokAir.TalkToCeo.Shared.Services
         /// </summary>
         /// <param name="id">The unique identifier of the message to reply to.</param>
         /// <param name="dto">The DTO containing the reply information for the message.</param>
+        /// <param name="user">The user performing the reply.</param>
         /// <returns>A task that represents the asynchronous operation.</returns>
-        Task ReplyAsync(int id, ReplyMessageRequestDto dto);
+        Task ReplyAsync(int id, ReplyMessageRequestDto dto, UserDto user);
 
         /// <summary>
         /// Asynchronously updates the read status of a message by its unique identifier. The method takes an integer id as a parameter and updates the read status of the corresponding message in the "Talk to CEO" system. This allows for tracking whether a message has been read or not, enabling features such as marking messages as read or unread.
