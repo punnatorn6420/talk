@@ -33,7 +33,6 @@ namespace NokAir.TalkToCeo.Shared.Repositories
         {
             return await this.dbContext
                 .BroadcastMessageAttachments
-                .AsNoTracking()
                 .FirstOrDefaultAsync(x =>
                     x.BroadcastMessageId == broadcastId &&
                     x.Id == attachmentId);
@@ -62,8 +61,14 @@ namespace NokAir.TalkToCeo.Shared.Repositories
         /// <inheritdoc/>
         public async Task RemoveBroadcastAttachmentAsync(BroadcastMessageAttachment attachment)
         {
-            this.dbContext.BroadcastMessageAttachments.Remove(attachment);
-            await this.dbContext.SaveChangesAsync();
+            var attachmentEntity = await this.dbContext
+                .BroadcastMessageAttachments
+                .FirstOrDefaultAsync(x => x.Id == attachment.Id);
+
+            if (attachmentEntity != null)
+            {
+                this.dbContext.BroadcastMessageAttachments.Remove(attachmentEntity);
+            }
         }
     }
 }

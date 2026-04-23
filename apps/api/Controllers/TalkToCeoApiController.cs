@@ -280,7 +280,7 @@ namespace NokAir.TalkToCeo.Api.Controllers
         /// <inheritdoc/>
         [Authorize(Policy = "CeoRole")]
         [ClientApplicationValidationWithIDAndSecretAttribute]
-        public override async Task<ActionResult> ReplyMessageAsync(int id, [FromBody] ReplyMessageRequestDto body)
+        public override async Task<ActionResult> ReplyMessageAsync(int id, [FromForm] ReplyMessageRequestDto body)
         {
             try
             {
@@ -305,10 +305,7 @@ namespace NokAir.TalkToCeo.Api.Controllers
                     throw new DataValidationException("Only messages without reply can be replied.");
                 }
 
-                body.UserName = user.FirstName + " " + user.LastName;
-                body.CeoId = user.Id;
-
-                await this.messageService.ReplyAsync(id, body);
+                await this.messageService.ReplyAsync(id, body, user);
 
                 return this.OkSuccessResponse();
             }

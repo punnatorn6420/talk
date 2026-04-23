@@ -124,7 +124,7 @@ namespace NokAir.TalkToCeo.Shared.Services
         /// <inheritdoc/>
         public async Task DeleteBroadcastAsync(int broadcastId, int ceoId)
         {
-            var entity = await this.broadcastRepository.FindBroadcastMessageByIdAsync(broadcastId);
+            var entity = await this.broadcastRepository.FindBroadcastMessageForDeleteByIdAsync(broadcastId);
 
             if (entity == null)
             {

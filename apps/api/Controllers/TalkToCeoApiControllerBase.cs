@@ -73,7 +73,7 @@ namespace TalkToCeoApi.Controllers
         /// </summary>
         /// <returns>The reply have been successfully retrieved</returns>
         [Microsoft.AspNetCore.Mvc.HttpPut, Microsoft.AspNetCore.Mvc.Route("messages/{id}/reply")]
-        public abstract System.Threading.Tasks.Task<Microsoft.AspNetCore.Mvc.ActionResult> ReplyMessageAsync(int id, [Microsoft.AspNetCore.Mvc.FromBody] ReplyMessageRequestDto body);
+        public abstract System.Threading.Tasks.Task<Microsoft.AspNetCore.Mvc.ActionResult> ReplyMessageAsync(int id, [Microsoft.AspNetCore.Mvc.FromForm] ReplyMessageRequestDto body);
 
         /// <summary>
         /// Update status

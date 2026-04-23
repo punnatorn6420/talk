@@ -191,7 +191,7 @@ namespace NokAir.TalkToCeo.Shared.Services
         }
 
         /// <inheritdoc/>
-        public async Task ReplyAsync(int id, ReplyMessageRequestDto dto)
+        public async Task ReplyAsync(int id, ReplyMessageRequestDto dto, UserDto user)
         {
             var entity = await this.repository.FindMessageByIdAsync(id);
 
@@ -200,15 +200,25 @@ namespace NokAir.TalkToCeo.Shared.Services
                 throw new DataValidationException("Message not found");
             }
 
-            entity.CeoId = dto.CeoId;
+            entity.CeoId = user.Id;
             entity.CeoReply = dto.Reply;
             entity.Status = ActionStatus.Replied;
             entity.ModifiedAt = DateTime.Now;
-            entity.ModifiedBy = dto.UserName;
+            entity.ModifiedBy = $"{user.FirstName} {user.LastName}".Trim();
 
             entity.RepliedAt = DateTime.Now;
 
             await this.repository.UpdateAsync(entity);
+
+            if (dto.Attachments != null &&
+                 dto.Attachments.Count > 0)
+            {
+                await this.messageAttachmentService
+                    .StoreFilesForMessageAsync(
+                        id,
+                        dto.Attachments,
+                        user);
+            }
         }
 
         /// <inheritdoc/>
