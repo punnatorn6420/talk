@@ -11,6 +11,11 @@ namespace NokAir.TalkToCeo.Shared.Configurations
         public string BaseFolder { get; set; } = string.Empty;
 
         /// <summary>
+        /// Gets or sets the folder path for storing broadcast attachments. This property is used to specify the subdirectory within the base folder where files associated with broadcast messages will be stored. By defining a specific folder for broadcast attachments, the system can better organize and manage files related to broadcasts, making it easier to retrieve and maintain them as needed.
+        /// </summary>
+        public string FolderBroadcastAttachment { get; set; } = string.Empty;
+
+        /// <summary>
         /// Gets or sets the list of allowed file extensions for uploaded files. This property is used to validate the file type of uploaded files and ensure that only files with specified extensions are accepted by the system.
         /// </summary>
         public List<string> AllowedExtensions { get; set; } = new();
