@@ -66,6 +66,13 @@ namespace NokAir.TalkToCeo.Shared.Services
             var userNameAcc =
                 (user?.FirstName ?? string.Empty) + " " + (user?.LastName ?? string.Empty);
 
+            DateTime? publishAt = null;
+
+            if (dto.Status == BroadcastStatus.Sent)
+            {
+                publishAt = now;
+            }
+
             var entity = new BroadcastMessages
             {
                 Subject = dto.Subject.Trim(),
@@ -74,6 +81,7 @@ namespace NokAir.TalkToCeo.Shared.Services
                 Status = dto.Status,
                 StartDisplayAt = startDisplayAt,
                 ExpireDisplayAt = expireDisplayAt,
+                PublishedAt = publishAt,
                 ModifiedAt = now,
                 CreatedAt = now,
                 ModifiedBy = userNameAcc,
@@ -280,7 +288,13 @@ namespace NokAir.TalkToCeo.Shared.Services
             var broadcasts = await this.broadcastRepository
                 .FindVisibleBroadcastsAsync(userId);
 
-            var attachments = await this.attachmentRepository.FindAttachmentsByMessageIdAsync(userId);
+            var broadcastIds = broadcasts.Select(x => x.Id).ToList();
+
+            var attachments = await this.broadcastAttachmentRepository.FindAttachmentsByBroadcastIdsAsync(broadcastIds);
+
+            var attachmentLookup = attachments
+                .GroupBy(x => x.BroadcastMessageId)
+                .ToDictionary(g => g.Key, g => g.ToList());
 
             return broadcasts.Select(x => new BroadcastResponseDto
             {
@@ -296,13 +310,15 @@ namespace NokAir.TalkToCeo.Shared.Services
                 ModifiedAt = x.ModifiedAt,
                 ModifiedBy = x.ModifiedBy,
                 Attachments =
-                    attachments.Select(x =>
+                attachmentLookup.TryGetValue(x.Id, out var value)
+                    ? value.Select(a =>
                         new MessageAttachmentDto
                         {
-                            Id = x.Id,
-                            FileName = Path.GetFileName(x.FilePath),
-                        })
-                    .ToList(),
+                            Id = a.Id,
+                            FileName =
+                                Path.GetFileName(a.FilePath),
+                        }).ToList()
+                    : new List<MessageAttachmentDto>(),
             }).ToList();
         }
 
@@ -337,6 +353,13 @@ namespace NokAir.TalkToCeo.Shared.Services
                     "ExpireDisplayAt must be greater than StartDisplayAt.");
             }
 
+            DateTime? publishAt = null;
+
+            if (dto.Status == BroadcastStatus.Sent)
+            {
+                publishAt = DateTime.Now;
+            }
+
             // Draft → update ได้ทั้งหมด
             broadcast.Subject = dto.Subject;
             broadcast.Detail = dto.Detail;
@@ -350,6 +373,7 @@ namespace NokAir.TalkToCeo.Shared.Services
             }
 
             broadcast.ModifiedAt = DateTime.Now;
+            broadcast.PublishedAt = publishAt;
 
             await this.broadcastRepository.UpdateAsync(broadcast);
         }

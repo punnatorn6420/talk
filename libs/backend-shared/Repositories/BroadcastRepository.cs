@@ -1,7 +1,9 @@
 using System;
 using System.Globalization;
 using Microsoft.EntityFrameworkCore;
+using NokAir.Core.Abstractions.Entities.Rbac;
 using NokAir.Core.Domain.Entities.InHouse;
+using NokAir.TalkToCeo.Shared.Dtos;
 using NokAir.TalkToCeo.Shared.Entities.TalkToCeo;
 using NokAir.TalkToCeo.Shared.Enums;
 using NokAir.TalkToCeo.Shared.QueryModels.Broadcast;
@@ -153,6 +155,12 @@ namespace NokAir.TalkToCeo.Shared.Repositories
         {
             var now = DateTime.Now;
 
+            var userCreatedAt = await this.dbContext.User
+                .AsNoTracking()
+                .Where(x => x.Id == userId)
+                .Select(x => x.CreatedAt)
+                .FirstOrDefaultAsync();
+
             var query =
                 from broadcast in this.dbContext.BroadcastMessages
                 .AsNoTracking()
@@ -163,8 +171,11 @@ namespace NokAir.TalkToCeo.Shared.Repositories
                 from read in readGroup.DefaultIfEmpty()
                 where
                     broadcast.Status == BroadcastStatus.Sent &&
-                    (broadcast.StartDisplayAt <= now) &&
-                    (broadcast.ExpireDisplayAt == null ||
+                    broadcast.PublishedAt != null &&
+                    broadcast.PublishedAt >= userCreatedAt &&
+                    broadcast.StartDisplayAt <= now &&
+                    (
+                        broadcast.ExpireDisplayAt == null ||
                         broadcast.ExpireDisplayAt >= now)
                 orderby
                     broadcast.StartDisplayAt descending,

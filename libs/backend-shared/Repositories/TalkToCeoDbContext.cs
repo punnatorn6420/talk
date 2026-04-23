@@ -161,6 +161,9 @@ namespace NokAir.TalkToCeo.Shared.Repositories
                 entity.Property(x => x.ExpireDisplayAt)
                     .HasColumnName("expire_display_at");
 
+                entity.Property(x => x.PublishedAt)
+                    .HasColumnName("published_at");
+
                 entity.Property(x => x.CreatedAt)
                     .HasColumnName("created_at");
 
