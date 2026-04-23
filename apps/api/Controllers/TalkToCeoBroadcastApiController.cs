@@ -5,6 +5,7 @@ using NokAir.Core.Exceptions;
 using NokAir.Shared.Api.Responses.Factories;
 using NokAir.Shared.Security.HttpHeaderFilters;
 using NokAir.TalkToCeo.Shared.Dtos;
+using NokAir.TalkToCeo.Shared.Enums;
 using NokAir.TalkToCeo.Shared.Services;
 using TalkToCeoApi.Controllers;
 
@@ -361,6 +362,89 @@ namespace NokAir.TalkToCeo.Api.Controllers
                 var result = await this.broadcastService.GetBroadcastByIdAsync(id, user.Id);
 
                 return this.OkResponseWithResult(result);
+            }
+            catch (DataValidationException ex)
+            {
+                return this.BadRequestResponseFromMessage(ex.Message);
+            }
+            catch (Exception ex)
+            {
+                return this.InternalServerErrorResponseFromException(ex);
+            }
+        }
+
+        /// <inheritdoc/>
+        [Authorize(Policy = "AllRole")]
+        [ClientApplicationValidationWithIDAndSecretAttribute]
+        public override async Task<ActionResult> GetAttachmentBroadcast(int id, int attachmentId)
+        {
+            try
+            {
+                var token = this.HttpContext.Request.Headers.Authorization
+                    .ToString()
+                    .Replace("Bearer ", string.Empty);
+
+                var user = await this.usersService.GetUserFromTokenAsync(token);
+
+                if (user == null)
+                {
+                    throw new DataValidationException("User information in token is invalid.");
+                }
+
+                var file = await this.broadcastAttachmentService.GetDownloadFileAsync(id, attachmentId);
+
+                if (file == null)
+                {
+                    throw new DataValidationException("Attachment not found.");
+                }
+
+                return this.PhysicalFile(file.Value.FullPath, "application/octet-stream", file.Value.FileName);
+            }
+            catch (DataValidationException ex)
+            {
+                return this.BadRequestResponseFromMessage(ex.Message);
+            }
+            catch (Exception ex)
+            {
+                return this.InternalServerErrorResponseFromException(ex);
+            }
+        }
+
+        /// <inheritdoc/>
+        [Authorize(Policy = "CeoRole")]
+        [ClientApplicationValidationWithIDAndSecretAttribute]
+        public override async Task<ActionResult> DeleteBroadcastAttachmentAsync(int id, int attachmentId)
+        {
+            try
+            {
+                var token = this.HttpContext.Request.Headers.Authorization
+                    .ToString()
+                    .Replace("Bearer ", string.Empty);
+
+                var user = await this.usersService.GetUserFromTokenAsync(token);
+
+                if (user == null)
+                {
+                    throw new DataValidationException("User information in token is invalid.");
+                }
+
+                var result = await this.broadcastService.GetBroadcastByIdAsync(id, user.Id);
+
+                if (result == null)
+                {
+                    throw new DataValidationException("Broadcast not found.");
+                }
+
+                if (result.Status == BroadcastStatus.Draft)
+                {
+                    await this.broadcastAttachmentService.RemoveAttachmentAsync(id, attachmentId);
+                }
+                else
+                {
+                    throw new DataValidationException("Only broadcasts with Draft status can be deleted.");
+                }
+
+                return this.OkSuccessResponse();
             }
             catch (DataValidationException ex)
             {

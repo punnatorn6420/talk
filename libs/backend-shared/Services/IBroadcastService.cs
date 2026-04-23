@@ -94,6 +94,6 @@ namespace NokAir.TalkToCeo.Shared.Services
         /// <param name="id">The ID of the broadcast message to retrieve.</param>
         /// <param name="userId">The ID of the user attempting to view the broadcast.</param>
         /// <returns>A task representing the asynchronous operation, containing the broadcast details.</returns>
-        Task<BroadcastResponseDto> GetBroadcastByIdAsync(int id, int userId);
+        Task<BroadcastResponseDto?> GetBroadcastByIdAsync(int id, int userId);
     }
 }

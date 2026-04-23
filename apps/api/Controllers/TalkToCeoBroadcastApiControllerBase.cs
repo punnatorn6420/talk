@@ -45,8 +45,7 @@ namespace TalkToCeoApi.Controllers
         /// </summary>
         /// <returns>Broadcast list retrieved</returns>
         [Microsoft.AspNetCore.Mvc.HttpGet, Microsoft.AspNetCore.Mvc.Route("broadcasts")]
-        public abstract System.Threading.Tasks.Task<Microsoft.AspNetCore.Mvc.ActionResult> GetBroadcasts(
-            [Microsoft.AspNetCore.Mvc.FromQuery] string keyword,
+        public abstract System.Threading.Tasks.Task<Microsoft.AspNetCore.Mvc.ActionResult> GetBroadcasts([Microsoft.AspNetCore.Mvc.FromQuery] string keyword,
             [Microsoft.AspNetCore.Mvc.FromQuery] string sortField,
             [Microsoft.AspNetCore.Mvc.FromQuery] int? pageNumber = 1,
             [Microsoft.AspNetCore.Mvc.FromQuery] int? pageSize = 25,
@@ -76,6 +75,13 @@ namespace TalkToCeoApi.Controllers
         public abstract System.Threading.Tasks.Task<Microsoft.AspNetCore.Mvc.ActionResult> DeleteBroadcast(int id);
 
         /// <summary>
+        /// Get broadcast details
+        /// </summary>
+        /// <returns>Broadcast details retrieved</returns>
+        [Microsoft.AspNetCore.Mvc.HttpGet, Microsoft.AspNetCore.Mvc.Route("broadcasts/{id}")]
+        public abstract System.Threading.Tasks.Task<Microsoft.AspNetCore.Mvc.ActionResult> GetBroadcastByIdAsync(int id);
+
+        /// <summary>
         /// Mark broadcast as read
         /// </summary>
         /// <returns>Marked as read</returns>
@@ -96,19 +102,21 @@ namespace TalkToCeoApi.Controllers
         [Microsoft.AspNetCore.Mvc.HttpGet, Microsoft.AspNetCore.Mvc.Route("broadcasts/{id}/read-summary")]
         public abstract System.Threading.Tasks.Task<Microsoft.AspNetCore.Mvc.ActionResult> GetBroadcastReadSummary(int id);
 
+        /// <summary>
+        /// Download attachment
+        /// </summary>
+        /// <returns>Attachment downloaded successfully</returns>
+        [Microsoft.AspNetCore.Mvc.HttpGet, Microsoft.AspNetCore.Mvc.Route("broadcasts/{id}/attachments/{attachmentId}")]
+        public abstract System.Threading.Tasks.Task<Microsoft.AspNetCore.Mvc.ActionResult> GetAttachmentBroadcast(int id, int attachmentId);
 
         /// <summary>
-        /// Get broadcast by ID
+        /// Delete attachment
         /// </summary>
-        /// <param name="id">The ID of the broadcast</param>
-        /// <returns>The broadcast retrieved</returns>
-        [Microsoft.AspNetCore.Mvc.HttpGet, Microsoft.AspNetCore.Mvc.Route("broadcasts/{id}")]
-        public abstract System.Threading.Tasks.Task<Microsoft.AspNetCore.Mvc.ActionResult> GetBroadcastByIdAsync(int id);
+        /// <returns>Attachment deleted successfully</returns>
+        [Microsoft.AspNetCore.Mvc.HttpDelete, Microsoft.AspNetCore.Mvc.Route("broadcasts/{id}/attachments/{attachmentId}")]
+        public abstract System.Threading.Tasks.Task<Microsoft.AspNetCore.Mvc.ActionResult> DeleteBroadcastAttachmentAsync(int id, int attachmentId);
 
     }
-
-
-
 
 }
 
