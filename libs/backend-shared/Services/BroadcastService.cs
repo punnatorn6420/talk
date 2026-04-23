@@ -486,7 +486,7 @@ namespace NokAir.TalkToCeo.Shared.Services
         /// <inheritdoc/>
         public async Task UpdateSentBroadcastAsync(int broadcastId, string userName)
         {
-            var entity = await this.broadcastRepository.FindBroadcastByIdAsync(broadcastId);
+            var entity = await this.broadcastRepository.FindBroadcastForUpdateAsync(broadcastId);
 
             if (entity == null)
             {
