@@ -89,6 +89,13 @@ namespace TalkToCeoApi.Controllers
         public abstract System.Threading.Tasks.Task<Microsoft.AspNetCore.Mvc.ActionResult> UpdateReadBroadcast(int id);
 
         /// <summary>
+        /// Mark broadcast as sent
+        /// </summary>
+        /// <returns>Marked as sent</returns>
+        [Microsoft.AspNetCore.Mvc.HttpPut, Microsoft.AspNetCore.Mvc.Route("broadcasts/{id}/sent")]
+        public abstract System.Threading.Tasks.Task<Microsoft.AspNetCore.Mvc.ActionResult> UpdateSentBroadcast(int id);
+
+        /// <summary>
         /// Get broadcast readers
         /// </summary>
         /// <returns>Readers retrieved</returns>

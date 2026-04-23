@@ -28,17 +28,5 @@ namespace NokAir.TalkToCeo.Shared.Dtos
         /// Gets or sets the collection of files attached to the message. This property is used to hold any files that the user may want to include with their message, such as screenshots, documents, or other relevant files. The attachments are represented as an IFormFileCollection, which allows for multiple files to be uploaded and processed by the backend when the message is created.
         /// </summary>
         public IFormFileCollection? Attachments { get; set; }
-
-        /// <summary>
-        /// Gets or sets the ID of the user creating the message.
-        /// </summary>
-        [JsonIgnore]
-        public int UserId { get; set; }
-
-        /// <summary>
-        /// Gets or sets the name of the user creating the message.
-        /// </summary>
-        [JsonIgnore]
-        public string UserName { get; set; } = string.Empty;
     }
 }

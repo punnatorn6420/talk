@@ -55,101 +55,113 @@ namespace NokAir.TalkToCeo.Shared.Services
               IFormFileCollection files,
               UserDto userDto)
         {
-            var message = await this.messageRepository.FindMessageByIdAsync(messageId);
+            using var transaction = await this.dbContext.Database.BeginTransactionAsync();
 
-            if (message == null)
+            try
             {
-                throw new DataValidationException("Message not found");
-            }
+                var message = await this.messageRepository.FindMessageByIdAsync(messageId);
 
-            var allowedExtensions = new HashSet<string>(
-                this.fileOptions.AllowedExtensions,
-                StringComparer.OrdinalIgnoreCase);
-
-            var folderPath =
-                Path.Combine(
-                    this.env.WebRootPath,
-                    this.fileOptions.BaseFolder,
-                    messageId.ToString(CultureInfo.InvariantCulture));
-
-            if (!Directory.Exists(folderPath))
-            {
-                Directory.CreateDirectory(folderPath);
-            }
-
-            var attachments = new List<MessageAttachment>();
-
-            var uploadedFiles =
-                new List<string>();
-
-            foreach (var file in files)
-            {
-                if (file.Length == 0)
+                if (message == null)
                 {
-                    continue;
+                    throw new DataValidationException("Message not found");
                 }
 
-                var extension = Path.GetExtension(file.FileName);
+                var allowedExtensions = new HashSet<string>(
+                    this.fileOptions.AllowedExtensions,
+                    StringComparer.OrdinalIgnoreCase);
 
-                if (!allowedExtensions.Contains(extension))
-                {
-                    throw new DataValidationException(
-                        $"File type not allowed: {extension}");
-                }
-
-                var maxFileSizeBytes =
-                    this.fileOptions.MaxFileSizeMB
-                    * 1024 * 1024;
-
-                if (file.Length > maxFileSizeBytes)
-                {
-                    throw new DataValidationException(
-                        $"File too large: {file.FileName}");
-                }
-
-                var originalFileName =
-                     Path.GetFileNameWithoutExtension(file.FileName);
-
-                var timestamp =
-                    DateTime.Now
-                        .ToString("yyyy_MM_dd HH-mm-ss", CultureInfo.InvariantCulture);
-
-                var safeFileName =
-                    $"{originalFileName}_{timestamp}{extension}";
-
-                var fullPath =
-                    Path.Combine(folderPath, safeFileName);
-
-                using var stream =
-                    new FileStream(fullPath, FileMode.Create);
-
-                await file.CopyToAsync(stream);
-
-                var relativePath =
+                var folderPath =
                     Path.Combine(
+                        this.env.WebRootPath,
                         this.fileOptions.BaseFolder,
-                        messageId.ToString(CultureInfo.InvariantCulture),
-                        safeFileName);
+                        messageId.ToString(CultureInfo.InvariantCulture));
 
-                var userNameAcc = (userDto?.FirstName ?? string.Empty) + " " + (userDto?.LastName ?? string.Empty);
+                if (!Directory.Exists(folderPath))
+                {
+                    Directory.CreateDirectory(folderPath);
+                }
 
-                attachments.Add(
-                    new MessageAttachment
+                var attachments = new List<MessageAttachment>();
+
+                var uploadedFiles =
+                    new List<string>();
+
+                foreach (var file in files)
+                {
+                    if (file.Length == 0)
                     {
-                        MessageId = messageId,
-                        FilePath = relativePath,
-                        CreatedBy = userNameAcc,
-                        ModifiedBy = userNameAcc,
-                    });
+                        continue;
+                    }
 
-                uploadedFiles.Add(relativePath);
+                    var extension = Path.GetExtension(file.FileName);
+
+                    if (!allowedExtensions.Contains(extension))
+                    {
+                        throw new DataValidationException(
+                            $"File type not allowed: {extension}");
+                    }
+
+                    var maxFileSizeBytes =
+                        this.fileOptions.MaxFileSizeMB
+                        * 1024 * 1024;
+
+                    if (file.Length > maxFileSizeBytes)
+                    {
+                        throw new DataValidationException(
+                            $"File too large: {file.FileName}");
+                    }
+
+                    var originalFileName =
+                         Path.GetFileNameWithoutExtension(file.FileName);
+
+                    var timestamp =
+                        DateTime.Now
+                            .ToString("yyyy_MM_dd HH-mm-ss", CultureInfo.InvariantCulture);
+
+                    var safeFileName =
+                        $"{originalFileName}_{timestamp}{extension}";
+
+                    var fullPath =
+                        Path.Combine(folderPath, safeFileName);
+
+                    using var stream =
+                        new FileStream(fullPath, FileMode.Create);
+
+                    await file.CopyToAsync(stream);
+
+                    var relativePath =
+                        Path.Combine(
+                            this.fileOptions.BaseFolder,
+                            messageId.ToString(CultureInfo.InvariantCulture),
+                            safeFileName);
+
+                    var userNameAcc = (userDto?.FirstName ?? string.Empty) + " " + (userDto?.LastName ?? string.Empty);
+
+                    attachments.Add(
+                        new MessageAttachment
+                        {
+                            MessageId = messageId,
+                            FilePath = relativePath,
+                            CreatedBy = userNameAcc,
+                            ModifiedBy = userNameAcc,
+                        });
+
+                    uploadedFiles.Add(relativePath);
+                }
+
+                await this.attachmentRepository.AddRangeAsync(attachments);
+
+                await this.dbContext.SaveChangesAsync();
+
+                await transaction.CommitAsync();
+
+                return uploadedFiles;
             }
-
-            await this.attachmentRepository.AddRangeAsync(attachments);
-
-            await this.dbContext.SaveChangesAsync();
-
-            return uploadedFiles;
+            catch
+            {
+                await transaction.RollbackAsync();
+                throw;
+            }
         }
 
         /// <inheritdoc/>

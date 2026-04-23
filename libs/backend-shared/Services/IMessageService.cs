@@ -12,8 +12,9 @@ namespace NokAir.TalkToCeo.Shared.Services
         /// Asynchronously creates a new message based on the provided CreateMessageRequestDto. The method takes a CreateMessageRequestDto as a parameter, which contains the necessary information for creating a message, and returns a task representing the asynchronous operation. This allows for the creation of new messages in the "Talk to CEO" system, enabling users to submit their messages to the CEO or relevant parties.
         /// </summary>
         /// <param name="dto">The DTO containing the information required to create a new message.</param>
+        /// <param name="user">The user creating the message.</param>
         /// <returns>A task representing the asynchronous operation.</returns>
-        Task<int> CreateAsync(CreateMessageRequestDto dto);
+        Task CreateAsync(CreateMessageRequestDto dto, UserDto user);
 
         /// <summary>
         /// Asynchronously retrieves all messages in the "Talk to CEO" system. The method returns a list of MessageResponseDto objects, which contain the details of each message. This allows for the retrieval of all messages stored in the system, enabling features such as displaying a list of messages to users or performing operations on multiple messages at once.
@@ -40,8 +41,9 @@ namespace NokAir.TalkToCeo.Shared.Services
         /// </summary>
         /// <param name="id">The unique identifier of the message to update.</param>
         /// <param name="dto">The DTO containing the updated information for the message.</param>
+        /// <param name="user">The user performing the update.</param>
         /// <returns>A task that represents the asynchronous operation. The task result contains the updated MessageResponseDto object.</returns>
-        Task<MessageResponseDto> UpdateAsync(int id, CreateMessageRequestDto dto);
+        Task<MessageResponseDto> UpdateAsync(int id, CreateMessageRequestDto dto, UserDto user);
 
         /// <summary>
         /// Asynchronously replies to a message by its unique identifier. The method takes an integer id and a ReplyMessageRequestDto as parameters, and creates a reply to the corresponding message in the "Talk to CEO" system with the information provided in the DTO. This allows for users to respond to messages in the system, enabling features such as engaging in conversations or providing feedback on messages.
@@ -58,6 +60,14 @@ namespace NokAir.TalkToCeo.Shared.Services
         /// <param name="userName">The name of the user updating the read status.</param>
         /// <returns>A task that represents the asynchronous operation.</returns>
         Task UpdateReadStatusAsync(int id, string userName);
+
+        /// <summary>
+        /// Asynchronously updates the sent status of a message by its unique identifier. The method takes an integer id as a parameter and updates the sent status of the corresponding message in the "Talk to CEO" system. This allows for tracking whether a message has been sent or not, enabling features such as marking messages as sent or unsent.
+        /// </summary>
+        /// <param name="id">The unique identifier of the message to update the sent status for.</param>
+        /// <param name="userName">The name of the user updating the sent status.</param>
+        /// <returns>A task that represents the asynchronous operation.</returns>
+        Task UpdateSentStatusAsync(int id, string userName);
 
         /// <summary>
         /// Asynchronously retrieves a list of messages based on specified criteria. The method takes several parameters, including a keyword for searching messages, sorting options, pagination details, and optional date filters. It returns a MessageResponseListDto object that contains a list of MessageResponseDto objects matching the specified criteria, along with additional information such as total count and pagination details. This can be useful for features such as searching for messages, displaying sorted lists of messages, or implementing pagination for large sets of messages.

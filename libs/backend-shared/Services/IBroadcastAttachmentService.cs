@@ -16,9 +16,9 @@ namespace NokAir.TalkToCeo.Shared.Services
         /// </summary>
         /// <param name="broadcastId">The ID of the broadcast message.</param>
         /// <param name="files">The collection of files to be uploaded as attachments.</param>
-        /// <param name="userDto">The user information for auditing purposes.</param>
+        /// <param name="user">The user information for auditing purposes.</param>
         /// <returns>A list of file paths where the attachments are stored.</returns>
-        Task<List<string>> StoreFilesForBroadcastAsync(int broadcastId, IFormFileCollection files, UserDto userDto);
+        Task<List<string>> StoreFilesForBroadcastAsync(int broadcastId, IFormFileCollection files, UserDto user);
 
         /// <summary>
         /// Gets the download information for a specific attachment.

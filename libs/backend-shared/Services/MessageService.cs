@@ -16,35 +16,64 @@ namespace NokAir.TalkToCeo.Shared.Services
     {
         private readonly IMessageRepository repository;
         private readonly IMessageAttachmentRepository attachmentRepository;
+        private readonly IMessageAttachmentService messageAttachmentService;
+        private readonly TalkToCeoDbContext talkToCeoDbContext;
 
         /// <summary>
         /// Initializes a new instance of the <see cref="MessageService"/> class with the specified IMessageRepository and IMessageAttachmentRepository. The constructor takes an IMessageRepository and an IMessageAttachmentRepository as parameters and assigns them to private readonly fields, allowing the service to interact with the repositories for performing data access operations related to messages and their attachments. This setup enables the MessageService to manage message data effectively while maintaining a clear separation of concerns between the service layer and the data access layer of the application.
         /// </summary>
         /// <param name="repository">The message repository.</param>
         /// <param name="attachmentRepository">The message attachment repository.</param>
-        public MessageService(IMessageRepository repository, IMessageAttachmentRepository attachmentRepository)
+        /// <param name="messageAttachmentService">The message attachment service.</param>
+        /// <param name="talkToCeoDbContext">The database context for the "Talk to CEO" application.</param>
+        public MessageService(IMessageRepository repository, IMessageAttachmentRepository attachmentRepository, IMessageAttachmentService messageAttachmentService, TalkToCeoDbContext talkToCeoDbContext)
         {
             this.repository = repository;
             this.attachmentRepository = attachmentRepository;
+            this.messageAttachmentService = messageAttachmentService;
+            this.talkToCeoDbContext = talkToCeoDbContext;
         }
 
         /// <inheritdoc/>
-        public async Task<int> CreateAsync(CreateMessageRequestDto dto)
+        public async Task CreateAsync(CreateMessageRequestDto dto, UserDto user)
         {
-            var entity = new Messages
+            using var transaction = await this.talkToCeoDbContext.Database.BeginTransactionAsync();
+
+            try
             {
-                Subject = dto.Subject,
-                Detail = dto.Detail,
-                PostedAt = DateTime.Now,
-                Status = dto.Status,
-                UserId = dto.UserId,
-                CreatedAt = DateTime.Now,
-                ModifiedAt = DateTime.Now,
-                CreatedBy = dto.UserName,
-                ModifiedBy = dto.UserName,
-            };
-            await this.repository.AddMessageAsync(entity);
-            return entity.Id;
+                var userName = $"{user.FirstName} {user.LastName}".Trim();
+
+                var entity = new Messages
+                {
+                    Subject = dto.Subject,
+                    Detail = dto.Detail,
+                    PostedAt = DateTime.Now,
+                    Status = dto.Status,
+                    UserId = user.Id,
+                    CreatedAt = DateTime.Now,
+                    ModifiedAt = DateTime.Now,
+                    CreatedBy = userName,
+                    ModifiedBy = userName,
+                };
+                var messageId = await this.repository.AddMessageAsync(entity);
+
+                if (dto.Attachments != null &&
+                        dto.Attachments.Count > 0)
+                {
+                    await this.messageAttachmentService
+                        .StoreFilesForMessageAsync(
+                            messageId.Id,
+                            dto.Attachments,
+                            user);
+                }
+
+                await transaction.CommitAsync();
+            }
+            catch
+            {
+                await transaction.RollbackAsync();
+                throw;
+            }
         }
 
         /// <inheritdoc/>
@@ -114,29 +143,51 @@ namespace NokAir.TalkToCeo.Shared.Services
         }
 
         /// <inheritdoc/>
-        public async Task<MessageResponseDto> UpdateAsync(int id, CreateMessageRequestDto dto)
+        public async Task<MessageResponseDto> UpdateAsync(int id, CreateMessageRequestDto dto, UserDto user)
         {
-            var entity = await this.repository.FindMessageByIdAsync(id);
+            using var transaction = await this.talkToCeoDbContext.Database.BeginTransactionAsync();
 
-            if (entity == null)
+            try
             {
-                throw new DataValidationException("Message not found");
+                var entity = await this.repository.FindMessageByIdAsync(id);
+
+                if (entity == null)
+                {
+                    throw new DataValidationException("Message not found");
+                }
+
+                entity.Subject = dto.Subject;
+                entity.Detail = dto.Detail;
+                entity.Status = dto.Status;
+                entity.ModifiedAt = DateTime.Now;
+                entity.ModifiedBy = $"{user.FirstName} {user.LastName}".Trim();
+
+                await this.repository.UpdateAsync(entity);
+
+                if (dto.Attachments != null &&
+                  dto.Attachments.Count > 0)
+                {
+                    await this.messageAttachmentService
+                        .StoreFilesForMessageAsync(
+                            id,
+                            dto.Attachments,
+                            user);
+                }
+
+                await transaction.CommitAsync();
+
+                return new MessageResponseDto
+                {
+                    Id = entity.Id,
+                    Subject = entity.Subject,
+                    Message = entity.Detail,
+                };
             }
-
-            entity.Subject = dto.Subject;
-            entity.Detail = dto.Detail;
-            entity.Status = dto.Status;
-            entity.ModifiedAt = DateTime.Now;
-            entity.ModifiedBy = dto.UserName;
-
-            await this.repository.UpdateAsync(entity);
-
-            return new MessageResponseDto
+            catch
             {
-                Id = entity.Id,
-                Subject = entity.Subject,
-                Message = entity.Detail,
-            };
+                await transaction.RollbackAsync();
+                throw;
+            }
         }
 
         /// <inheritdoc/>
@@ -156,6 +207,23 @@ namespace NokAir.TalkToCeo.Shared.Services
             entity.ModifiedBy = dto.UserName;
 
             entity.RepliedAt = DateTime.Now;
+
+            await this.repository.UpdateAsync(entity);
+        }
+
+        /// <inheritdoc/>
+        public async Task UpdateSentStatusAsync(int id, string userName)
+        {
+            var entity = await this.repository.FindMessageByIdAsync(id);
+
+            if (entity == null)
+            {
+                throw new DataValidationException("Message not found");
+            }
+
+            entity.Status = ActionStatus.Sent;
+            entity.ModifiedAt = DateTime.Now;
+            entity.ModifiedBy = userName;
 
             await this.repository.UpdateAsync(entity);
         }

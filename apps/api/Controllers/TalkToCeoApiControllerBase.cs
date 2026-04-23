@@ -83,6 +83,13 @@ namespace TalkToCeoApi.Controllers
         public abstract System.Threading.Tasks.Task<Microsoft.AspNetCore.Mvc.ActionResult> UpdateReadStatusAsync(int id);
 
         /// <summary>
+        /// Update sent status
+        /// </summary>
+        /// <returns>Sent status updated successfully</returns>
+        [Microsoft.AspNetCore.Mvc.HttpPut, Microsoft.AspNetCore.Mvc.Route("messages/{id}/sent")]
+        public abstract System.Threading.Tasks.Task<Microsoft.AspNetCore.Mvc.ActionResult> UpdateSentStatusAsync(int id);
+
+        /// <summary>
         /// Update message
         /// </summary>
         /// <returns>Message updated successfully</returns>
