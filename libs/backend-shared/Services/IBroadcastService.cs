@@ -16,7 +16,7 @@ namespace NokAir.TalkToCeo.Shared.Services
         /// <param name="ceoId">The ID of the CEO creating the broadcast.</param>
         /// <param name="user">The user creating the broadcast.</param>
         /// <returns>A task representing the asynchronous operation.</returns>
-        Task<int> CreateBroadcastAsync(CreateBroadcastRequestDto dto, int ceoId, UserDto user);
+        Task CreateBroadcastAsync(CreateBroadcastRequestDto dto, int ceoId, UserDto user);
 
         /// <summary>
         /// Deletes an existing broadcast message. This method takes the ID of the broadcast to be deleted and the ID of the CEO as parameters. Implementations of this method should ensure that the specified broadcast exists and that the CEO has the necessary permissions to delete it before performing the deletion operation. Proper error handling should be implemented to manage cases where the broadcast does not exist or the CEO does not have permission to delete it.
@@ -80,13 +80,22 @@ namespace NokAir.TalkToCeo.Shared.Services
         Task UpdateReadBroadcastAsync(int broadcastId, int userId);
 
         /// <summary>
+        /// Updates the sent status of a specific broadcast message for a given user. This method takes the ID of the broadcast message and the ID of the user as parameters. Implementations of this method should ensure that the specified broadcast message exists and that the user has the necessary permissions to update the sent status before performing the update operation. Proper error handling should be implemented to manage cases where the broadcast message does not exist or the user does not have permission to update the sent status.
+        /// </summary>
+        /// <param name="broadcastId">The ID of the broadcast message to update.</param>
+        /// <param name="userName">The name of the user attempting to update the sent status.</param>
+        /// <returns>A task representing the asynchronous operation.</returns>
+        Task UpdateSentBroadcastAsync(int broadcastId, string userName);
+
+        /// <summary>
         /// Updates an existing broadcast message with new details. This method takes the ID of the broadcast message to be updated, a DTO containing the updated broadcast details, and the ID of the CEO as parameters. Implementations of this method should ensure that the specified broadcast message exists and that the CEO has the necessary permissions to update it before performing the update operation. Proper error handling should be implemented to manage cases where the broadcast message does not exist or the CEO does not have permission to update it.
         /// </summary>
         /// <param name="broadcastId">The ID of the broadcast message to update.</param>
         /// <param name="dto">A DTO containing the updated broadcast details.</param>
         /// <param name="ceoId">The ID of the CEO attempting to update the broadcast.</param>
+        /// <param name="user">The user attempting to update the broadcast.</param>
         /// <returns>A task representing the asynchronous operation.</returns>
-        Task UpdateBroadcastAsync(int broadcastId, UpdateBroadcastRequestDto dto, int ceoId);
+        Task UpdateBroadcastAsync(int broadcastId, UpdateBroadcastRequestDto dto, int ceoId, UserDto user);
 
         /// <summary>
         /// Retrieves the details of a specific broadcast message by its ID. This method takes the ID of the broadcast message and the ID of the user as parameters. Implementations of this method should ensure that the specified broadcast message exists and that the user has the necessary permissions to view its details before performing the retrieval operation. Proper error handling should be implemented to manage cases where the broadcast message does not exist or the user does not have permission to view its details.

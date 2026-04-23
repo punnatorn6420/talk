@@ -312,6 +312,53 @@
         }
       }
     },
+    "/broadcasts/{id}/sent": {
+      "put": {
+        "summary": "Send broadcast status update",
+        "operationId": "sendStatusBroadcastAsync",
+        "security": [
+          {
+            "BearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/client_id"
+          },
+          {
+            "$ref": "#/components/parameters/client_secret"
+          },
+          {
+            "$ref": "#/components/parameters/broadcastId"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "The broadcast status has been successfully updated",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SuccessResponse"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Invalid request parameters",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/InvalidRequestResponse"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Message not found"
+          }
+        }
+      }
+    },
     "/broadcasts/{id}/read": {
       "put": {
         "summary": "Mark broadcast as read",

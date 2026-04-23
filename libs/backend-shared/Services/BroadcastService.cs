@@ -17,6 +17,8 @@ namespace NokAir.TalkToCeo.Shared.Services
         private readonly IUsersRepository<UserDto> usersRepository;
         private readonly IMessageAttachmentRepository attachmentRepository;
         private readonly IBroadcastAttachmentRepository broadcastAttachmentRepository;
+        private readonly IBroadcastAttachmentService broadcastAttachmentService;
+        private readonly TalkToCeoDbContext talkToCeoDbContext;
 
         /// <summary>
         /// Initializes a new instance of the <see cref="BroadcastService"/> class with the specified broadcast repository. The constructor takes an <see cref="IBroadcastRepository"/> as a parameter, which is used to interact with the underlying data store for managing broadcast messages. This allows the service to perform operations such as creating new broadcast messages and retrieving existing ones. By injecting the repository through the constructor, we can easily manage dependencies and promote better testability of the service class.
@@ -25,71 +27,98 @@ namespace NokAir.TalkToCeo.Shared.Services
         /// <param name="usersRepository">The users repository used to interact with the underlying data store for user-related operations.</param>
         /// <param name="attachmentRepository">The attachment repository used to interact with the underlying data store for attachment-related operations.</param>
         /// <param name="broadcastAttachmentRepository">The broadcast attachment repository used to interact with the underlying data store for broadcast attachment-related operations.</param>
+        /// <param name="broadcastAttachmentService">The broadcast attachment service used to manage broadcast attachment-related operations.</param>
+        /// <param name="talkToCeoDbContext">The database context used to manage transactions and interact with the underlying data store.</param>
         public BroadcastService(
               IBroadcastRepository broadcastRepository,
               IUsersRepository<UserDto> usersRepository,
               IMessageAttachmentRepository attachmentRepository,
-              IBroadcastAttachmentRepository broadcastAttachmentRepository)
+              IBroadcastAttachmentRepository broadcastAttachmentRepository,
+              IBroadcastAttachmentService broadcastAttachmentService,
+              TalkToCeoDbContext talkToCeoDbContext)
         {
             this.broadcastRepository = broadcastRepository;
             this.usersRepository = usersRepository;
             this.attachmentRepository = attachmentRepository;
             this.broadcastAttachmentRepository = broadcastAttachmentRepository;
+            this.broadcastAttachmentService = broadcastAttachmentService;
+            this.talkToCeoDbContext = talkToCeoDbContext;
+            this.broadcastAttachmentService = broadcastAttachmentService;
         }
 
         /// <inheritdoc/>
-        public async Task<int> CreateBroadcastAsync(CreateBroadcastRequestDto dto, int ceoId, UserDto user)
+        public async Task CreateBroadcastAsync(CreateBroadcastRequestDto dto, int ceoId, UserDto user)
         {
-            if (string.IsNullOrWhiteSpace(dto.Subject))
+            using var transaction = await this.talkToCeoDbContext.Database.BeginTransactionAsync();
+            try
             {
-                throw new DataValidationException("Subject is required.");
+                if (string.IsNullOrWhiteSpace(dto.Subject))
+                {
+                    throw new DataValidationException("Subject is required.");
+                }
+
+                if (string.IsNullOrWhiteSpace(dto.Detail))
+                {
+                    throw new DataValidationException("Detail is required.");
+                }
+
+                var now = DateTime.Now;
+
+                var startDisplayAt = dto.StartDisplayAt;
+
+                var expireDisplayAt =
+                    dto.ExpireDisplayAt ?? startDisplayAt.AddMonths(3);
+
+                if (expireDisplayAt < startDisplayAt)
+                {
+                    throw new DataValidationException(
+                        "ExpireDisplayAt must be greater than StartDisplayAt.");
+                }
+
+                var userNameAcc =
+                    (user?.FirstName ?? string.Empty) + " " + (user?.LastName ?? string.Empty);
+
+                DateTime? publishAt = null;
+
+                if (dto.Status == BroadcastStatus.Sent)
+                {
+                    publishAt = now;
+                }
+
+                var entity = new BroadcastMessages
+                {
+                    Subject = dto.Subject.Trim(),
+                    Detail = dto.Detail.Trim(),
+                    CeoId = ceoId,
+                    Status = dto.Status,
+                    StartDisplayAt = startDisplayAt,
+                    ExpireDisplayAt = expireDisplayAt,
+                    PublishedAt = publishAt,
+                    ModifiedAt = now,
+                    CreatedAt = now,
+                    ModifiedBy = userNameAcc,
+                    CreatedBy = userNameAcc,
+                };
+
+                var createdEntity = await this.broadcastRepository.AddBroadcastMessageAsync(entity);
+
+                if (dto.Attachments != null && dto.Attachments.Count > 0)
+                {
+                    if (user == null)
+                    {
+                        throw new DataValidationException("User information is required.");
+                    }
+
+                    await this.broadcastAttachmentService.StoreFilesForBroadcastAsync(createdEntity.Id, dto.Attachments, user);
+                }
+
+                await transaction.CommitAsync();
             }
-
-            if (string.IsNullOrWhiteSpace(dto.Detail))
+            catch
             {
-                throw new DataValidationException("Detail is required.");
+                await transaction.RollbackAsync();
+                throw;
             }
-
-            var now = DateTime.Now;
-
-            var startDisplayAt = dto.StartDisplayAt;
-
-            var expireDisplayAt =
-                dto.ExpireDisplayAt ?? startDisplayAt.AddMonths(3);
-
-            if (expireDisplayAt < startDisplayAt)
-            {
-                throw new DataValidationException(
-                    "ExpireDisplayAt must be greater than StartDisplayAt.");
-            }
-
-            var userNameAcc =
-                (user?.FirstName ?? string.Empty) + " " + (user?.LastName ?? string.Empty);
-
-            DateTime? publishAt = null;
-
-            if (dto.Status == BroadcastStatus.Sent)
-            {
-                publishAt = now;
-            }
-
-            var entity = new BroadcastMessages
-            {
-                Subject = dto.Subject.Trim(),
-                Detail = dto.Detail.Trim(),
-                CeoId = ceoId,
-                Status = dto.Status,
-                StartDisplayAt = startDisplayAt,
-                ExpireDisplayAt = expireDisplayAt,
-                PublishedAt = publishAt,
-                ModifiedAt = now,
-                CreatedAt = now,
-                ModifiedBy = userNameAcc,
-                CreatedBy = userNameAcc,
-            };
-
-            var createdEntity = await this.broadcastRepository.AddBroadcastMessageAsync(entity);
-            return createdEntity.Id;
         }
 
         /// <inheritdoc/>
@@ -131,6 +160,8 @@ namespace NokAir.TalkToCeo.Shared.Services
                 Detail = broadcast.Detail,
                 CreatedAt = broadcast.CreatedAt,
                 CreatedBy = broadcast.CreatedBy,
+                ModifiedAt = broadcast.ModifiedAt,
+                ModifiedBy = broadcast.ModifiedBy,
                 Attachments = attachments.Select(x =>
                         new MessageAttachmentDto
                         {
@@ -323,102 +354,151 @@ namespace NokAir.TalkToCeo.Shared.Services
         }
 
         /// <inheritdoc/>
-        public async Task UpdateBroadcastAsync(int broadcastId, UpdateBroadcastRequestDto dto, int ceoId)
+        public async Task UpdateBroadcastAsync(int broadcastId, UpdateBroadcastRequestDto dto, int ceoId, UserDto user)
         {
-            var broadcast = await this.broadcastRepository.FindBroadcastForUpdateAsync(broadcastId);
-
-            if (broadcast == null)
+            using var transaction = await this.talkToCeoDbContext.Database.BeginTransactionAsync();
+            try
             {
-                throw new DataValidationException("Broadcast not found.");
-            }
+                var broadcast = await this.broadcastRepository.FindBroadcastForUpdateAsync(broadcastId);
 
-            if (broadcast.CeoId != ceoId)
+                if (broadcast == null)
+                {
+                    throw new DataValidationException("Broadcast not found.");
+                }
+
+                if (broadcast.CeoId != ceoId)
+                {
+                    throw new DataValidationException(
+                        "You do not have permission to update this broadcast.");
+                }
+
+                // ถ้า publish แล้ว → ห้ามแก้ทั้งหมด
+                if (broadcast.Status == BroadcastStatus.Sent)
+                {
+                    throw new DataValidationException(
+                        "Published broadcast cannot be modified.");
+                }
+
+                // validate timeline
+                if (dto.ExpireDisplayAt.HasValue &&
+                    dto.ExpireDisplayAt <= dto.StartDisplayDate)
+                {
+                    throw new DataValidationException(
+                        "ExpireDisplayAt must be greater than StartDisplayAt.");
+                }
+
+                DateTime? publishAt = null;
+
+                if (dto.Status == BroadcastStatus.Sent)
+                {
+                    publishAt = DateTime.Now;
+                }
+
+                // Draft → update ได้ทั้งหมด
+                broadcast.Subject = dto.Subject;
+                broadcast.Detail = dto.Detail;
+                broadcast.StartDisplayAt = dto.StartDisplayDate;
+                broadcast.ExpireDisplayAt = dto.ExpireDisplayAt;
+
+                // Draft → Sent (publish)
+                if (dto.Status == BroadcastStatus.Sent)
+                {
+                    broadcast.Status = BroadcastStatus.Sent;
+                }
+
+                broadcast.ModifiedAt = DateTime.Now;
+                broadcast.PublishedAt = publishAt;
+
+                await this.broadcastRepository.UpdateAsync(broadcast);
+
+                if (dto.Attachments != null &&
+                    dto.Attachments.Count > 0)
+                {
+                    await this.broadcastAttachmentService
+                        .StoreFilesForBroadcastAsync(
+                            broadcastId,
+                            dto.Attachments,
+                            user);
+                }
+
+                await transaction.CommitAsync();
+            }
+            catch
             {
-                throw new DataValidationException(
-                    "You do not have permission to update this broadcast.");
+                await transaction.RollbackAsync();
+                throw;
             }
-
-            // ถ้า publish แล้ว → ห้ามแก้ทั้งหมด
-            if (broadcast.Status == BroadcastStatus.Sent)
-            {
-                throw new DataValidationException(
-                    "Published broadcast cannot be modified.");
-            }
-
-            // validate timeline
-            if (dto.ExpireDisplayAt.HasValue &&
-                dto.ExpireDisplayAt <= dto.StartDisplayDate)
-            {
-                throw new DataValidationException(
-                    "ExpireDisplayAt must be greater than StartDisplayAt.");
-            }
-
-            DateTime? publishAt = null;
-
-            if (dto.Status == BroadcastStatus.Sent)
-            {
-                publishAt = DateTime.Now;
-            }
-
-            // Draft → update ได้ทั้งหมด
-            broadcast.Subject = dto.Subject;
-            broadcast.Detail = dto.Detail;
-            broadcast.StartDisplayAt = dto.StartDisplayDate;
-            broadcast.ExpireDisplayAt = dto.ExpireDisplayAt;
-
-            // Draft → Sent (publish)
-            if (dto.Status == BroadcastStatus.Sent)
-            {
-                broadcast.Status = BroadcastStatus.Sent;
-            }
-
-            broadcast.ModifiedAt = DateTime.Now;
-            broadcast.PublishedAt = publishAt;
-
-            await this.broadcastRepository.UpdateAsync(broadcast);
         }
 
         /// <inheritdoc/>
         public async Task UpdateReadBroadcastAsync(int broadcastId, int userId)
         {
-            var broadcast = await this.broadcastRepository
-                .FindBroadcastMessageByIdAsync(broadcastId);
-
-            if (broadcast == null)
+            using var transaction = await this.talkToCeoDbContext.Database.BeginTransactionAsync();
+            try
             {
-                throw new DataValidationException("Broadcast not found.");
+                var broadcast = await this.broadcastRepository
+                                .FindBroadcastMessageByIdAsync(broadcastId);
+
+                if (broadcast == null)
+                {
+                    throw new DataValidationException("Broadcast not found.");
+                }
+
+                if (broadcast.Status != BroadcastStatus.Sent)
+                {
+                    throw new DataValidationException("Broadcast is not available.");
+                }
+
+                var now = DateTime.Now;
+
+                if (broadcast.StartDisplayAt > now)
+                {
+                    throw new DataValidationException("Broadcast not started yet.");
+                }
+
+                if (broadcast.ExpireDisplayAt.HasValue &&
+                    broadcast.ExpireDisplayAt < now)
+                {
+                    throw new DataValidationException("Broadcast expired.");
+                }
+
+                var alreadyRead = await this.broadcastRepository
+                    .FindCheckUserReadStatusAsync(broadcastId, userId);
+
+                if (alreadyRead)
+                {
+                    return; // already recorded → skip silently
+                }
+
+                await this.broadcastRepository.AddBroadcastReadEntryAsync(
+                    broadcastId,
+                    userId,
+                    now);
+                await transaction.CommitAsync();
+            }
+            catch
+            {
+                await transaction.RollbackAsync();
+                throw;
+            }
+        }
+
+        /// <inheritdoc/>
+        public async Task UpdateSentBroadcastAsync(int broadcastId, string userName)
+        {
+            var entity = await this.broadcastRepository.FindBroadcastByIdAsync(broadcastId);
+
+            if (entity == null)
+            {
+                throw new DataValidationException("Message not found");
             }
 
-            if (broadcast.Status != BroadcastStatus.Sent)
-            {
-                throw new DataValidationException("Broadcast is not available.");
-            }
+            entity.Status = BroadcastStatus.Sent;
+            entity.PublishedAt = DateTime.Now;
+            entity.ModifiedAt = DateTime.Now;
+            entity.ModifiedBy = userName;
 
-            var now = DateTime.Now;
-
-            if (broadcast.StartDisplayAt > now)
-            {
-                throw new DataValidationException("Broadcast not started yet.");
-            }
-
-            if (broadcast.ExpireDisplayAt.HasValue &&
-                broadcast.ExpireDisplayAt < now)
-            {
-                throw new DataValidationException("Broadcast expired.");
-            }
-
-            var alreadyRead = await this.broadcastRepository
-                .FindCheckUserReadStatusAsync(broadcastId, userId);
-
-            if (alreadyRead)
-            {
-                return; // already recorded → skip silently
-            }
-
-            await this.broadcastRepository.AddBroadcastReadEntryAsync(
-                broadcastId,
-                userId,
-                now);
+            await this.broadcastRepository.UpdateAsync(entity);
         }
     }
 }

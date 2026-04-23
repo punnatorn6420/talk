@@ -53,24 +53,12 @@ namespace NokAir.TalkToCeo.Api.Controllers
 
                 var user = await this.usersService.GetUserFromTokenAsync(token);
 
-                var userNameAcc = (user?.FirstName ?? string.Empty) + " " + (user?.LastName ?? string.Empty);
-
                 if (user == null)
                 {
                     throw new DataValidationException("User information in token is invalid.");
                 }
 
-                var broadcastId = await this.broadcastService.CreateBroadcastAsync(body, user.Id, user);
-
-                if (body.Attachments != null &&
-              body.Attachments.Count > 0)
-                {
-                    await this.broadcastAttachmentService
-                        .StoreFilesForBroadcastAsync(
-                            broadcastId,
-                            body.Attachments,
-                            user);
-                }
+                await this.broadcastService.CreateBroadcastAsync(body, user.Id, user);
 
                 return this.OkSuccessResponse();
             }
@@ -87,7 +75,6 @@ namespace NokAir.TalkToCeo.Api.Controllers
         /// <inheritdoc/>
         [Authorize(Policy = "CeoRole")]
         [ClientApplicationValidationWithIDAndSecretAttribute]
-
         public override async Task<ActionResult> DeleteBroadcast(int id)
         {
             try
@@ -317,17 +304,8 @@ namespace NokAir.TalkToCeo.Api.Controllers
                 await this.broadcastService.UpdateBroadcastAsync(
                     id,
                     body,
-                    user.Id);
-
-                if (body.Attachments != null &&
-                    body.Attachments.Count > 0)
-                {
-                    await this.broadcastAttachmentService
-                        .StoreFilesForBroadcastAsync(
-                            id,
-                            body.Attachments,
-                            user);
-                }
+                    user.Id,
+                    user);
 
                 return this.OkSuccessResponse();
             }
@@ -443,6 +421,40 @@ namespace NokAir.TalkToCeo.Api.Controllers
                 {
                     throw new DataValidationException("Only broadcasts with Draft status can be deleted.");
                 }
+
+                return this.OkSuccessResponse();
+            }
+            catch (DataValidationException ex)
+            {
+                return this.BadRequestResponseFromMessage(ex.Message);
+            }
+            catch (Exception ex)
+            {
+                return this.InternalServerErrorResponseFromException(ex);
+            }
+        }
+
+        /// <inheritdoc/>
+        [Authorize(Policy = "CeoRole")]
+        [ClientApplicationValidationWithIDAndSecretAttribute]
+        public override async Task<ActionResult> UpdateSentBroadcast(int id)
+        {
+            try
+            {
+                var token = this.HttpContext.Request.Headers.Authorization
+                    .ToString()
+                    .Replace("Bearer ", string.Empty);
+
+                var user = await this.usersService.GetUserFromTokenAsync(token);
+
+                if (user == null)
+                {
+                    throw new DataValidationException("User information in token is invalid.");
+                }
+
+                string userName = user.FirstName + " " + user.LastName;
+
+                await this.broadcastService.UpdateSentBroadcastAsync(id, userName);
 
                 return this.OkSuccessResponse();
             }

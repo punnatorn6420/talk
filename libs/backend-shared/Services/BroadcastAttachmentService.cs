@@ -122,7 +122,7 @@ namespace NokAir.TalkToCeo.Shared.Services
         public async Task<List<string>> StoreFilesForBroadcastAsync(
           int broadcastId,
           IFormFileCollection files,
-          UserDto userDto)
+          UserDto user)
         {
             var broadcast =
                 await this.broadcastRepository
@@ -208,9 +208,9 @@ namespace NokAir.TalkToCeo.Shared.Services
                         safeFileName);
 
                 var userNameAcc =
-                    (userDto?.FirstName ?? string.Empty)
+                    (user?.FirstName ?? string.Empty)
                     + " "
-                    + (userDto?.LastName ?? string.Empty);
+                    + (user?.LastName ?? string.Empty);
 
                 attachments.Add(
                     new BroadcastMessageAttachment

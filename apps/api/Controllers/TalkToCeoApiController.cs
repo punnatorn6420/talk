@@ -52,26 +52,12 @@ namespace NokAir.TalkToCeo.Api.Controllers
 
                 var user = await this.usersService.GetUserFromTokenAsync(token);
 
-                var userNameAcc = (user?.FirstName ?? string.Empty) + " " + (user?.LastName ?? string.Empty);
-
                 if (user == null)
                 {
                     throw new DataValidationException("User information in token is invalid.");
                 }
 
-                body.UserId = user.Id;
-                body.UserName = userNameAcc;
-                var messageId = await this.messageService.CreateAsync(body);
-
-                if (body.Attachments != null &&
-                    body.Attachments.Count > 0)
-                {
-                    await this.messageAttachmentService
-                        .StoreFilesForMessageAsync(
-                            messageId,
-                            body.Attachments,
-                            user);
-                }
+                await this.messageService.CreateAsync(body, user);
 
                 return this.OkSuccessResponse();
             }
@@ -364,17 +350,7 @@ namespace NokAir.TalkToCeo.Api.Controllers
                     throw new DataValidationException("Only messages with Draft status can be updated.");
                 }
 
-                await this.messageService.UpdateAsync(id, body);
-
-                if (body.Attachments != null &&
-                body.Attachments.Count > 0)
-                {
-                    await this.messageAttachmentService
-                        .StoreFilesForMessageAsync(
-                            id,
-                            body.Attachments,
-                            user);
-                }
+                await this.messageService.UpdateAsync(id, body, user);
 
                 return this.OkSuccessResponse();
             }
@@ -419,6 +395,50 @@ namespace NokAir.TalkToCeo.Api.Controllers
                 string userName = user.FirstName + " " + user.LastName;
 
                 await this.messageService.UpdateReadStatusAsync(id, userName);
+
+                return this.OkSuccessResponse();
+            }
+            catch (DataValidationException ex)
+            {
+                return this.BadRequestResponseFromMessage(ex.Message);
+            }
+            catch (Exception ex)
+            {
+                return this.InternalServerErrorResponseFromException(ex);
+            }
+        }
+
+        /// <inheritdoc/>
+        [Authorize(Policy = "UserRole")]
+        [ClientApplicationValidationWithIDAndSecretAttribute]
+        public override async Task<ActionResult> UpdateSentStatusAsync(int id)
+        {
+            try
+            {
+                var token = this.HttpContext.Request.Headers.Authorization.ToString().Replace("Bearer ", string.Empty);
+
+                var user = await this.usersService.GetUserFromTokenAsync(token);
+
+                if (user == null)
+                {
+                    throw new DataValidationException("User information in token is invalid.");
+                }
+
+                var result = await this.messageService.GetByIdAsync(id);
+
+                if (result == null)
+                {
+                    throw new DataValidationException("Message not found.");
+                }
+
+                if (result.Status != ActionStatus.Draft)
+                {
+                    throw new DataValidationException("Only messages with Draft status can be marked as Sent.");
+                }
+
+                string userName = user.FirstName + " " + user.LastName;
+
+                await this.messageService.UpdateSentStatusAsync(id, userName);
 
                 return this.OkSuccessResponse();
             }
