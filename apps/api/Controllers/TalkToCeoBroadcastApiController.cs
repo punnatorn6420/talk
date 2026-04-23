@@ -320,7 +320,7 @@ namespace NokAir.TalkToCeo.Api.Controllers
         }
 
         /// <inheritdoc/>
-        [Authorize(Policy = "CeoRole")]
+        [Authorize(Policy = "AllRole")]
         [ClientApplicationValidationWithIDAndSecretAttribute]
         public override async Task<ActionResult> GetBroadcastByIdAsync(int id)
         {
