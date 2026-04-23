@@ -141,7 +141,7 @@ namespace NokAir.TalkToCeo.Shared.Services
             var folderPath =
                 Path.Combine(
                     this.env.WebRootPath,
-                    this.fileOptions.BaseFolder,
+                    this.fileOptions.FolderBroadcastAttachment,
                     "broadcast",
                     broadcastId.ToString(CultureInfo.InvariantCulture));
 
@@ -202,7 +202,7 @@ namespace NokAir.TalkToCeo.Shared.Services
 
                 var relativePath =
                     Path.Combine(
-                        this.fileOptions.BaseFolder,
+                        this.fileOptions.FolderBroadcastAttachment,
                         "broadcast",
                         broadcastId.ToString(CultureInfo.InvariantCulture),
                         safeFileName);
