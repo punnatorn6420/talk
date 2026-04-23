@@ -45,6 +45,11 @@ namespace NokAir.TalkToCeo.Shared.Entities.TalkToCeo
         public DateTime? ExpireDisplayAt { get; set; }
 
         /// <summary>
+        /// Gets or sets the date and time when the broadcast message was published (sent). This property is set when the message status changes to Sent, allowing for tracking when the message was made available to users and enabling features such as sorting messages by publish date or displaying the publish date in the user interface.
+        /// </summary>
+        public DateTime? PublishedAt { get; set; }
+
+        /// <summary>
         /// Gets or sets the CEO who created and sent the broadcast message. This navigation property allows for easy access to the CEO's information when working with broadcast messages, enabling features such as displaying the CEO's name or profile picture alongside the message.
         /// </summary>
         public User User { get; set; } = null!;
