@@ -121,7 +121,7 @@ export class MessageFormPageComponent
               summary: 'Not found',
               detail: 'Message detail is unavailable.',
             });
-            this.router.navigate(['/admin/messages']);
+            this.navigateToList();
             return;
           }
 
@@ -155,7 +155,7 @@ export class MessageFormPageComponent
             summary: 'Load failed',
             detail: 'Unable to load message detail.',
           });
-          this.router.navigate(['/admin/messages']);
+          this.navigateToList();
         },
       });
     this.AddSubscription(obs);
@@ -278,7 +278,7 @@ export class MessageFormPageComponent
                 : 'Your message has been created.',
           });
 
-          this.router.navigate(['/admin/messages']);
+          this.navigateToList();
         },
         error: () => {
           this.toast.add({
@@ -334,7 +334,17 @@ export class MessageFormPageComponent
   }
 
   goBack(): void {
-    this.router.navigate(['/admin/messages']);
+    this.navigateToList();
+  }
+
+  private navigateToList(): void {
+    this.router.navigate(['/admin/messages'], {
+      queryParams: { menu: this.returnMenu },
+    });
+  }
+
+  private get returnMenu(): string {
+    return this.route.snapshot.queryParamMap.get('menu') || 'messages';
   }
 
   formatFileSize(size: number): string {

@@ -1,4 +1,4 @@
-import { CommonModule, Location } from '@angular/common';
+import { CommonModule } from '@angular/common';
 import {
   ChangeDetectionStrategy,
   ChangeDetectorRef,
@@ -7,7 +7,7 @@ import {
   inject,
 } from '@angular/core';
 import { FormsModule } from '@angular/forms';
-import { ActivatedRoute } from '@angular/router';
+import { ActivatedRoute, Router } from '@angular/router';
 import { finalize } from 'rxjs';
 
 import { ConfirmationService, MessageService } from 'primeng/api';
@@ -62,7 +62,7 @@ export class BroadcastAdminFormEditComponent
   private readonly toast = inject(MessageService);
   private readonly cdr = inject(ChangeDetectorRef);
   private readonly route = inject(ActivatedRoute);
-  private readonly location = inject(Location);
+  private readonly router = inject(Router);
   private readonly confirmationService = inject(ConfirmationService);
 
   readonly pageTitle = 'Edit Broadcast';
@@ -113,7 +113,13 @@ export class BroadcastAdminFormEditComponent
   }
 
   goBack(): void {
-    this.location.back();
+    this.router.navigate(['/admin/messages'], {
+      queryParams: { menu: this.returnMenu },
+    });
+  }
+
+  private get returnMenu(): string {
+    return this.route.snapshot.queryParamMap.get('menu') || 'broadcasts';
   }
 
   onFilesSelected(event: FileSelectEvent): void {

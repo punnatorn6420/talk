@@ -102,7 +102,13 @@ export class BroadcastDetailPageComponent
   }
 
   goBack(): void {
-    this.router.navigate(['/admin/messages']);
+    this.router.navigate(['/admin/messages'], {
+      queryParams: { menu: this.returnMenu },
+    });
+  }
+
+  private get returnMenu(): string {
+    return this.route.snapshot.queryParamMap.get('menu') || 'broadcasts';
   }
 
   getReadStatusLabel(): string {
