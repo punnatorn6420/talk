@@ -6,41 +6,33 @@ import {
   OnInit,
   inject,
 } from '@angular/core';
-import { FormsModule } from '@angular/forms';
 import { ActivatedRoute, Router } from '@angular/router';
 import { finalize } from 'rxjs';
 
 import { ButtonModule } from 'primeng/button';
-import { CardModule } from 'primeng/card';
-import { TagModule } from 'primeng/tag';
 import { MessageService } from 'primeng/api';
 import { ToastModule } from 'primeng/toast';
-import { EditorModule } from 'primeng/editor';
 
 import { _BroadcastService } from '../../../service/broadcast.service';
 import {
   IBroadcastDetail,
   IBroadcastAttachment,
 } from '../../../types/broadcast.model';
+import { SubscriptionDestroyer } from '../../../shared/core/helper/SubscriptionDestroyer.helper';
 
 @Component({
   selector: 'app-broadcast-detail-page',
   standalone: true,
-  imports: [
-    CommonModule,
-    FormsModule,
-    ButtonModule,
-    CardModule,
-    TagModule,
-    ToastModule,
-    EditorModule,
-  ],
+  imports: [CommonModule, ButtonModule, ToastModule],
   templateUrl: './broadcast-detail-page.component.html',
   styleUrl: './broadcast-detail-page.component.scss',
   providers: [MessageService],
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
-export class BroadcastDetailPageComponent implements OnInit {
+export class BroadcastDetailPageComponent
+  extends SubscriptionDestroyer
+  implements OnInit
+{
   private readonly route = inject(ActivatedRoute);
   private readonly router = inject(Router);
   private readonly broadcastApi = inject(_BroadcastService);
@@ -65,7 +57,7 @@ export class BroadcastDetailPageComponent implements OnInit {
   loadBroadcastDetail(id: string): void {
     this.loading = true;
 
-    this.broadcastApi
+    const obs = this.broadcastApi
       .getBroadcastById(id)
       .pipe(
         finalize(() => {
@@ -86,11 +78,14 @@ export class BroadcastDetailPageComponent implements OnInit {
             return;
           }
 
-          this.broadcastApi.markBroadcastAsRead(id).subscribe({
-            error: () => {
-              // ignore read error silently
-            },
-          });
+          const markReadObs = this.broadcastApi
+            .markBroadcastAsRead(id)
+            .subscribe({
+              error: () => {
+                // ignore read error silently
+              },
+            });
+          this.AddSubscription(markReadObs);
 
           this.cdr.markForCheck();
         },
@@ -103,6 +98,7 @@ export class BroadcastDetailPageComponent implements OnInit {
           this.goBack();
         },
       });
+    this.AddSubscription(obs);
   }
 
   goBack(): void {
@@ -137,7 +133,7 @@ export class BroadcastDetailPageComponent implements OnInit {
   downloadAttachment(attachment: IBroadcastAttachment): void {
     if (!this.broadcastId || !attachment?.id) return;
 
-    this.broadcastApi
+    const obs = this.broadcastApi
       .downloadBroadcastAttachment(this.broadcastId, attachment.id)
       .subscribe({
         next: (blob) => {
@@ -157,5 +153,6 @@ export class BroadcastDetailPageComponent implements OnInit {
           this.cdr.markForCheck();
         },
       });
+    this.AddSubscription(obs);
   }
 }

@@ -1,16 +1,18 @@
 <p-toast></p-toast>
-<p-confirmDialog></p-confirmDialog>
+<p-confirmDialog styleClass="responsive-confirm-dialog"></p-confirmDialog>
 
 <p-card class="min-h-screen bg-slate-50">
   <div class="border-b border-slate-200 bg-white">
-    <div class="flex flex-col gap-3 lg:flex-row">
+    <div class="header-row flex flex-col gap-3 lg:flex-row">
       <div
-        class="flex items-center px-6 py-4 lg:w-[240px] lg:border-r lg:border-slate-200"
+        class="flex items-center ;g:px-6 lg:py-4 lg:w-[240px] lg:border-r lg:border-slate-200"
       >
         <h1 class="text-xl font-semibold text-slate-900">Messages</h1>
       </div>
 
-      <div class="flex flex-1 items-center justify-end gap-3 px-6 py-4">
+      <div
+        class="header-actions flex flex-1 items-center justify-end gap-3 lg:px-6 py-4"
+      >
         <p-iconfield>
           <p-inputicon class="pi pi-search" />
           <input
@@ -18,6 +20,7 @@
             [(ngModel)]="keyword"
             pInputText
             placeholder="Search"
+            class="search-input"
             (keyup.enter)="onSearch()"
           />
         </p-iconfield>
@@ -38,12 +41,12 @@
     <aside
       class="w-full border-b border-slate-200 bg-white lg:w-[240px] lg:border-b-0 lg:border-r"
     >
-      <div class="px-4 py-4">
+      <div class="lg:px-4 py-4">
         <div class="space-y-2">
           @for (item of menuItems; track item.key) {
             <button
               type="button"
-              class="flex w-full items-center justify-between rounded-lg px-4 py-2 text-left transition"
+              class="flex w-full items-center justify-between rounded-lg px-4 py-3 lg:py-2 text-left transition"
               [ngClass]="
                 selectedMenu === item.key
                   ? 'bg-primary-600 text-white shadow-sm'
@@ -81,10 +84,10 @@
             [value]="mails"
             [loading]="loadingMessages"
             [tableStyle]="{
-              'min-width': '100%',
+              'min-width': '720px',
               'table-layout': 'fixed',
             }"
-            class="p-datatable-sm mail-table"
+            class="p-datatable-sm mail-table responsive-table"
             [rowHover]="true"
           >
             <ng-template pTemplate="header">
@@ -168,23 +171,23 @@
             [value]="broadcasts"
             [loading]="loadingBroadcasts"
             [tableStyle]="{
-              'min-width': '100%',
+              'min-width': '720px',
               'table-layout': 'fixed',
             }"
-            class="p-datatable-sm mail-table"
+            class="p-datatable-sm mail-table responsive-table"
             [rowHover]="true"
           >
             <ng-template pTemplate="header">
               <tr>
                 <th class="!text-start">Message</th>
                 <th class="w-[120px] !text-center">Time</th>
-                <th class="w-[100px] !text-center">Status</th>
-                <th class="w-[200px] !text-center">Actions</th>
+                <th class="w-[80px] !text-center">Status</th>
+                <th class="w-[160px] !text-center">Actions</th>
               </tr>
             </ng-template>
 
             <ng-template pTemplate="body" let-item>
-              <tr>
+              <tr class="cursor-pointer" (click)="openBroadcast(item)">
                 <td class="overflow-hidden !text-start">
                   <div class="min-w-0 overflow-hidden">
                     <div class="truncate text-base font-medium text-slate-800">
@@ -286,7 +289,7 @@
         }
       </div>
 
-      <div class="bg-white py-3">
+      <div class="footer-meta bg-white py-3">
         <div
           class="flex flex-col items-center justify-center gap-3 sm:flex-row"
         >

@@ -3,13 +3,12 @@ import {
   ChangeDetectionStrategy,
   ChangeDetectorRef,
   Component,
-  OnDestroy,
   OnInit,
   inject,
 } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
-import { Subject, finalize, interval, takeUntil } from 'rxjs';
+import { finalize, interval, timeout } from 'rxjs';
 
 import { ConfirmationService, MessageService } from 'primeng/api';
 import { ButtonModule } from 'primeng/button';
@@ -34,6 +33,7 @@ import {
   IBroadcastReader,
 } from '../../../types/broadcast.model';
 import { IMail, IMessageParams } from '../../../types/message.model';
+import { SubscriptionDestroyer } from '../../../shared/core/helper/SubscriptionDestroyer.helper';
 
 type MailSidebarKey = 'inbox' | 'broadcasts';
 
@@ -63,14 +63,16 @@ type MailSidebarKey = 'inbox' | 'broadcasts';
   providers: [MessageService, ConfirmationService],
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
-export class MessagesAdminViewComponent implements OnInit, OnDestroy {
+export class MessagesAdminViewComponent
+  extends SubscriptionDestroyer
+  implements OnInit
+{
   private readonly messageApi = inject(_MessageService);
   private readonly broadcastApi = inject(_BroadcastService);
   private readonly toast = inject(MessageService);
   private readonly router = inject(Router);
   private readonly cdr = inject(ChangeDetectorRef);
   private readonly confirmationService = inject(ConfirmationService);
-  private readonly destroy$ = new Subject<void>();
 
   mails: IMail[] = [];
   broadcasts: IBroadcastItem[] = [];
@@ -112,11 +114,6 @@ export class MessagesAdminViewComponent implements OnInit, OnDestroy {
     this.startAutoRefresh();
   }
 
-  ngOnDestroy(): void {
-    this.destroy$.next();
-    this.destroy$.complete();
-  }
-
   get totalCount(): number {
     return this.selectedMenu === 'broadcasts'
       ? this.broadcastTotalCount
@@ -124,11 +121,10 @@ export class MessagesAdminViewComponent implements OnInit, OnDestroy {
   }
 
   private startAutoRefresh(): void {
-    interval(5 * 60 * 1000)
-      .pipe(takeUntil(this.destroy$))
-      .subscribe(() => {
-        this.refreshCurrentMenu(true);
-      });
+    const obs = interval(5 * 60 * 1000).subscribe(() => {
+      this.refreshCurrentMenu(true);
+    });
+    this.AddSubscription(obs);
   }
 
   refreshCurrentMenu(silent = false): void {
@@ -192,12 +188,15 @@ export class MessagesAdminViewComponent implements OnInit, OnDestroy {
       this.cdr.markForCheck();
     }
 
-    this.messageApi
+    // this.messagesLoadSub?.unsubscribe();
+
+    const obs = this.messageApi
       .getMessageCriteria({
         ...this.params,
         keyword: this.selectedMenu === 'inbox' ? this.keyword.trim() : '',
       })
       .pipe(
+        timeout(20000),
         finalize(() => {
           this.loadingMessages = false;
           this.lastRefreshedAt = new Date();
@@ -218,6 +217,7 @@ export class MessagesAdminViewComponent implements OnInit, OnDestroy {
           });
         },
       });
+    this.AddSubscription(obs);
   }
 
   loadBroadcasts(silent = false): void {
@@ -226,13 +226,16 @@ export class MessagesAdminViewComponent implements OnInit, OnDestroy {
       this.cdr.markForCheck();
     }
 
-    this.broadcastApi
+    // this.broadcastsLoadSub?.unsubscribe();
+
+    const obs = this.broadcastApi
       .getBroadcasts({
         keyword: this.selectedMenu === 'broadcasts' ? this.keyword.trim() : '',
         pageNumber: this.params.pageNumber ?? 1,
         pageSize: this.params.pageSize ?? 10,
       })
       .pipe(
+        timeout(20000),
         finalize(() => {
           this.loadingBroadcasts = false;
           this.lastRefreshedAt = new Date();
@@ -253,6 +256,7 @@ export class MessagesAdminViewComponent implements OnInit, OnDestroy {
           });
         },
       });
+    this.AddSubscription(obs);
   }
 
   onSearch(): void {
@@ -307,6 +311,10 @@ export class MessagesAdminViewComponent implements OnInit, OnDestroy {
 
   goToCreateBroadcast(): void {
     this.router.navigate(['/admin/messages/broadcasts/create']);
+  }
+
+  openBroadcast(item: IBroadcastItem): void {
+    this.router.navigate(['/admin/messages/broadcasts', item.id, 'view']);
   }
 
   editBroadcast(item: IBroadcastItem, event?: Event): void {

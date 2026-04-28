@@ -21,29 +21,10 @@
   }
 }
 
-:host ::ng-deep .reply-display-editor {
-  border: none !important;
-  box-shadow: none !important;
-}
-
-:host ::ng-deep .reply-display-editor .ql-toolbar {
-  display: none !important;
-}
-
-:host ::ng-deep .reply-display-editor .p-editor {
-  border: none !important;
-  box-shadow: none !important;
-}
-
-:host ::ng-deep .reply-display-editor .p-editor-content {
-  border: none !important;
-}
-
-:host ::ng-deep .reply-display-editor .ql-container,
-:host ::ng-deep .reply-display-editor .ql-container.ql-snow {
-  border: none !important;
-}
-
-:host ::ng-deep .reply-display-editor .ql-editor {
-  padding: 0 !important;
+:host ::ng-deep .content-html-view,
+:host ::ng-deep .content-html-view * {
+  white-space: normal !important;
+  overflow-wrap: anywhere;
+  word-break: break-word;
+  max-width: 100%;
 }

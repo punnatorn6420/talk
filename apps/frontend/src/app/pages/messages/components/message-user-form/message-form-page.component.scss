@@ -1,0 +1,7 @@
+:host ::ng-deep .content-html-view,
+:host ::ng-deep .content-html-view * {
+  white-space: normal !important;
+  overflow-wrap: anywhere;
+  word-break: break-word;
+  max-width: 100%;
+}

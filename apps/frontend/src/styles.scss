@@ -21,3 +21,13 @@ body {
 .text-theme {
   color: var(--primary-color);
 }
+
+.responsive-confirm-dialog {
+  width: 90vw !important;
+}
+
+@media (min-width: 1024px) {
+  .responsive-confirm-dialog {
+    width: 520px !important;
+  }
+}

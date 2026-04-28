@@ -20,6 +20,7 @@ import { _MessageService } from '../../../service/message.service';
 import { IMail, IMessageAttachment } from '../../../types/message.model';
 import { CardModule } from 'primeng/card';
 import { DateTimePipe } from '../../../shared/core/pipes/date-time.pipe';
+import { SubscriptionDestroyer } from '../../../shared/core/helper/SubscriptionDestroyer.helper';
 // import { _AttachmentService } from '../../../service/attachment.service';
 
 @Component({
@@ -42,7 +43,10 @@ import { DateTimePipe } from '../../../shared/core/pipes/date-time.pipe';
   providers: [MessageService],
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
-export class MessageAdminDetailComponent implements OnInit {
+export class MessageAdminDetailComponent
+  extends SubscriptionDestroyer
+  implements OnInit
+{
   private readonly route = inject(ActivatedRoute);
   private readonly messageApi = inject(_MessageService);
   // private readonly attachmentApi = inject(_AttachmentService);
@@ -74,7 +78,7 @@ export class MessageAdminDetailComponent implements OnInit {
 
   loadMail(id: string): void {
     this.loading = true;
-    this.messageApi
+    const obs = this.messageApi
       .getMessageThreadById(id)
       .pipe(
         finalize(() => {
@@ -97,12 +101,12 @@ export class MessageAdminDetailComponent implements OnInit {
             return;
           }
 
-          this.messageApi.putReadMessageThread(id).subscribe({
+          const readObs = this.messageApi.putReadMessageThread(id).subscribe({
             error: () => {
               // ignore read error silently
             },
           });
-
+          this.AddSubscription(readObs);
           this.cdr.markForCheck();
         },
         error: () => {
@@ -114,6 +118,7 @@ export class MessageAdminDetailComponent implements OnInit {
           this.cdr.markForCheck();
         },
       });
+    this.AddSubscription(obs);
   }
 
   goBack(): void {
@@ -159,17 +164,6 @@ export class MessageAdminDetailComponent implements OnInit {
     this.cdr.markForCheck();
   }
 
-  private buildReplyFormData(): FormData {
-    const formData = new FormData();
-    formData.append('reply', this.replyText?.trim() || '');
-
-    this.pendingReplyFiles.forEach((file) => {
-      formData.append('attachments', file, file.name);
-    });
-
-    return formData;
-  }
-
   sendReply(): void {
     if (!this.mail?.id) return;
 
@@ -210,7 +204,7 @@ export class MessageAdminDetailComponent implements OnInit {
       formData.append('attachments', file, file.name);
     });
 
-    this.messageApi
+    const obs = this.messageApi
       .putReplyMessageThread(String(this.mail.id), formData)
       .pipe(
         finalize(() => {
@@ -250,6 +244,7 @@ export class MessageAdminDetailComponent implements OnInit {
           this.cdr.markForCheck();
         },
       });
+    this.AddSubscription(obs);
   }
 
   getSenderName(): string {
@@ -311,18 +306,10 @@ export class MessageAdminDetailComponent implements OnInit {
     return this.getOriginalAttachments().length > 0;
   }
 
-  // getReplyAttachments(): IMessageAttachment[] {
-  //   return this.mail?.replyAttachments ?? [];
-  // }
-
-  // hasReplyAttachments(): boolean {
-  //   return this.getReplyAttachments().length > 0;
-  // }
-
   downloadAttachment(attachment: IMessageAttachment): void {
     if (!this.mail?.id || !attachment?.id) return;
 
-    this.messageApi
+    const obs = this.messageApi
       .downloadMessageAttachment(this.mail.id, attachment.id)
       .subscribe({
         next: (blob) => {
@@ -342,5 +329,6 @@ export class MessageAdminDetailComponent implements OnInit {
           this.cdr.markForCheck();
         },
       });
+    this.AddSubscription(obs);
   }
 }

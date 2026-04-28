@@ -1,50 +1,48 @@
 <p-toast></p-toast>
 
-<p-card class="min-h-screen bg-slate-50">
+<div class="min-h-screen bg-slate-50">
   @if (loading) {
     <div class="flex min-h-screen items-center justify-center">
-      <p-progressSpinner strokeWidth="4" class="w-12 h-12"></p-progressSpinner>
+      <p-progressSpinner strokeWidth="4" class="h-12 w-12"></p-progressSpinner>
     </div>
   } @else if (mail) {
     <div class="mx-auto">
-      <div
-        class="flex items-start justify-between gap-4 border-b border-slate-200 px-4 py-6"
-      >
-        <div class="flex min-w-0 items-start gap-4">
-          <button
-            aria-label="Go Back"
-            pButton
-            type="button"
-            icon="pi pi-arrow-left"
-            class="shrink-0 !rounded-md p-button-text"
-            (click)="goBack()"
-          ></button>
-          <div class="min-w-0">
-            <div class="flex flex-wrap items-center gap-3">
+      <div class="border-b border-slate-200 bg-white px-4 py-4 md:px-6">
+        <div class="flex items-start justify-between gap-4">
+          <div class="flex min-w-0 items-start gap-3">
+            <button
+              aria-label="Go Back"
+              pButton
+              type="button"
+              icon="pi pi-arrow-left"
+              class="p-button-text p-button-sm"
+              (click)="goBack()"
+            ></button>
+            <div class="min-w-0">
               <h1 class="text-2xl font-semibold text-slate-900">
                 {{ mail.subject }}
               </h1>
+              <p class="mt-1 text-sm text-slate-500">
+                {{ mail.reply ? '2 messages' : '1 message' }}
+              </p>
             </div>
-            <p class="mt-1 text-sm text-slate-500">
-              {{ mail.reply ? '2 messages' : '1 message' }}
-            </p>
           </div>
+          <span
+            class="inline-flex items-center rounded-md px-4 py-2 text-xs font-semibold"
+            [ngClass]="
+              isReplied()
+                ? 'bg-emerald-100 text-emerald-700'
+                : 'bg-blue-100 text-blue-700'
+            "
+          >
+            {{ isReplied() ? 'Replied' : 'Read' }}
+          </span>
         </div>
-        <span
-          class="inline-flex items-center rounded-md px-4 py-2 text-xs font-semibold"
-          [ngClass]="
-            isReplied()
-              ? 'bg-emerald-100 text-emerald-700'
-              : 'bg-blue-100 text-blue-700'
-          "
-        >
-          {{ isReplied() ? 'Replied' : 'Read' }}
-        </span>
       </div>
 
-      <div class="px-4">
+      <div class="space-y-5 p-4 md:p-6">
         <div
-          class="mt-5 overflow-hidden rounded-lg border border-slate-200 bg-white"
+          class="overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm"
         >
           <div
             class="flex flex-col justify-between gap-4 border-b border-slate-200 px-5 py-5 md:flex-row md:items-start"
@@ -58,12 +56,12 @@
 
               <div class="min-w-0">
                 <div class="flex flex-wrap items-center gap-2">
-                  <h2 class="text-xl font-semibold text-slate-900">
+                  <h2 class="text-sm font-semibold text-slate-900">
                     {{ getSenderName() }}
                   </h2>
-                  <span class="truncate text-base text-slate-500">
-                    &lt;{{ getSenderEmail() }}&gt;
-                  </span>
+                  <span class="truncate text-sm text-slate-500"
+                    >&lt;{{ getSenderEmail() }}&gt;</span
+                  >
                 </div>
               </div>
             </div>
@@ -73,12 +71,11 @@
             </div>
           </div>
 
-          <div class="px-5 py-8">
-            <p-editor
-              [ngModel]="bodyDisplayValue"
-              [readonly]="true"
-              class="reply-display-editor"
-            ></p-editor>
+          <div class="px-5 py-6">
+            <div
+              class="content-html-view text-sm leading-6 text-slate-800"
+              [innerHTML]="bodyDisplayValue"
+            ></div>
 
             @if (hasOriginalAttachments()) {
               <div class="mt-6 border-t border-slate-200 pt-4">
@@ -88,19 +85,33 @@
 
                 <div class="space-y-2">
                   @for (file of getOriginalAttachments(); track file.id) {
-                    <button
-                      type="button"
-                      class="flex w-full items-center justify-between rounded-lg border border-slate-200 px-3 py-2 text-left text-sm text-slate-700 transition hover:bg-slate-50"
-                      (click)="downloadAttachment(file)"
+                    <div
+                      class="flex items-center justify-between gap-3 rounded-xl border border-slate-200 bg-white px-3 py-2 transition hover:bg-slate-50"
                     >
-                      <div class="min-w-0">
-                        <div class="truncate font-medium">
-                          {{ file.fileName }}
-                        </div>
-                      </div>
+                      <button
+                        aria-label="Download user attachment"
+                        type="button"
+                        class="flex min-w-0 flex-1 items-center text-left"
+                        (click)="downloadAttachment(file)"
+                      >
+                        <i
+                          class="pi pi-paperclip mr-2 shrink-0 text-slate-400"
+                        ></i>
+                        <span
+                          class="truncate text-sm font-medium text-slate-800"
+                          >{{ file.fileName }}</span
+                        >
+                      </button>
 
-                      <i class="pi pi-download text-slate-400"></i>
-                    </button>
+                      <button
+                        aria-label="Download user attachment"
+                        pButton
+                        type="button"
+                        icon="pi pi-download"
+                        class="p-button-text p-button-sm"
+                        (click)="downloadAttachment(file)"
+                      ></button>
+                    </div>
                   }
                 </div>
               </div>
@@ -110,27 +121,17 @@
 
         @if (mail.reply) {
           <div
-            class="mt-5 overflow-hidden rounded-lg border border-slate-200 bg-white"
+            class="overflow-hidden rounded-2xl border border-emerald-200 bg-white shadow-sm"
           >
             <div
-              class="flex flex-col justify-between gap-4 border-b border-slate-200 px-5 py-5 md:flex-row md:items-start"
+              class="flex flex-col justify-between gap-4 border-b border-emerald-100 bg-emerald-50/60 px-5 py-5 md:flex-row md:items-start"
             >
               <div class="flex min-w-0 items-start gap-4">
-                <div
-                  class="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl bg-emerald-100 text-sm font-semibold text-emerald-700"
-                >
-                  AD
-                </div>
-
                 <div class="min-w-0">
                   <div class="flex flex-wrap items-center gap-2">
-                    <h2 class="text-xl font-semibold text-slate-900">
+                    <h2 class="text-sm font-semibold text-slate-900">
                       {{ mail.modifiedBy || 'Admin Reply' }}
                     </h2>
-                  </div>
-
-                  <div class="mt-1 text-sm text-slate-500">
-                    to {{ getSenderName() }}
                   </div>
                 </div>
               </div>
@@ -140,12 +141,11 @@
               </div>
             </div>
 
-            <div class="px-5 py-8">
-              <p-editor
-                [ngModel]="replyDisplayValue"
-                [readonly]="true"
-                class="reply-display-editor"
-              ></p-editor>
+            <div class="px-5 py-6">
+              <div
+                class="content-html-view text-sm leading-6 text-slate-800"
+                [innerHTML]="replyDisplayValue"
+              ></div>
 
               @if (hasReplyAttachments()) {
                 <div class="mt-6 border-t border-slate-200 pt-4">
@@ -155,31 +155,33 @@
 
                   <div class="space-y-2">
                     @for (file of getReplyAttachments(); track $index) {
-                      <!-- <button
-                        type="button"
-                        class="flex items-center justify-between rounded-lg border border-slate-200 px-3 py-2 text-sm text-slate-700 transition hover:bg-slate-50"
-                        (click)="downloadAttachment(file)"
+                      <div
+                        class="flex items-center justify-between gap-3 rounded-xl border border-slate-200 bg-white px-3 py-2 transition hover:bg-slate-50"
                       >
-                        <div class="min-w-0">
-                          <div class="truncate font-medium">
-                            {{ getAttachmentName(file) }}
-                          </div>
-                        </div>
-                        <i class="pi pi-paperclip text-slate-400"></i>
-                      </button> -->
-                      <button
-                        type="button"
-                        class="flex w-full items-center justify-between rounded-lg border border-slate-200 px-3 py-2 text-left text-sm text-slate-700 transition hover:bg-slate-50"
-                        (click)="downloadAttachment(file)"
-                      >
-                        <div class="min-w-0">
-                          <div class="truncate font-medium">
-                            {{ getAttachmentName(file) }}
-                          </div>
-                        </div>
+                        <button
+                          aria-label="Download reply attachment"
+                          type="button"
+                          class="flex min-w-0 flex-1 items-center text-left"
+                          (click)="downloadAttachment(file)"
+                        >
+                          <i
+                            class="pi pi-paperclip mr-2 shrink-0 text-slate-400"
+                          ></i>
+                          <span
+                            class="truncate text-sm font-medium text-slate-800"
+                            >{{ getAttachmentName(file) }}</span
+                          >
+                        </button>
 
-                        <i class="pi pi-download text-slate-400"></i>
-                      </button>
+                        <button
+                          aria-label="Download reply attachment"
+                          pButton
+                          type="button"
+                          icon="pi pi-download"
+                          class="p-button-text p-button-sm"
+                          (click)="downloadAttachment(file)"
+                        ></button>
+                      </div>
                     }
                   </div>
                 </div>
@@ -189,7 +191,9 @@
         }
 
         @if (!isReplied()) {
-          <div class="mt-6">
+          <div
+            class="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm"
+          >
             <p-editor
               [(ngModel)]="replyText"
               [style]="{ height: '260px' }"
@@ -261,39 +265,42 @@
               </ng-template>
             </p-editor>
 
-            <div class="mt-4">
-              <div class="flex items-center gap-3">
-                <p-fileUpload
-                  mode="basic"
-                  name="files[]"
-                  chooseLabel="Attach files"
-                  chooseIcon="pi pi-paperclip"
-                  [multiple]="true"
-                  [customUpload]="true"
-                  [auto]="false"
-                  accept="image/*,.pdf,.doc,.docx,.xls,.xlsx,.txt"
-                  [maxFileSize]="10000000"
-                  (onSelect)="onReplyFilesSelected($event)"
-                ></p-fileUpload>
-              </div>
+            <div class="mt-4 space-y-3">
+              <p-fileUpload
+                mode="basic"
+                name="files[]"
+                chooseLabel="Attach files"
+                chooseIcon="pi pi-paperclip"
+                [multiple]="true"
+                [customUpload]="true"
+                [auto]="false"
+                accept="image/*,.pdf,.doc,.docx,.xls,.xlsx,.txt"
+                [maxFileSize]="10000000"
+                (onSelect)="onReplyFilesSelected($event)"
+              ></p-fileUpload>
 
               @if (pendingReplyFiles.length) {
-                <div class="mt-3 space-y-2">
+                <div class="space-y-2">
                   @for (
                     file of pendingReplyFiles;
                     track file.name + '-' + file.size + '-' + $index
                   ) {
                     <div
-                      class="flex items-center justify-between rounded-md border border-slate-200 bg-white px-3 py-2"
+                      class="flex items-center justify-between gap-3 rounded-xl border border-slate-200 bg-white px-3 py-2"
                     >
-                      <div class="min-w-0">
-                        <div
-                          class="truncate text-sm font-medium text-slate-800"
-                        >
-                          {{ file.name }}
-                        </div>
-                        <div class="mt-0.5 text-xs text-slate-400">
-                          {{ formatFileSize(file.size) }}
+                      <div class="flex min-w-0 flex-1 items-center">
+                        <i
+                          class="pi pi-paperclip mr-2 shrink-0 text-slate-400"
+                        ></i>
+                        <div class="min-w-0">
+                          <div
+                            class="truncate text-sm font-medium text-slate-800"
+                          >
+                            {{ file.name }}
+                          </div>
+                          <div class="mt-0.5 text-xs text-slate-400">
+                            {{ formatFileSize(file.size) }}
+                          </div>
                         </div>
                       </div>
 
@@ -311,13 +318,15 @@
               }
             </div>
 
-            <div class="mt-4 flex justify-end">
+            <div class="mt-4 flex justify-end max-sm:justify-stretch">
               <button
                 aria-label="Send Reply"
                 pButton
                 type="button"
-                icon="pi pi-reply"
+                icon="pi pi-send"
                 label="Send Reply"
+                class="max-sm:w-full"
+                severity="success"
                 [loading]="replying"
                 [disabled]="replying || isReplied()"
                 (click)="sendReply()"
@@ -326,7 +335,7 @@
           </div>
         } @else {
           <div
-            class="mt-6 rounded-lg border border-emerald-200 bg-emerald-50 px-5 py-4"
+            class="rounded-xl border border-emerald-200 bg-emerald-50 px-5 py-4"
           >
             <div class="flex items-start gap-3">
               <i class="pi pi-check-circle mt-1 text-emerald-600"></i>
@@ -345,4 +354,4 @@
       </div>
     </div>
   }
-</p-card>
+</div>
