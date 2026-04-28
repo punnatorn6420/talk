@@ -7,7 +7,7 @@ import {
   inject,
 } from '@angular/core';
 import { FormsModule } from '@angular/forms';
-import { ActivatedRoute, Router } from '@angular/router';
+import { ActivatedRoute } from '@angular/router';
 import { finalize } from 'rxjs';
 
 import { ConfirmationService, MessageService } from 'primeng/api';
@@ -28,6 +28,7 @@ import { FileSelectEvent, FileUploadModule } from 'primeng/fileupload';
 import { SelectButtonModule } from 'primeng/selectbutton';
 import { DatePickerModule } from 'primeng/datepicker';
 import { Popover, PopoverModule } from 'primeng/popover';
+import { SubscriptionDestroyer } from '../../../../shared/core/helper/SubscriptionDestroyer.helper';
 
 @Component({
   selector: 'app-broadcast-admin-form-edit',
@@ -52,12 +53,14 @@ import { Popover, PopoverModule } from 'primeng/popover';
   providers: [MessageService, ConfirmationService],
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
-export class BroadcastAdminFormEditComponent implements OnInit {
+export class BroadcastAdminFormEditComponent
+  extends SubscriptionDestroyer
+  implements OnInit
+{
   private readonly broadcastApi = inject(_BroadcastService);
   private readonly toast = inject(MessageService);
   private readonly cdr = inject(ChangeDetectorRef);
   private readonly route = inject(ActivatedRoute);
-  private readonly router = inject(Router);
   private readonly location = inject(Location);
   private readonly confirmationService = inject(ConfirmationService);
 
@@ -211,7 +214,7 @@ export class BroadcastAdminFormEditComponent implements OnInit {
   private loadBroadcastDetail(): void {
     this.loadingDetail = true;
 
-    this.broadcastApi
+    const obs = this.broadcastApi
       .getBroadcastById(this.broadcastId)
       .pipe(
         finalize(() => {
@@ -242,11 +245,18 @@ export class BroadcastAdminFormEditComponent implements OnInit {
             this.form.expireDisplayAt,
           );
 
-          this.customExpireDate =
+          if (
             this.selectedDisplayDuration === 'custom' &&
+            this.form.startDisplayAt &&
             this.form.expireDisplayAt
-              ? new Date(this.form.expireDisplayAt)
-              : null;
+          ) {
+            this.customDisplayDateRange = [
+              new Date(this.form.startDisplayAt),
+              new Date(this.form.expireDisplayAt),
+            ];
+          } else {
+            this.customDisplayDateRange = null;
+          }
 
           this.existingAttachments = [...(item.attachments ?? [])];
           this.pendingFiles = [];
@@ -259,6 +269,7 @@ export class BroadcastAdminFormEditComponent implements OnInit {
           });
         },
       });
+    this.AddSubscription(obs);
   }
 
   private getDurationPresetFromDates(
@@ -321,7 +332,7 @@ export class BroadcastAdminFormEditComponent implements OnInit {
 
     this.saving = true;
 
-    this.broadcastApi
+    const obs = this.broadcastApi
       .updateBroadcast(
         this.broadcastId,
         this.buildPayload('Draft'),
@@ -331,7 +342,6 @@ export class BroadcastAdminFormEditComponent implements OnInit {
         finalize(() => {
           this.saving = false;
           this.cdr.markForCheck();
-          this.goBack();
         }),
       )
       .subscribe({
@@ -341,7 +351,7 @@ export class BroadcastAdminFormEditComponent implements OnInit {
             summary: 'Updated',
             detail: 'Broadcast updated successfully.',
           });
-          this.loadBroadcastDetail();
+          this.goBack();
         },
         error: () => {
           this.toast.add({
@@ -351,6 +361,7 @@ export class BroadcastAdminFormEditComponent implements OnInit {
           });
         },
       });
+    this.AddSubscription(obs);
   }
 
   confirmSend(): void {
@@ -367,7 +378,7 @@ export class BroadcastAdminFormEditComponent implements OnInit {
       accept: () => {
         this.sending = true;
 
-        this.broadcastApi
+        const obs = this.broadcastApi
           .updateBroadcast(
             this.broadcastId,
             this.buildPayload('Sent'),
@@ -396,39 +407,78 @@ export class BroadcastAdminFormEditComponent implements OnInit {
               });
             },
           });
+        this.AddSubscription(obs);
       },
     });
   }
 
-  customExpireDate: Date | null = null;
-  minCustomExpireDate: Date = this.getTomorrow();
+  customDisplayDateRange: Date[] | null = null;
+  minCustomDisplayDate: Date = this.getToday();
 
   selectedDisplayDuration: '7d' | '1m' | 'forever' | 'custom' = '7d';
 
-  private getTomorrow(): Date {
-    const tomorrow = new Date();
-    tomorrow.setDate(tomorrow.getDate() + 1);
-    tomorrow.setHours(0, 0, 0, 0);
-    return tomorrow;
+  private getToday(): Date {
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    return today;
   }
 
   get displayDurationLabel(): string {
     switch (this.selectedDisplayDuration) {
       case '7d':
-        return 'Display: 7 Days';
+        return this.formatDisplayRangeLabel(
+          this.form.startDisplayAt,
+          this.form.expireDisplayAt,
+          'Display: 7 Days',
+        );
+
       case '1m':
-        return 'Display: 1 Month';
+        return this.formatDisplayRangeLabel(
+          this.form.startDisplayAt,
+          this.form.expireDisplayAt,
+          'Display: 1 Month',
+        );
+
       case 'forever':
         return 'Display: Forever';
+
       case 'custom': {
-        const displayDate =
-          this.formatDisplayDate(this.customExpireDate) ||
-          this.formatDisplayDate(this.form.expireDisplayAt);
-        return displayDate ? `Expire: ${displayDate}` : 'Select expire date';
+        const start =
+          this.customDisplayDateRange?.[0] ?? this.form.startDisplayAt;
+        const end =
+          this.customDisplayDateRange?.[1] ?? this.form.expireDisplayAt;
+
+        const rangeLabel = this.formatDateRange(start, end);
+
+        return rangeLabel
+          ? `Display: ${rangeLabel}`
+          : 'Select display date range';
       }
+
       default:
         return 'Select duration';
     }
+  }
+
+  private formatDisplayRangeLabel(
+    start: Date | string | null | undefined,
+    end: Date | string | null | undefined,
+    fallback: string,
+  ): string {
+    const rangeLabel = this.formatDateRange(start, end);
+    return rangeLabel ? `${fallback} (${rangeLabel})` : fallback;
+  }
+
+  private formatDateRange(
+    start: Date | string | null | undefined,
+    end: Date | string | null | undefined,
+  ): string {
+    const startLabel = this.formatDisplayDate(start);
+    const endLabel = this.formatDisplayDate(end);
+
+    if (!startLabel || !endLabel) return '';
+
+    return `${startLabel} - ${endLabel}`;
   }
 
   private formatDisplayDate(date: Date | string | null | undefined): string {
@@ -450,7 +500,7 @@ export class BroadcastAdminFormEditComponent implements OnInit {
     popover?: Popover,
   ): void {
     this.selectedDisplayDuration = value;
-    this.customExpireDate = null;
+    this.customDisplayDateRange = null;
 
     const now = new Date();
     const expire = new Date(now);
@@ -474,14 +524,18 @@ export class BroadcastAdminFormEditComponent implements OnInit {
     this.cdr.markForCheck();
   }
 
-  selectCustomExpireDate(popover?: Popover): void {
-    if (!this.customExpireDate) return;
+  selectCustomDisplayDateRange(popover?: Popover): void {
+    const startDate = this.customDisplayDateRange?.[0];
+    const expireDate = this.customDisplayDateRange?.[1];
 
-    const now = new Date();
+    if (!startDate || !expireDate) {
+      return;
+    }
 
     this.selectedDisplayDuration = 'custom';
-    this.form.startDisplayAt = this.toApiDateTime(now);
-    this.form.expireDisplayAt = this.toApiDateTime(this.customExpireDate);
+
+    this.form.startDisplayAt = this.toApiDateTime(startDate);
+    this.form.expireDisplayAt = this.toApiDateTime(expireDate);
 
     popover?.hide();
     this.cdr.markForCheck();
