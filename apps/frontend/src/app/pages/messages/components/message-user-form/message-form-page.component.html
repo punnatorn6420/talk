@@ -3,7 +3,7 @@
 <div class="min-h-screen bg-slate-50">
   <div class="border-b border-slate-200 bg-white">
     <div
-      class="mx-auto flex flex-col gap-4 px-6 py-4 md:flex-row md:items-center md:justify-between"
+      class="mx-auto flex flex-col gap-4 px-4 py-4 md:flex-row md:items-center md:justify-between md:px-6"
     >
       <div class="flex items-center gap-3">
         <button
@@ -23,7 +23,7 @@
     </div>
   </div>
 
-  <div class="mx-auto px-6 py-6">
+  <div class="mx-auto px-4 py-4 md:px-6 md:py-6">
     <div class="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm">
       @if (loading) {
         <div class="py-16 text-center text-slate-500">Loading...</div>
@@ -123,8 +123,8 @@
 
           <div class="space-y-4">
             @if (!isReadonly) {
-              <div class="flex items-center gap-3">
-                <p-fileUpload
+            <div class="flex items-center gap-3 max-sm:flex-col max-sm:items-stretch">
+              <p-fileUpload
                   mode="basic"
                   name="files[]"
                   chooseLabel="Attach files"
@@ -292,13 +292,13 @@
           }
 
           @if (!isReadonly) {
-            <div class="flex justify-end gap-2 border-t border-slate-200 pt-4">
+            <div class="flex justify-end gap-2 border-t border-slate-200 pt-4 max-sm:flex-col">
               <button
                 aria-label="Cancel and go back"
                 pButton
                 type="button"
                 label="Cancel"
-                class="p-button-text"
+                class="p-button-text max-sm:w-full"
                 (click)="goBack()"
               ></button>
 
@@ -308,6 +308,7 @@
                 type="button"
                 [label]="pageMode === 'edit' ? 'Update Draft' : 'Save Draft'"
                 icon="pi pi-save"
+                class="max-sm:w-full"
                 [loading]="saving"
                 (click)="submit()"
               ></button>
