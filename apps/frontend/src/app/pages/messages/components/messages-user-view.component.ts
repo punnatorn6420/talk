@@ -8,7 +8,7 @@ import {
 } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { finalize } from 'rxjs';
-import { Router } from '@angular/router';
+import { ActivatedRoute, Router } from '@angular/router';
 
 import { ConfirmationService, MessageService } from 'primeng/api';
 import { ButtonModule } from 'primeng/button';
@@ -63,6 +63,7 @@ export class MessagesUserViewComponent
   private readonly toast = inject(MessageService);
   private readonly cdr = inject(ChangeDetectorRef);
   private readonly router = inject(Router);
+  private readonly route = inject(ActivatedRoute);
   private readonly confirmationService = inject(ConfirmationService);
 
   selectedMenu: InboxMenu = 'messages';
@@ -107,8 +108,16 @@ export class MessagesUserViewComponent
   };
 
   ngOnInit(): void {
+    this.selectedMenu = this.resolveMenuFromQuery(
+      this.route.snapshot.queryParamMap.get('menu'),
+    );
+
     this.loadMessages();
     this.loadBroadcasts();
+  }
+
+  private resolveMenuFromQuery(menu: string | null): InboxMenu {
+    return menu === 'broadcasts' ? 'broadcasts' : 'messages';
   }
 
   get keyword(): string {
@@ -143,12 +152,16 @@ export class MessagesUserViewComponent
   }
 
   goToCreateMessage(): void {
-    this.router.navigate(['/admin/messages/create']);
+    this.router.navigate(['/admin/messages/create'], {
+      queryParams: { menu: 'messages' },
+    });
   }
 
   editMail(mail: IMail, event?: Event): void {
     event?.stopPropagation();
-    this.router.navigate(['/admin/messages', mail.id, 'edit']);
+    this.router.navigate(['/admin/messages', mail.id, 'edit'], {
+      queryParams: { menu: 'messages' },
+    });
   }
 
   loadMessages(showToast = false): void {
@@ -507,10 +520,14 @@ export class MessagesUserViewComponent
   }
 
   openBroadcast(item: IBroadcastItem): void {
-    this.router.navigate(['/admin/messages/broadcasts', item.id, 'view']);
+    this.router.navigate(['/admin/messages/broadcasts', item.id, 'view'], {
+      queryParams: { menu: 'broadcasts' },
+    });
   }
 
   openMessage(item: IMail): void {
-    this.router.navigate(['/admin/messages', item.id, 'view']);
+    this.router.navigate(['/admin/messages', item.id, 'view'], {
+      queryParams: { menu: 'messages' },
+    });
   }
 }

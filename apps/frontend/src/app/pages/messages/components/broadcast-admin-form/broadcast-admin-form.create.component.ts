@@ -1,4 +1,4 @@
-import { CommonModule, Location } from '@angular/common';
+import { CommonModule } from '@angular/common';
 import {
   ChangeDetectionStrategy,
   ChangeDetectorRef,
@@ -6,7 +6,7 @@ import {
   inject,
 } from '@angular/core';
 import { FormsModule } from '@angular/forms';
-import { Router } from '@angular/router';
+import { ActivatedRoute, Router } from '@angular/router';
 import { finalize } from 'rxjs';
 
 import { ConfirmationService, MessageService } from 'primeng/api';
@@ -57,7 +57,7 @@ export class BroadcastAdminFormCreateComponent extends SubscriptionDestroyer {
   private readonly toast = inject(MessageService);
   private readonly cdr = inject(ChangeDetectorRef);
   private readonly router = inject(Router);
-  private readonly location = inject(Location);
+  private readonly route = inject(ActivatedRoute);
 
   readonly pageTitle = 'Create Broadcast';
   readonly pageSubtitle = 'Create a new CEO broadcast draft';
@@ -101,7 +101,13 @@ export class BroadcastAdminFormCreateComponent extends SubscriptionDestroyer {
   }
 
   goBack(): void {
-    this.location.back();
+    this.router.navigate(['/admin/messages'], {
+      queryParams: { menu: this.returnMenu },
+    });
+  }
+
+  private get returnMenu(): string {
+    return this.route.snapshot.queryParamMap.get('menu') || 'broadcasts';
   }
 
   onFilesSelected(event: FileSelectEvent): void {
@@ -201,7 +207,7 @@ export class BroadcastAdminFormCreateComponent extends SubscriptionDestroyer {
             detail: 'Broadcast draft created successfully.',
           });
           this.router.navigate(['/admin/messages'], {
-            queryParams: { menu: 'sent' },
+            queryParams: { menu: this.returnMenu },
           });
         },
         error: () => {

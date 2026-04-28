@@ -7,7 +7,7 @@ import {
   inject,
 } from '@angular/core';
 import { FormsModule } from '@angular/forms';
-import { Router } from '@angular/router';
+import { ActivatedRoute, Router } from '@angular/router';
 import { finalize, interval, timeout } from 'rxjs';
 
 import { ConfirmationService, MessageService } from 'primeng/api';
@@ -71,6 +71,7 @@ export class MessagesAdminViewComponent
   private readonly broadcastApi = inject(_BroadcastService);
   private readonly toast = inject(MessageService);
   private readonly router = inject(Router);
+  private readonly route = inject(ActivatedRoute);
   private readonly cdr = inject(ChangeDetectorRef);
   private readonly confirmationService = inject(ConfirmationService);
 
@@ -109,9 +110,22 @@ export class MessagesAdminViewComponent
   selectedReadersBroadcast: IBroadcastItem | null = null;
 
   ngOnInit(): void {
-    this.loadMessages();
+    this.selectedMenu = this.resolveMenuFromQuery(
+      this.route.snapshot.queryParamMap.get('menu'),
+    );
+
+    if (this.selectedMenu === 'broadcasts') {
+      this.loadBroadcasts();
+    } else {
+      this.loadMessages();
+    }
+
     this.loadBroadcastCounts();
     this.startAutoRefresh();
+  }
+
+  private resolveMenuFromQuery(menu: string | null): MailSidebarKey {
+    return menu === 'broadcasts' ? 'broadcasts' : 'inbox';
   }
 
   get totalCount(): number {
@@ -306,11 +320,21 @@ export class MessagesAdminViewComponent
   }
 
   openMail(mail: IMail): void {
-    this.router.navigate(['/admin/messages', mail.id]);
+    this.router.navigate(['/admin/messages', mail.id], {
+      queryParams: { menu: 'inbox' },
+    });
   }
 
   goToCreateBroadcast(): void {
-    this.router.navigate(['/admin/messages/broadcasts/create']);
+    this.router.navigate(['/admin/messages/broadcasts/create'], {
+      queryParams: { menu: 'broadcasts' },
+    });
+  }
+
+  openBroadcast(item: IBroadcastItem): void {
+    this.router.navigate(['/admin/messages/broadcasts', item.id, 'view'], {
+      queryParams: { menu: 'broadcasts' },
+    });
   }
 
   openBroadcast(item: IBroadcastItem): void {
@@ -322,7 +346,9 @@ export class MessagesAdminViewComponent
 
     if (this.isBroadcastSent(item)) return;
 
-    this.router.navigate(['/admin/messages/broadcasts', item.id, 'edit']);
+    this.router.navigate(['/admin/messages/broadcasts', item.id, 'edit'], {
+      queryParams: { menu: 'broadcasts' },
+    });
   }
 
   sendBroadcastItem(item: IBroadcastItem, event?: Event): void {
