@@ -30,7 +30,10 @@
       } @else {
         <form [formGroup]="form" class="space-y-6">
           <div>
-            <label htmlFor="subject" class="mb-2 block text-sm font-medium text-slate-700">
+            <label
+              htmlFor="subject"
+              class="mb-2 block text-sm font-medium text-slate-700"
+            >
               Subject
             </label>
 
@@ -43,13 +46,22 @@
               [readonly]="isReadonly"
             />
 
-            @if (!isReadonly && form.controls.subject.touched && form.controls.subject.invalid) {
-              <small class="mt-1 block text-xs text-red-500"> Subject is required </small>
+            @if (
+              !isReadonly &&
+              form.controls.subject.touched &&
+              form.controls.subject.invalid
+            ) {
+              <small class="mt-1 block text-xs text-red-500">
+                Subject is required
+              </small>
             }
           </div>
 
           <div>
-            <label htmlFor="detail" class="mb-2 block text-sm font-medium text-slate-700">
+            <label
+              htmlFor="detail"
+              class="mb-2 block text-sm font-medium text-slate-700"
+            >
               Message
             </label>
 
@@ -75,8 +87,16 @@
                   </span>
 
                   <span class="ql-formats">
-                    <button type="button" class="ql-bold" aria-label="Bold"></button>
-                    <button type="button" class="ql-italic" aria-label="Italic"></button>
+                    <button
+                      type="button"
+                      class="ql-bold"
+                      aria-label="Bold"
+                    ></button>
+                    <button
+                      type="button"
+                      class="ql-italic"
+                      aria-label="Italic"
+                    ></button>
                     <button
                       type="button"
                       class="ql-underline"
@@ -86,7 +106,10 @@
 
                   <span class="ql-formats">
                     <select class="ql-color" aria-label="Text Color"></select>
-                    <select class="ql-background" aria-label="Background Color"></select>
+                    <select
+                      class="ql-background"
+                      aria-label="Background Color"
+                    ></select>
                   </span>
 
                   <span class="ql-formats">
@@ -105,7 +128,11 @@
                   </span>
 
                   <span class="ql-formats">
-                    <button type="button" class="ql-link" aria-label="Insert Link"></button>
+                    <button
+                      type="button"
+                      class="ql-link"
+                      aria-label="Insert Link"
+                    ></button>
                     <button
                       type="button"
                       class="ql-clean"
@@ -116,15 +143,23 @@
               </p-editor>
             }
 
-            @if (!isReadonly && form.controls.detail.touched && form.controls.detail.invalid) {
-              <small class="mt-1 block text-xs text-red-500"> Message is required </small>
+            @if (
+              !isReadonly &&
+              form.controls.detail.touched &&
+              form.controls.detail.invalid
+            ) {
+              <small class="mt-1 block text-xs text-red-500">
+                Message is required
+              </small>
             }
           </div>
 
           <div class="space-y-4">
             @if (!isReadonly) {
-            <div class="flex items-center gap-3 max-sm:flex-col max-sm:items-stretch">
-              <p-fileUpload
+              <div
+                class="flex items-center gap-3 max-sm:flex-col max-sm:items-stretch"
+              >
+                <p-fileUpload
                   mode="basic"
                   name="files[]"
                   chooseLabel="Attach files"
@@ -141,9 +176,15 @@
 
             @if (existingAttachments.length) {
               <div class="space-y-2">
-                <div class="text-sm font-semibold text-slate-800">Attachments</div>
+                <div class="text-sm font-semibold text-slate-800">
+                  Attachments
+                </div>
 
-                @for (file of existingAttachments; track file.id; let i = $index) {
+                @for (
+                  file of existingAttachments;
+                  track file.id;
+                  let i = $index
+                ) {
                   <div
                     class="flex items-center justify-between gap-3 rounded-xl border border-slate-200 bg-white px-3 py-2 transition hover:bg-slate-50"
                   >
@@ -153,10 +194,13 @@
                       class="flex min-w-0 flex-1 items-center text-left"
                       (click)="downloadUserAttachment(file)"
                     >
-                      <i class="pi pi-paperclip mr-2 shrink-0 text-slate-400"></i>
-                      <span class="truncate text-sm font-medium text-slate-800">{{
-                        file.fileName
-                      }}</span>
+                      <i
+                        class="pi pi-paperclip mr-2 shrink-0 text-slate-400"
+                      ></i>
+                      <span
+                        class="truncate text-sm font-medium text-slate-800"
+                        >{{ file.fileName }}</span
+                      >
                     </button>
 
                     <div class="flex shrink-0 items-center gap-1">
@@ -187,16 +231,25 @@
 
             @if (!isReadonly && pendingFiles.length) {
               <div class="space-y-2">
-                <div class="text-sm font-semibold text-slate-800">New attachments</div>
+                <div class="text-sm font-semibold text-slate-800">
+                  New attachments
+                </div>
 
-                @for (file of pendingFiles; track file.name + '-' + file.size + '-' + $index) {
+                @for (
+                  file of pendingFiles;
+                  track file.name + '-' + file.size + '-' + $index
+                ) {
                   <div
                     class="flex items-center justify-between gap-3 rounded-xl border border-slate-200 bg-white px-3 py-2"
                   >
                     <div class="flex min-w-0 flex-1 items-center">
-                      <i class="pi pi-paperclip mr-2 shrink-0 text-slate-400"></i>
+                      <i
+                        class="pi pi-paperclip mr-2 shrink-0 text-slate-400"
+                      ></i>
                       <div class="min-w-0">
-                        <div class="truncate text-sm font-medium text-slate-800">
+                        <div
+                          class="truncate text-sm font-medium text-slate-800"
+                        >
                           {{ file.name }}
                         </div>
                         <div class="text-xs text-slate-400">
@@ -220,24 +273,18 @@
           </div>
 
           @if (pageMode === 'view' && hasCeoReply) {
-            <div class="overflow-hidden rounded-2xl border border-emerald-200 bg-white shadow-sm">
+            <div
+              class="overflow-hidden rounded-2xl border border-emerald-200 bg-white shadow-sm"
+            >
               <div
                 class="flex flex-col justify-between gap-4 border-b border-emerald-100 bg-emerald-50/60 px-5 py-5 md:flex-row md:items-start"
               >
                 <div class="flex min-w-0 items-start gap-4">
-                  <div
-                    class="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-emerald-100 text-sm font-semibold text-emerald-700"
-                  >
-                    CE
-                  </div>
                   <div class="min-w-0">
                     <div class="flex flex-wrap items-center gap-2">
-                      <h2 class="text-sm font-semibold text-slate-900">{{ displayModifiedBy }}</h2>
-                      <span
-                        class="inline-flex items-center rounded-full bg-emerald-100 px-2.5 py-0.5 text-xs font-semibold text-emerald-700"
-                      >
-                        CEO Reply
-                      </span>
+                      <h2 class="text-sm font-semibold text-slate-900">
+                        {{ displayModifiedBy }}
+                      </h2>
                     </div>
                   </div>
                 </div>
@@ -255,7 +302,9 @@
 
                 @if (ceoAttachments.length) {
                   <div class="mt-6 border-t border-slate-200 pt-4">
-                    <div class="mb-3 text-sm font-semibold text-slate-800">Reply attachments</div>
+                    <div class="mb-3 text-sm font-semibold text-slate-800">
+                      Reply attachments
+                    </div>
 
                     <div class="space-y-2">
                       @for (file of ceoAttachments; track file.id) {
@@ -268,10 +317,13 @@
                             class="flex min-w-0 flex-1 items-center text-left"
                             (click)="downloadCeoAttachment(file)"
                           >
-                            <i class="pi pi-paperclip mr-2 shrink-0 text-slate-400"></i>
-                            <span class="truncate text-sm font-medium text-slate-800">{{
-                              file.fileName
-                            }}</span>
+                            <i
+                              class="pi pi-paperclip mr-2 shrink-0 text-slate-400"
+                            ></i>
+                            <span
+                              class="truncate text-sm font-medium text-slate-800"
+                              >{{ file.fileName }}</span
+                            >
                           </button>
 
                           <button
@@ -292,7 +344,9 @@
           }
 
           @if (!isReadonly) {
-            <div class="flex justify-end gap-2 border-t border-slate-200 pt-4 max-sm:flex-col">
+            <div
+              class="flex justify-end gap-2 border-t border-slate-200 pt-4 max-sm:flex-col"
+            >
               <button
                 aria-label="Cancel and go back"
                 pButton

@@ -46,10 +46,6 @@
 }
 
 @media (max-width: 768px) {
-  :host ::ng-deep .header-row {
-    padding: 0 1rem;
-  }
-
   :host ::ng-deep .header-actions {
     width: 100%;
     flex-direction: column;

@@ -48,6 +48,7 @@ import { SubscriptionDestroyer } from '../../../../shared/core/helper/Subscripti
     DatePickerModule,
   ],
   templateUrl: './broadcast-admin-form.component.html',
+  styleUrl: './broadcast-admin-form.component.scss',
   providers: [MessageService, ConfirmationService],
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
