@@ -13,15 +13,15 @@ export default [
             (m) => m.MessagesEntryComponent,
           ),
       },
-      // {
-      //   path: 'messages',
-      //   loadComponent: () =>
-      //     import('./messages/components/messages-user-view.component').then(
-      //       (m) => m.MessagesUserViewComponent,
-      //     ),
-      // },
       {
-        path: 'new',
+        path: 'create',
+        loadComponent: () =>
+          import(
+            './messages/components/message-user-form/message-form-page.component'
+          ).then((m) => m.MessageFormPageComponent),
+      },
+      {
+        path: ':id/view',
         loadComponent: () =>
           import(
             './messages/components/message-user-form/message-form-page.component'

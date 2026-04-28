@@ -235,13 +235,29 @@ export class BroadcastAdminFormCreateComponent {
         return 'Display: 1 Month';
       case 'forever':
         return 'Display: Forever';
-      case 'custom':
-        return this.customExpireDate
-          ? `Expire: ${this.customExpireDate.toLocaleDateString()}`
-          : 'Custom date';
+      case 'custom': {
+        const displayDate =
+          this.formatDisplayDate(this.customExpireDate) ||
+          this.formatDisplayDate(this.form.expireDisplayAt);
+        return displayDate ? `Expire: ${displayDate}` : 'Select expire date';
+      }
       default:
         return 'Select duration';
     }
+  }
+
+  private formatDisplayDate(date: Date | string | null | undefined): string {
+    if (!date) return '';
+
+    const value = date instanceof Date ? date : new Date(date);
+
+    if (Number.isNaN(value.getTime())) return '';
+
+    return value.toLocaleDateString('en-GB', {
+      day: '2-digit',
+      month: 'short',
+      year: 'numeric',
+    });
   }
 
   selectDurationPreset(

@@ -5,14 +5,11 @@
     <div class="mx-auto flex items-center justify-between px-6 py-5">
       <div>
         <h1 class="text-2xl font-semibold text-slate-900">
-          {{ isEditMode ? 'Edit Message' : 'New Message' }}
+          {{ pageTitle }}
         </h1>
+
         <p class="mt-1 text-sm text-slate-500">
-          {{
-            isEditMode
-              ? 'Update your draft message before sending.'
-              : 'Create a new message to admin.'
-          }}
+          {{ pageDescription }}
         </p>
       </div>
 
@@ -41,15 +38,20 @@
             >
               Subject
             </label>
+
             <input
               id="subject"
               pInputText
               type="text"
               class="w-full"
               formControlName="subject"
+              [readonly]="isReadonly"
             />
+
             @if (
-              form.controls.subject.touched && form.controls.subject.invalid
+              !isReadonly &&
+              form.controls.subject.touched &&
+              form.controls.subject.invalid
             ) {
               <small class="mt-1 block text-xs text-red-500">
                 Subject is required
@@ -65,78 +67,92 @@
               Message
             </label>
 
-            <p-editor
-              formControlName="detail"
-              [style]="{ height: '320px' }"
-              class="message-editor"
-            >
-              <ng-template #header>
-                <span class="ql-formats">
-                  <select class="ql-size" aria-label="Font Size">
-                    <option value="small">Small</option>
-                    <option selected>Normal</option>
-                    <option value="large">Large</option>
-                    <option value="huge">Huge</option>
-                  </select>
-                </span>
+            @if (pageMode === 'view') {
+              <p-editor
+                formControlName="detail"
+                [readonly]="true"
+                class="reply-display-editor"
+              >
+                <ng-template #header></ng-template>
+              </p-editor>
+            } @else {
+              <p-editor
+                formControlName="detail"
+                [style]="{ height: '320px' }"
+                class="message-editor"
+              >
+                <ng-template #header>
+                  <span class="ql-formats">
+                    <select class="ql-size" aria-label="Font Size">
+                      <option value="small">Small</option>
+                      <option selected>Normal</option>
+                      <option value="large">Large</option>
+                      <option value="huge">Huge</option>
+                    </select>
+                  </span>
 
-                <span class="ql-formats">
-                  <button
-                    type="button"
-                    class="ql-bold"
-                    aria-label="Bold"
-                  ></button>
-                  <button
-                    type="button"
-                    class="ql-italic"
-                    aria-label="Italic"
-                  ></button>
-                  <button
-                    type="button"
-                    class="ql-underline"
-                    aria-label="Underline"
-                  ></button>
-                </span>
+                  <span class="ql-formats">
+                    <button
+                      type="button"
+                      class="ql-bold"
+                      aria-label="Bold"
+                    ></button>
+                    <button
+                      type="button"
+                      class="ql-italic"
+                      aria-label="Italic"
+                    ></button>
+                    <button
+                      type="button"
+                      class="ql-underline"
+                      aria-label="Underline"
+                    ></button>
+                  </span>
 
-                <span class="ql-formats">
-                  <select class="ql-color" aria-label="Text Color"></select>
-                  <select
-                    class="ql-background"
-                    aria-label="Background Color"
-                  ></select>
-                </span>
+                  <span class="ql-formats">
+                    <select class="ql-color" aria-label="Text Color"></select>
+                    <select
+                      class="ql-background"
+                      aria-label="Background Color"
+                    ></select>
+                  </span>
 
-                <span class="ql-formats">
-                  <button
-                    type="button"
-                    class="ql-list"
-                    value="ordered"
-                    aria-label="Ordered List"
-                  ></button>
-                  <select class="ql-align" aria-label="Text Align">
-                    <option selected></option>
-                    <option value="center"></option>
-                    <option value="right"></option>
-                    <option value="justify"></option>
-                  </select>
-                </span>
+                  <span class="ql-formats">
+                    <button
+                      type="button"
+                      class="ql-list"
+                      value="ordered"
+                      aria-label="Ordered List"
+                    ></button>
+                    <select class="ql-align" aria-label="Text Align">
+                      <option selected></option>
+                      <option value="center"></option>
+                      <option value="right"></option>
+                      <option value="justify"></option>
+                    </select>
+                  </span>
 
-                <span class="ql-formats">
-                  <button
-                    type="button"
-                    class="ql-link"
-                    aria-label="Insert Link"
-                  ></button>
-                  <button
-                    type="button"
-                    class="ql-clean"
-                    aria-label="Clear Formatting"
-                  ></button>
-                </span>
-              </ng-template>
-            </p-editor>
+                  <span class="ql-formats">
+                    <button
+                      type="button"
+                      class="ql-link"
+                      aria-label="Insert Link"
+                    ></button>
+                    <button
+                      type="button"
+                      class="ql-clean"
+                      aria-label="Clear Formatting"
+                    ></button>
+                  </span>
+                </ng-template>
+              </p-editor>
+            }
 
-            @if (form.controls.detail.touched && form.controls.detail.invalid) {
+            @if (
+              !isReadonly &&
+              form.controls.detail.touched &&
+              form.controls.detail.invalid
+            ) {
               <small class="mt-1 block text-xs text-red-500">
                 Message is required
               </small>
@@ -144,25 +160,27 @@
           </div>
 
           <div>
-            <div class="flex items-center gap-3">
-              <p-fileUpload
-                mode="basic"
-                name="files[]"
-                chooseLabel="Attach files"
-                chooseIcon="pi pi-paperclip"
-                [multiple]="true"
-                [customUpload]="true"
-                [auto]="false"
-                accept="image/*,.pdf,.doc,.docx,.xls,.xlsx,.txt"
-                [maxFileSize]="10000000"
-                (onSelect)="onFilesSelected($event)"
-              ></p-fileUpload>
-            </div>
+            @if (!isReadonly) {
+              <div class="flex items-center gap-3">
+                <p-fileUpload
+                  mode="basic"
+                  name="files[]"
+                  chooseLabel="Attach files"
+                  chooseIcon="pi pi-paperclip"
+                  [multiple]="true"
+                  [customUpload]="true"
+                  [auto]="false"
+                  accept="image/*,.pdf,.doc,.docx,.xls,.xlsx,.txt"
+                  [maxFileSize]="10000000"
+                  (onSelect)="onFilesSelected($event)"
+                ></p-fileUpload>
+              </div>
+            }
 
             @if (existingAttachments.length) {
               <div class="mt-4 space-y-2">
                 <div class="text-xs font-semibold uppercase text-slate-400">
-                  Existing attachments
+                  Attachments
                 </div>
 
                 @for (
@@ -171,26 +189,44 @@
                   let i = $index
                 ) {
                   <div
-                    class="flex items-center justify-between rounded-xl border border-slate-200 bg-white px-3 py-2"
+                    class="flex items-center justify-between gap-3 rounded-md border border-slate-200 bg-white px-3"
                   >
-                    <div class="truncate text-sm font-medium text-slate-800">
-                      {{ file.fileName }}
-                    </div>
-
                     <button
-                      aria-label="Remove attachment"
-                      pButton
                       type="button"
-                      icon="pi pi-trash"
-                      class="p-button-text p-button-danger p-button-sm"
-                      (click)="removeExistingAttachment(i)"
-                    ></button>
+                      class="min-w-0 flex-1 truncate text-left text-sm font-medium text-slate-800 hover:text-primary-600"
+                      (click)="downloadUserAttachment(file)"
+                    >
+                      <i class="pi pi-paperclip mr-2 text-slate-400"></i>
+                      {{ file.fileName }}
+                    </button>
+
+                    <div class="flex shrink-0 items-center gap-1">
+                      <button
+                        aria-label="Download attachment"
+                        pButton
+                        type="button"
+                        icon="pi pi-download"
+                        class="p-button-text p-button-sm"
+                        (click)="downloadUserAttachment(file)"
+                      ></button>
+
+                      @if (!isReadonly) {
+                        <button
+                          aria-label="Remove attachment"
+                          pButton
+                          type="button"
+                          icon="pi pi-trash"
+                          class="p-button-text p-button-danger p-button-sm"
+                          (click)="removeExistingAttachment(i)"
+                        ></button>
+                      }
+                    </div>
                   </div>
                 }
               </div>
             }
 
-            @if (pendingFiles.length) {
+            @if (!isReadonly && pendingFiles.length) {
               <div class="mt-4 space-y-2">
                 <div class="text-xs font-semibold uppercase text-slate-400">
                   New attachments
@@ -201,7 +237,7 @@
                   track file.name + '-' + file.size + '-' + $index
                 ) {
                   <div
-                    class="flex items-center justify-between rounded-xl border border-slate-200 bg-white px-3 py-2"
+                    class="flex items-center justify-between rounded-md border border-slate-200 bg-white px-3 py-2"
                   >
                     <div class="min-w-0">
                       <div class="truncate text-sm font-medium text-slate-800">
@@ -226,26 +262,84 @@
             }
           </div>
 
-          <div class="flex justify-end gap-2 border-t border-slate-200 pt-4">
-            <button
-              aria-label="Cancel and go back"
-              pButton
-              type="button"
-              label="Cancel"
-              class="p-button-text"
-              (click)="goBack()"
-            ></button>
+          @if (pageMode === 'view' && hasCeoReply) {
+            <div
+              class="overflow-hidden rounded-2xl border border-emerald-200 bg-white shadow-sm"
+            >
+              <div
+                class="flex flex-col justify-between gap-4 border-b border-emerald-100 bg-emerald-50/60 px-5 py-5 md:flex-row md:items-start"
+              >
+                <div class="flex min-w-0 items-start gap-4">
+                  <div class="min-w-0">
+                    <div class="flex flex-wrap items-center gap-2">
+                      <h2 class="text-sm font-semibold text-slate-900">
+                        {{ displayModifiedBy }}
+                      </h2>
+                    </div>
+                  </div>
+                </div>
 
-            <button
-              aria-label="Save as Draft"
-              pButton
-              type="button"
-              [label]="isEditMode ? 'Update Draft' : 'Save Draft'"
-              [icon]="isEditMode ? 'pi pi-save' : 'pi pi-plus'"
-              [loading]="saving"
-              (click)="submit()"
-            ></button>
-          </div>
+                <div class="shrink-0 text-sm text-slate-500">
+                  {{ repliedAt | date: 'dd MMM yyyy HH:mm' }}
+                </div>
+              </div>
+
+              <div class="px-5 py-6">
+                <div
+                  class="message-html-view text-sm leading-6 text-slate-800"
+                  [innerHTML]="reply"
+                ></div>
+
+                @if (ceoAttachments.length) {
+                  <div class="mt-6 border-t border-slate-200 pt-4">
+                    <div class="mb-3 text-sm font-semibold text-slate-800">
+                      Reply attachments
+                    </div>
+
+                    <div class="space-y-2">
+                      @for (file of ceoAttachments; track file.id) {
+                        <button
+                          type="button"
+                          class="flex w-full items-center justify-between gap-3 rounded-md border border-slate-200 bg-white px-3 py-2 text-left text-sm text-slate-700 transition hover:bg-slate-50"
+                          (click)="downloadCeoAttachment(file)"
+                        >
+                          <div class="min-w-0 truncate font-medium">
+                            <i class="pi pi-paperclip mr-2 text-slate-400"></i>
+                            {{ file.fileName }}
+                          </div>
+
+                          <i class="pi pi-download shrink-0 text-slate-400"></i>
+                        </button>
+                      }
+                    </div>
+                  </div>
+                }
+              </div>
+            </div>
+          }
+
+          @if (!isReadonly) {
+            <div class="flex justify-end gap-2 border-t border-slate-200 pt-4">
+              <button
+                aria-label="Cancel and go back"
+                pButton
+                type="button"
+                label="Cancel"
+                class="p-button-text"
+                (click)="goBack()"
+              ></button>
+
+              <button
+                aria-label="Save as Draft"
+                pButton
+                type="button"
+                [label]="pageMode === 'edit' ? 'Update Draft' : 'Save Draft'"
+                [icon]="pageMode === 'edit' ? 'pi pi-save' : 'pi pi-plus'"
+                [loading]="saving"
+                (click)="submit()"
+              ></button>
+            </div>
+          }
         </form>
       }
     </div>
