@@ -92,8 +92,9 @@ namespace NokAir.TalkToCeo.Shared.Repositories
         {
             var query = this.dbContext.BroadcastMessages
                 .Include(x => x.User)
-                .Where(x =>
-                    x.CeoId == ceoId)
+
+                // .Where(x =>
+                //     x.CeoId == ceoId)
                 .AsNoTracking()
                 .AsQueryable();
 
