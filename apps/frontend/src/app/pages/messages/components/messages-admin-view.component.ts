@@ -113,14 +113,8 @@ export class MessagesAdminViewComponent
     this.selectedMenu = this.resolveMenuFromQuery(
       this.route.snapshot.queryParamMap.get('menu'),
     );
-
-    if (this.selectedMenu === 'broadcasts') {
-      this.loadBroadcasts();
-    } else {
-      this.loadMessages();
-    }
-
-    this.loadBroadcastCounts();
+    this.loadMessages();
+    this.loadBroadcasts();
     this.startAutoRefresh();
   }
 
@@ -304,11 +298,19 @@ export class MessagesAdminViewComponent
   onSelectMenu(menu: MailSidebarKey): void {
     this.selectedMenu = menu;
     this.keyword = '';
+
     this.params = {
       ...this.params,
       keyword: '',
       pageNumber: 1,
     };
+
+    this.router.navigate([], {
+      relativeTo: this.route,
+      queryParams: { menu },
+      queryParamsHandling: 'merge',
+      replaceUrl: true,
+    });
 
     if (menu === 'broadcasts') {
       this.loadBroadcasts();
