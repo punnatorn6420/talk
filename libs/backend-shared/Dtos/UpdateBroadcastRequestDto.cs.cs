@@ -24,7 +24,7 @@ namespace NokAir.TalkToCeo.Shared.Dtos
         /// <summary>
         /// Gets or sets the date and time when the broadcast message should start being displayed. This field is required and helps schedule the broadcast appropriately.
         /// </summary>
-        public DateTime StartDisplayDate { get; set; }
+        public DateTime StartDisplayAt { get; set; }
 
         /// <summary>
         /// Gets or sets the date and time when the broadcast message should stop being displayed. This field is required and helps ensure that the broadcast is only visible for a specified duration, preventing outdated information from being shown to recipients. The ExpireDisplayAt property is of type DateTime?, which allows it to store both the date and time information accurately, ensuring that the broadcast is displayed and hidden at the correct times as intended by the creator.

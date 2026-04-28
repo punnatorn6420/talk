@@ -383,7 +383,7 @@ namespace NokAir.TalkToCeo.Shared.Services
 
                 // validate timeline
                 if (dto.ExpireDisplayAt.HasValue &&
-                    dto.ExpireDisplayAt <= dto.StartDisplayDate)
+                    dto.ExpireDisplayAt <= dto.StartDisplayAt)
                 {
                     throw new DataValidationException(
                         "ExpireDisplayAt must be greater than StartDisplayAt.");
@@ -399,7 +399,7 @@ namespace NokAir.TalkToCeo.Shared.Services
                 // Draft → update ได้ทั้งหมด
                 broadcast.Subject = dto.Subject;
                 broadcast.Detail = dto.Detail;
-                broadcast.StartDisplayAt = dto.StartDisplayDate;
+                broadcast.StartDisplayAt = dto.StartDisplayAt;
                 broadcast.ExpireDisplayAt = dto.ExpireDisplayAt;
 
                 // Draft → Sent (publish)
