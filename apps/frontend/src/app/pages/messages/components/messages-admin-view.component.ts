@@ -313,6 +313,10 @@ export class MessagesAdminViewComponent
     this.router.navigate(['/admin/messages/broadcasts/create']);
   }
 
+  openBroadcast(item: IBroadcastItem): void {
+    this.router.navigate(['/admin/messages/broadcasts', item.id, 'view']);
+  }
+
   editBroadcast(item: IBroadcastItem, event?: Event): void {
     event?.stopPropagation();
 
