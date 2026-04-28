@@ -101,8 +101,8 @@ namespace NokAir.TalkToCeo.Shared.Repositories
             if (!string.IsNullOrWhiteSpace(keyword))
             {
                 query = query.Where(x =>
-                    x.Subject.Contains(keyword) ||
-                    x.Detail.Contains(keyword));
+                    EF.Functions.ILike(x.Subject, $"%{keyword}%") ||
+                    EF.Functions.ILike(x.Detail, $"%{keyword}%"));
             }
 
             if (searchStartDate.HasValue)
