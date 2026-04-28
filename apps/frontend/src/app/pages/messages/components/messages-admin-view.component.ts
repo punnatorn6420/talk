@@ -9,7 +9,7 @@ import {
 } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
-import { Subject, finalize, interval, takeUntil } from 'rxjs';
+import { Subject, Subscription, finalize, interval, takeUntil, timeout } from 'rxjs';
 
 import { ConfirmationService, MessageService } from 'primeng/api';
 import { ButtonModule } from 'primeng/button';
@@ -71,6 +71,8 @@ export class MessagesAdminViewComponent implements OnInit, OnDestroy {
   private readonly cdr = inject(ChangeDetectorRef);
   private readonly confirmationService = inject(ConfirmationService);
   private readonly destroy$ = new Subject<void>();
+  private messagesLoadSub?: Subscription;
+  private broadcastsLoadSub?: Subscription;
 
   mails: IMail[] = [];
   broadcasts: IBroadcastItem[] = [];
@@ -113,6 +115,8 @@ export class MessagesAdminViewComponent implements OnInit, OnDestroy {
   }
 
   ngOnDestroy(): void {
+    this.messagesLoadSub?.unsubscribe();
+    this.broadcastsLoadSub?.unsubscribe();
     this.destroy$.next();
     this.destroy$.complete();
   }
@@ -192,12 +196,15 @@ export class MessagesAdminViewComponent implements OnInit, OnDestroy {
       this.cdr.markForCheck();
     }
 
-    this.messageApi
+    this.messagesLoadSub?.unsubscribe();
+
+    this.messagesLoadSub = this.messageApi
       .getMessageCriteria({
         ...this.params,
         keyword: this.selectedMenu === 'inbox' ? this.keyword.trim() : '',
       })
       .pipe(
+        timeout(20000),
         finalize(() => {
           this.loadingMessages = false;
           this.lastRefreshedAt = new Date();
@@ -226,13 +233,16 @@ export class MessagesAdminViewComponent implements OnInit, OnDestroy {
       this.cdr.markForCheck();
     }
 
-    this.broadcastApi
+    this.broadcastsLoadSub?.unsubscribe();
+
+    this.broadcastsLoadSub = this.broadcastApi
       .getBroadcasts({
         keyword: this.selectedMenu === 'broadcasts' ? this.keyword.trim() : '',
         pageNumber: this.params.pageNumber ?? 1,
         pageSize: this.params.pageSize ?? 10,
       })
       .pipe(
+        timeout(20000),
         finalize(() => {
           this.loadingBroadcasts = false;
           this.lastRefreshedAt = new Date();

@@ -6,16 +6,12 @@ import {
   OnInit,
   inject,
 } from '@angular/core';
-import { FormsModule } from '@angular/forms';
 import { ActivatedRoute, Router } from '@angular/router';
 import { finalize } from 'rxjs';
 
 import { ButtonModule } from 'primeng/button';
-import { CardModule } from 'primeng/card';
-import { TagModule } from 'primeng/tag';
 import { MessageService } from 'primeng/api';
 import { ToastModule } from 'primeng/toast';
-import { EditorModule } from 'primeng/editor';
 
 import { _BroadcastService } from '../../../service/broadcast.service';
 import {
@@ -28,12 +24,8 @@ import {
   standalone: true,
   imports: [
     CommonModule,
-    FormsModule,
     ButtonModule,
-    CardModule,
-    TagModule,
     ToastModule,
-    EditorModule,
   ],
   templateUrl: './broadcast-detail-page.component.html',
   styleUrl: './broadcast-detail-page.component.scss',
