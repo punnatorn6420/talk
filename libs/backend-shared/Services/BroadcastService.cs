@@ -162,6 +162,8 @@ namespace NokAir.TalkToCeo.Shared.Services
                 CreatedBy = broadcast.CreatedBy,
                 ModifiedAt = broadcast.ModifiedAt,
                 ModifiedBy = broadcast.ModifiedBy,
+                StartDisplayDate = broadcast.StartDisplayAt,
+                ExpireDisplayDate = broadcast.ExpireDisplayAt,
                 Attachments = attachments.Select(x =>
                         new MessageAttachmentDto
                         {
