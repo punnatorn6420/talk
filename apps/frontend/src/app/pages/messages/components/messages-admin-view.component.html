@@ -187,7 +187,7 @@
             </ng-template>
 
             <ng-template pTemplate="body" let-item>
-              <tr>
+              <tr class="cursor-pointer" (click)="openBroadcast(item)">
                 <td class="overflow-hidden !text-start">
                   <div class="min-w-0 overflow-hidden">
                     <div class="truncate text-base font-medium text-slate-800">
