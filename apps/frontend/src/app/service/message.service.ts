@@ -66,6 +66,10 @@ export class _MessageService {
     );
   }
 
+  putSentMessage(id: string | number): Observable<IResponse<unknown>> {
+    return this.http.put(`${this.baseUrl}/${id}/sent`, {}, true);
+  }
+
   putMessageThreadWithFiles(id: string, formData: FormData) {
     return this.http.putFormData<FormData, IResponse<IMail>>(
       `${this.baseUrl}/${id}/update`,
@@ -83,16 +87,16 @@ export class _MessageService {
     );
   }
 
-  putReplyMessageThread(
-    id: string | number,
-    payload: IReplyRequest,
-  ): Observable<IResponse<IMail>> {
-    return this.http.put<IReplyRequest, IResponse<IMail>>(
-      `${this.baseUrl}/${id}/reply`,
-      payload,
-      true,
-    );
-  }
+  // putReplyMessageThread(
+  //   id: string | number,
+  //   payload: IReplyRequest,
+  // ): Observable<IResponse<IMail>> {
+  //   return this.http.put<IReplyRequest, IResponse<IMail>>(
+  //     `${this.baseUrl}/${id}/reply`,
+  //     payload,
+  //     true,
+  //   );
+  // }
 
   putReadMessageThread(id: string | number): Observable<IResponse<IMail>> {
     return this.http.put<Record<string, never>, IResponse<IMail>>(
@@ -102,7 +106,7 @@ export class _MessageService {
     );
   }
 
-  putReplyMessageThreadWithFiles(id: string, formData: FormData) {
+  putReplyMessageThread(id: string, formData: FormData) {
     return this.http.putFormData<FormData, IResponse<IMail>>(
       `${this.baseUrl}/${id}/reply`,
       formData,

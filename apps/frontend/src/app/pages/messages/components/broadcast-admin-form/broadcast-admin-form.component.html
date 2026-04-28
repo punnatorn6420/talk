@@ -1,0 +1,386 @@
+<p-toast></p-toast>
+<p-confirmDialog></p-confirmDialog>
+
+<div class="min-h-screen bg-slate-50">
+  <div class="border-b border-slate-200 bg-white">
+    <div
+      class="flex flex-col gap-4 px-6 py-4 md:flex-row md:items-center md:justify-between"
+    >
+      <div>
+        <div class="flex items-center gap-3">
+          <button
+            aria-label="Go Back"
+            pButton
+            type="button"
+            icon="pi pi-arrow-left"
+            class="p-button-text p-button-sm"
+            (click)="goBack()"
+          ></button>
+
+          <div>
+            <h1 class="text-2xl font-semibold text-slate-900">
+              {{ pageTitle }}
+            </h1>
+            <p class="mt-1 text-sm text-slate-500">
+              {{ pageSubtitle }}
+            </p>
+          </div>
+        </div>
+      </div>
+
+      <div class="flex items-center gap-2">
+        <button
+          aria-label="Cancel"
+          pButton
+          type="button"
+          label="Cancel"
+          class="p-button-text"
+          (click)="goBack()"
+        ></button>
+
+        @if (isEditMode && canSendCurrentBroadcast) {
+          <button
+            aria-label="Send"
+            pButton
+            type="button"
+            icon="pi pi-send"
+            label="Send"
+            severity="success"
+            [loading]="sending"
+            (click)="confirmSend()"
+          ></button>
+        }
+
+        <button
+          aria-label="Save"
+          pButton
+          type="button"
+          icon="pi pi-save"
+          [label]="isEditMode ? 'Update' : 'Create Draft'"
+          [loading]="saving"
+          (click)="submitForm()"
+        ></button>
+      </div>
+    </div>
+  </div>
+
+  <div class="p-4 md:p-6">
+    <div class="mx-auto">
+      @if (loadingDetail) {
+        <div class="space-y-4">
+          @for (row of [1, 2, 3, 4, 5]; track row) {
+            <p-skeleton height="4rem"></p-skeleton>
+          }
+        </div>
+      } @else {
+        <div class="grid gap-6">
+          <section class="">
+            <div class="space-y-5">
+              <div>
+                <label
+                  htmlFor="subject"
+                  class="mb-2 block text-sm font-medium text-slate-700"
+                >
+                  Subject
+                </label>
+                <input
+                  id="subject"
+                  pInputText
+                  type="text"
+                  [(ngModel)]="form.subject"
+                  class="w-full"
+                  placeholder="Enter broadcast subject"
+                />
+              </div>
+
+              <div>
+                <label
+                  htmlFor="detail"
+                  class="mb-2 block text-sm font-medium text-slate-700"
+                >
+                  Message
+                </label>
+
+                <p-editor
+                  id="detail"
+                  [(ngModel)]="form.detail"
+                  [style]="{ height: '320px' }"
+                  class="broadcast-message-editor"
+                >
+                  <ng-template #header>
+                    <span class="ql-formats">
+                      <select class="ql-size" aria-label="Font Size">
+                        <option value="small">Small</option>
+                        <option selected>Normal</option>
+                        <option value="large">Large</option>
+                        <option value="huge">Huge</option>
+                      </select>
+                    </span>
+
+                    <span class="ql-formats">
+                      <button
+                        type="button"
+                        class="ql-bold"
+                        aria-label="Bold"
+                      ></button>
+                      <button
+                        type="button"
+                        class="ql-italic"
+                        aria-label="Italic"
+                      ></button>
+                      <button
+                        type="button"
+                        class="ql-underline"
+                        aria-label="Underline"
+                      ></button>
+                    </span>
+
+                    <span class="ql-formats">
+                      <select class="ql-color" aria-label="Text Color"></select>
+                      <select
+                        class="ql-background"
+                        aria-label="Background Color"
+                      ></select>
+                    </span>
+
+                    <span class="ql-formats">
+                      <button
+                        type="button"
+                        class="ql-list"
+                        value="ordered"
+                        aria-label="Ordered List"
+                      ></button>
+                      <select class="ql-align" aria-label="Text Align">
+                        <option selected></option>
+                        <option value="center"></option>
+                        <option value="right"></option>
+                        <option value="justify"></option>
+                      </select>
+                    </span>
+
+                    <span class="ql-formats">
+                      <button
+                        type="button"
+                        class="ql-link"
+                        aria-label="Insert Link"
+                      ></button>
+                      <button
+                        type="button"
+                        class="ql-clean"
+                        aria-label="Clear Formatting"
+                      ></button>
+                    </span>
+                  </ng-template>
+                </p-editor>
+              </div>
+
+              <div>
+                <div
+                  class="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between"
+                >
+                  <div class="min-w-0 flex-1">
+                    <p-fileUpload
+                      mode="basic"
+                      name="attachments"
+                      chooseLabel="Attach files"
+                      chooseIcon="pi pi-paperclip"
+                      [multiple]="true"
+                      [customUpload]="true"
+                      [auto]="false"
+                      accept="image/*,.pdf,.doc,.docx,.xls,.xlsx,.txt"
+                      [maxFileSize]="10000000"
+                      (onSelect)="onFilesSelected($event)"
+                    >
+                    </p-fileUpload>
+                  </div>
+
+                  <div class="w-full lg:w-auto">
+                    <p-popover #durationPopover>
+                      <div class="w-[320px] space-y-4 p-1">
+                        <div>
+                          <div class="text-sm text-slate-700">
+                            Choose when this broadcast should expire.
+                          </div>
+                        </div>
+
+                        <div class="grid grid-cols-3 gap-2">
+                          <button
+                            type="button"
+                            class="rounded-md border px-3 py-2 text-sm font-medium transition"
+                            [ngClass]="
+                              selectedDisplayDuration === '7d'
+                                ? 'border-primary-300 bg-primary-50 text-primary-700'
+                                : 'border-slate-200 bg-white text-slate-600 hover:bg-slate-50'
+                            "
+                            (click)="
+                              selectDurationPreset('7d', durationPopover)
+                            "
+                          >
+                            7 Days
+                          </button>
+
+                          <button
+                            type="button"
+                            class="rounded-md border px-3 py-2 text-sm font-medium transition"
+                            [ngClass]="
+                              selectedDisplayDuration === '1m'
+                                ? 'border-primary-300 bg-primary-50 text-primary-700'
+                                : 'border-slate-200 bg-white text-slate-600 hover:bg-slate-50'
+                            "
+                            (click)="
+                              selectDurationPreset('1m', durationPopover)
+                            "
+                          >
+                            1 Month
+                          </button>
+
+                          <button
+                            type="button"
+                            class="rounded-md border px-3 py-2 text-sm font-medium transition"
+                            [ngClass]="
+                              selectedDisplayDuration === 'forever'
+                                ? 'border-primary-300 bg-primary-50 text-primary-700'
+                                : 'border-slate-200 bg-white text-slate-600 hover:bg-slate-50'
+                            "
+                            (click)="
+                              selectDurationPreset('forever', durationPopover)
+                            "
+                          >
+                            Forever
+                          </button>
+                        </div>
+
+                        <div class="border-t border-slate-200 pt-4">
+                          <div
+                            for="customExpireDate"
+                            class="mb-4 block text-sm text-slate-700 tracking-wide"
+                          >
+                            Custom expire date
+                          </div>
+
+                          <p-datepicker
+                            inputId="customExpireDate"
+                            [(ngModel)]="customExpireDate"
+                            [showTime]="false"
+                            [showIcon]="true"
+                            [showOnFocus]="false"
+                            [minDate]="minCustomExpireDate"
+                            appendTo="body"
+                            class="w-full"
+                            inputStyleClass="w-full"
+                            placeholder="Select expire date"
+                            dateFormat="dd M yy"
+                            (onSelect)="selectCustomExpireDate(durationPopover)"
+                          ></p-datepicker>
+                        </div>
+                      </div>
+                    </p-popover>
+
+                    <button
+                      aria-label="Select Display Duration"
+                      type="button"
+                      pButton
+                      icon="pi pi-calendar-clock"
+                      [label]="displayDurationLabel"
+                      class="p-button-outlined"
+                      (click)="durationPopover.toggle($event)"
+                    ></button>
+                  </div>
+                </div>
+
+                @if (existingAttachments.length) {
+                  <div class="mt-4 space-y-2">
+                    <div
+                      class="text-xs font-semibold uppercase tracking-wide text-slate-400"
+                    >
+                      Existing attachments
+                    </div>
+
+                    @for (
+                      file of existingAttachments;
+                      track file.id;
+                      let i = $index
+                    ) {
+                      <div
+                        class="flex items-center justify-between rounded-lg border border-slate-200 bg-white px-3 py-2"
+                      >
+                        <div class="min-w-0">
+                          <div
+                            class="truncate text-sm font-medium text-slate-800"
+                          >
+                            {{ file.fileName }}
+                          </div>
+                        </div>
+
+                        <div class="flex items-center gap-1">
+                          <button
+                            aria-label="Download Attachment"
+                            pButton
+                            type="button"
+                            icon="pi pi-download"
+                            class="p-button-text p-button-sm"
+                            (click)="downloadAttachment(file)"
+                          ></button>
+
+                          @if (canEditCurrentBroadcast) {
+                            <button
+                              aria-label="Delete Attachment"
+                              pButton
+                              type="button"
+                              icon="pi pi-trash"
+                              class="p-button-text p-button-danger p-button-sm"
+                              (click)="removeExistingAttachment(i)"
+                            ></button>
+                          }
+                        </div>
+                      </div>
+                    }
+                  </div>
+                }
+
+                @if (pendingFiles.length) {
+                  <div class="mt-4 space-y-2">
+                    <div
+                      class="text-xs font-semibold uppercase tracking-wide text-slate-400"
+                    >
+                      New attachments
+                    </div>
+
+                    @for (
+                      file of pendingFiles;
+                      track file.name + '-' + file.size + '-' + $index
+                    ) {
+                      <div
+                        class="flex items-center justify-between rounded-lg border border-slate-200 bg-white px-3 py-2"
+                      >
+                        <div class="min-w-0">
+                          <div
+                            class="truncate text-sm font-medium text-slate-800"
+                          >
+                            {{ file.name }}
+                          </div>
+                          <div class="mt-0.5 text-xs text-slate-400">
+                            {{ formatFileSize(file.size) }}
+                          </div>
+                        </div>
+
+                        <button
+                          aria-label="Remove Pending File"
+                          pButton
+                          type="button"
+                          icon="pi pi-times"
+                          class="p-button-text p-button-danger p-button-sm"
+                          (click)="removePendingFile($index)"
+                        ></button>
+                      </div>
+                    }
+                  </div>
+                }
+              </div>
+            </div>
+          </section>
+        </div>
+      }
+    </div>
+  </div>
+</div>

@@ -20,6 +20,7 @@ import { _MessageService } from '../../../service/message.service';
 import { IMail, IMessageAttachment } from '../../../types/message.model';
 import { CardModule } from 'primeng/card';
 import { DateTimePipe } from '../../../shared/core/pipes/date-time.pipe';
+// import { _AttachmentService } from '../../../service/attachment.service';
 
 @Component({
   selector: 'app-message-admin-detail',
@@ -44,6 +45,7 @@ import { DateTimePipe } from '../../../shared/core/pipes/date-time.pipe';
 export class MessageAdminDetailComponent implements OnInit {
   private readonly route = inject(ActivatedRoute);
   private readonly messageApi = inject(_MessageService);
+  // private readonly attachmentApi = inject(_AttachmentService);
   private readonly toast = inject(MessageService);
   private readonly location = inject(Location);
   private readonly cdr = inject(ChangeDetectorRef);
@@ -201,8 +203,15 @@ export class MessageAdminDetailComponent implements OnInit {
     this.replying = true;
     this.cdr.markForCheck();
 
+    const formData = new FormData();
+    formData.append('reply', this.replyText.trim());
+
+    this.pendingReplyFiles.forEach((file) => {
+      formData.append('files', file, file.name);
+    });
+
     this.messageApi
-      .putReplyMessageThread(String(this.mail.id), { reply })
+      .putReplyMessageThread(String(this.mail.id), formData)
       .pipe(
         finalize(() => {
           this.replying = false;
@@ -296,7 +305,7 @@ export class MessageAdminDetailComponent implements OnInit {
   }
 
   getOriginalAttachments(): IMessageAttachment[] {
-    return this.mail?.attachments ?? [];
+    return this.mail?.userAttachments ?? [];
   }
 
   hasOriginalAttachments(): boolean {

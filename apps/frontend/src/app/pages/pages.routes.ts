@@ -13,6 +13,48 @@ export default [
             (m) => m.MessagesEntryComponent,
           ),
       },
+      // {
+      //   path: 'messages',
+      //   loadComponent: () =>
+      //     import('./messages/components/messages-user-view.component').then(
+      //       (m) => m.MessagesUserViewComponent,
+      //     ),
+      // },
+      {
+        path: 'new',
+        loadComponent: () =>
+          import(
+            './messages/components/message-user-form/message-form-page.component'
+          ).then((m) => m.MessageFormPageComponent),
+      },
+      {
+        path: ':id/edit',
+        loadComponent: () =>
+          import(
+            './messages/components/message-user-form/message-form-page.component'
+          ).then((m) => m.MessageFormPageComponent),
+      },
+      {
+        path: 'broadcasts/create',
+        loadComponent: () =>
+          import(
+            './messages/components/broadcast-admin-form/broadcast-admin-form.create.component'
+          ).then((m) => m.BroadcastAdminFormCreateComponent),
+      },
+      {
+        path: 'broadcasts/:id/edit',
+        loadComponent: () =>
+          import(
+            './messages/components/broadcast-admin-form/broadcast-admin-form.edit.component'
+          ).then((m) => m.BroadcastAdminFormEditComponent),
+      },
+      {
+        path: 'broadcasts/:id/view',
+        loadComponent: () =>
+          import('./messages/components/broadcast-detail-page.component').then(
+            (m) => m.BroadcastDetailPageComponent,
+          ),
+      },
       {
         path: ':id',
         loadComponent: () =>

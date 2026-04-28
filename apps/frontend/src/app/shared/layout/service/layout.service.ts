@@ -43,12 +43,12 @@ interface MenuChangeEvent {
 export class LayoutService {
   _config: layoutConfig = {
     ripple: false,
-    preset: 'Aura',
+    preset: 'Lara',
     primary: 'yellow',
     inputStyle: 'outlined',
     surface: 'slate',
     darkTheme: false,
-    menuMode: 'horizontal',
+    menuMode: 'slim',
     menuTheme: 'colorScheme',
     lang: 'th',
   };

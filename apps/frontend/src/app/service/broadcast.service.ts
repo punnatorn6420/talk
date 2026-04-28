@@ -6,6 +6,7 @@ import { IResponse } from '../types/response.model';
 import {
   IBroadcast,
   IBroadcastItem,
+  IBroadcastReader,
   ICreateBroadcastRequest,
   IUpdateBroadcastRequest,
 } from '../types/broadcast.model';
@@ -108,10 +109,50 @@ export class _BroadcastService {
     );
   }
 
+  putSentBroadcast(id: string | number): Observable<IResponse<unknown>> {
+    return this.http.put(`${this.baseUrl}/${id}/sent`, {}, true);
+  }
+
   markBroadcastAsRead(id: string | number): Observable<IResponse<unknown>> {
     return this.http.put<Record<string, never>, IResponse<unknown>>(
       `${this.baseUrl}/${id}/read`,
       {},
+      true,
+    );
+  }
+
+  getBroadcastReaders(
+    id: string | number,
+  ): Observable<IResponse<IBroadcastReader[]>> {
+    return this.http.get<IResponse<IBroadcastReader[]>>(
+      `${this.baseUrl}/${id}/readers`,
+      true,
+    );
+  }
+
+  getBroadcastById(id: string | number) {
+    return this.http.get<IResponse<IBroadcastItem>>(
+      `${this.baseUrl}/${id}`,
+      true,
+    );
+  }
+
+  downloadBroadcastAttachment(
+    id: string | number,
+    attachmentId: string | number,
+  ) {
+    return this.http.getBlob(
+      `${this.baseUrl}/${id}/attachments/${attachmentId}`,
+      true,
+    );
+  }
+
+  deleteBroadcastAttachment(
+    id: string | number,
+    attachmentId: string | number,
+  ) {
+    return this.http.delete<IResponse<boolean | null>>(
+      `${this.baseUrl}/${id}/attachments/${attachmentId}`,
       true,
     );
   }

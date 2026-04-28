@@ -28,7 +28,7 @@
           type="button"
           icon="pi pi-plus"
           label="Create New Broadcast"
-          (click)="openBroadcastDialog()"
+          (click)="goToCreateBroadcast()"
         ></button>
       </div>
     </div>
@@ -65,11 +65,7 @@
                 "
               >
                 {{
-                  item.key === 'inbox'
-                    ? inboxTotalCount
-                    : item.key === 'sent'
-                      ? broadcastTotalCount
-                      : 0
+                  item.key === 'inbox' ? inboxTotalCount : broadcastTotalCount
                 }}
               </span>
             </button>
@@ -83,7 +79,7 @@
         @if (selectedMenu === 'inbox') {
           <p-table
             [value]="mails"
-            [loading]="loading"
+            [loading]="loadingMessages"
             [tableStyle]="{
               'min-width': '100%',
               'table-layout': 'fixed',
@@ -139,9 +135,10 @@
                 </td>
 
                 <td class="!text-center">
-                  <span [class]="getStatusClass(mail.status)">
-                    {{ getStatusLabel(mail.status) }}
-                  </span>
+                  <p-tag
+                    [value]="getStatusLabel(mail.status)"
+                    [severity]="getStatusSeverity(mail.status)"
+                  ></p-tag>
                 </td>
               </tr>
             </ng-template>
@@ -166,10 +163,10 @@
               </tr>
             </ng-template>
           </p-table>
-        } @else if (selectedMenu === 'sent') {
+        } @else {
           <p-table
             [value]="broadcasts"
-            [loading]="broadcastLoading"
+            [loading]="loadingBroadcasts"
             [tableStyle]="{
               'min-width': '100%',
               'table-layout': 'fixed',
@@ -180,9 +177,9 @@
             <ng-template pTemplate="header">
               <tr>
                 <th class="!text-start">Message</th>
-                <th class="w-[180px] !text-center">Time</th>
-                <th class="w-[120px] !text-center">Status</th>
-                <th class="w-[160px] !text-center">Actions</th>
+                <th class="w-[120px] !text-center">Time</th>
+                <th class="w-[100px] !text-center">Status</th>
+                <th class="w-[200px] !text-center">Actions</th>
               </tr>
             </ng-template>
 
@@ -194,13 +191,7 @@
                       {{ item.subject }}
                     </div>
                     <div class="truncate text-sm text-slate-500">
-                      {{
-                item.detail
-                  ?.replace(/<[^>]*>/g, ' ')
-                  ?.replace(/&nbsp;/g, ' ')
-                  ?.replace(/\s+/g, ' ')
-                  ?.trim() || '-'
-                      }}
+                      {{ getBroadcastPreview(item) || '-' }}
                     </div>
                   </div>
                 </td>
@@ -210,31 +201,63 @@
                 </td>
 
                 <td class="!text-center">
-                  <span [class]="getStatusClass(item.status)">
-                    {{ item.status }}
-                  </span>
+                  <p-tag
+                    [value]="getStatusLabel(item.status)"
+                    [severity]="getStatusSeverity(item.status)"
+                  ></p-tag>
                 </td>
 
                 <td class="!text-center">
-                  <div class="flex items-center justify-center">
-                    <p-menu
-                      #broadcastActionMenu
-                      [model]="getBroadcastActionItems(item)"
-                      [popup]="true"
-                      appendTo="body"
-                      styleClass="broadcast-action-menu"
-                    ></p-menu>
+                  <div class="flex items-center justify-center gap-2">
+                    @if (!isBroadcastSent(item)) {
+                      <button
+                        aria-label="Edit broadcast"
+                        pButton
+                        type="button"
+                        icon="pi pi-pencil"
+                        class="p-button-rounded p-button-info p-button-md"
+                        pTooltip="Edit this broadcast"
+                        tooltipPosition="bottom"
+                        (click)="editBroadcast(item, $event)"
+                      ></button>
 
-                    <button
-                      aria-label="Broadcast actions"
-                      pButton
-                      type="button"
-                      icon="pi pi-ellipsis-v"
-                      class="p-button-text p-button-sm"
-                      (click)="
-                        openBroadcastActionMenu(broadcastActionMenu, $event)
-                      "
-                    ></button>
+                      <button
+                        aria-label="Send broadcast"
+                        pButton
+                        type="button"
+                        icon="pi pi-send"
+                        class="p-button-rounded p-button-success p-button-md"
+                        pTooltip="Send this broadcast"
+                        tooltipPosition="bottom"
+                        [loading]="sendingBroadcastId === item.id"
+                        (click)="sendBroadcastItem(item, $event)"
+                      ></button>
+
+                      <button
+                        aria-label="Delete broadcast"
+                        pButton
+                        type="button"
+                        icon="pi pi-trash"
+                        class="p-button-rounded p-button-danger p-button-md"
+                        pTooltip="Delete this broadcast"
+                        tooltipPosition="bottom"
+                        [loading]="deletingBroadcastId === item.id"
+                        (click)="deleteBroadcastItem(item, $event)"
+                      ></button>
+                    }
+
+                    @if (isBroadcastSent(item)) {
+                      <button
+                        aria-label="View broadcast readers"
+                        pButton
+                        type="button"
+                        icon="pi pi-users"
+                        class="p-button-rounded p-button-warning p-button-md"
+                        pTooltip="View readers"
+                        tooltipPosition="bottom"
+                        (click)="openReadersDialog(item, $event)"
+                      ></button>
+                    }
                   </div>
                 </td>
               </tr>
@@ -242,7 +265,7 @@
 
             <ng-template pTemplate="emptymessage">
               <tr>
-                <td colspan="5">
+                <td colspan="4">
                   <div class="px-6 py-16 text-center">
                     <div
                       class="mx-auto flex h-14 w-14 items-center justify-center rounded-full bg-slate-100"
@@ -262,9 +285,10 @@
           </p-table>
         }
       </div>
-      <div class="relative p-2 md:p-4">
+
+      <div class="border-t border-slate-200 bg-white py-3">
         <div
-          class="flex justify-center sm:absolute sm:left-1/2 sm:-translate-x-1/2 sm:top-1/2 sm:-translate-y-1/2"
+          class="flex flex-col items-center justify-center gap-3 sm:flex-row"
         >
           <p-paginator
             [rows]="params.pageSize || 10"
@@ -273,22 +297,23 @@
             [rowsPerPageOptions]="[10, 20, 50]"
             (onPageChange)="onPageChange($event)"
           ></p-paginator>
-        </div>
-        <div
-          class="flex justify-end justify-self-center sm:justify-self-auto items-center gap-2 sm:mt-0"
-        >
-          <small class="text-gray-500 text-sm">
-            Last refreshed:
-            {{ lastRefreshedAt ? (lastRefreshedAt | date: 'hh:mm a') : '-' }}
-          </small>
-          <button
-            aria-label="Refresh"
-            pButton
-            icon="pi pi-refresh"
-            class="p-button-text p-button-sm"
-            label="Refresh now"
-            (click)="refreshCurrentMenu(true)"
-          ></button>
+
+          <div class="flex items-center gap-2">
+            <small class="text-sm text-slate-500">
+              Last refreshed:
+              {{ lastRefreshedAt ? (lastRefreshedAt | date: 'hh:mm a') : '-' }}
+            </small>
+
+            <button
+              aria-label="Refresh Data"
+              pButton
+              type="button"
+              icon="pi pi-refresh"
+              label="Refresh now"
+              class="p-button-text p-button-sm"
+              (click)="refreshCurrentMenu(true)"
+            ></button>
+          </div>
         </div>
       </div>
     </section>
@@ -296,232 +321,83 @@
 </p-card>
 
 <p-dialog
-  [(visible)]="broadcastDialogVisible"
-  [modal]="false"
+  [(visible)]="broadcastReadersDialogVisible"
+  [modal]="true"
   [draggable]="false"
   [resizable]="false"
   [closable]="true"
-  [dismissableMask]="false"
-  [style]="{ width: '640px', maxWidth: '95vw' }"
-  styleClass="broadcast-compose-dialog"
+  [dismissableMask]="true"
+  [style]="{ width: '720px', maxWidth: '95vw' }"
+  header="Broadcast Readers"
   appendTo="body"
-  position="bottomright"
-  (onHide)="closeBroadcastDialog()"
 >
-  <ng-template pTemplate="header">
-    <div class="flex min-w-0 items-center gap-2">
+  <div class="space-y-4">
+    <div class="border-b border-slate-200 pb-3">
+      <div class="text-lg font-semibold text-slate-900">
+        {{ selectedReadersBroadcast?.subject || '-' }}
+      </div>
+      <div class="mt-1 text-sm text-slate-500">
+        People who have read this broadcast
+      </div>
+    </div>
+
+    @if (broadcastReadersLoading) {
+      <div class="space-y-3">
+        @for (row of [1, 2, 3, 4, 5]; track row) {
+          <div
+            class="flex items-center gap-3 rounded-lg border border-slate-200 px-3 py-3"
+          >
+            <p-skeleton shape="circle" size="2.5rem"></p-skeleton>
+            <div class="flex-1 space-y-2">
+              <p-skeleton width="12rem" height="1rem"></p-skeleton>
+              <p-skeleton width="18rem" height="0.875rem"></p-skeleton>
+            </div>
+            <p-skeleton width="8rem" height="0.875rem"></p-skeleton>
+          </div>
+        }
+      </div>
+    } @else if (!broadcastReaders.length) {
       <div
-        class="flex h-11 w-11 items-center justify-center rounded-full bg-slate-200 text-sm font-semibold text-slate-700"
+        class="rounded-lg border border-dashed border-slate-300 p-6 text-center text-sm text-slate-500"
       >
-        CE
+        No readers found yet.
       </div>
-      <div class="min-w-0">
-        <div class="text-xl font-semibold text-slate-900">CEO Broadcast</div>
-        <div class="text-sm text-slate-500">Compose</div>
-      </div>
-    </div>
-  </ng-template>
-
-  <div class="space-y-0">
-    <div class="border-b border-slate-200 px-1 py-4">
-      <div class="grid grid-cols-[88px_1fr] items-center gap-3">
-        <label
-          [htmlFor]="'broadcastTo'"
-          class="text-sm font-medium text-slate-700"
-          >To:</label
-        >
-        <input
-          pInputText
-          type="text"
-          [(ngModel)]="broadcastTo"
-          readonly
-          class="w-full border-0 shadow-none focus:shadow-none"
-        />
-      </div>
-    </div>
-
-    <div class="border-b border-slate-200 px-1 py-4">
-      <div class="grid grid-cols-[88px_1fr] items-center gap-3">
-        <label
-          [htmlFor]="'broadcastSubject'"
-          class="text-sm font-medium text-slate-700"
-          >Subject:</label
-        >
-        <input
-          pInputText
-          type="text"
-          [(ngModel)]="broadcastSubject"
-          class="w-full border-0 shadow-none focus:shadow-none"
-          placeholder="Enter subject"
-        />
-      </div>
-    </div>
-
-    <div class="py-4">
-      <p-editor
-        [(ngModel)]="broadcastMessage"
-        [style]="{ height: '180px' }"
-        class="broadcast-message-editor"
-      >
-        <ng-template #header>
-          <span class="ql-formats">
-            <select class="ql-size" aria-label="Font Size">
-              <option value="small">Small</option>
-              <option selected>Normal</option>
-              <option value="large">Large</option>
-              <option value="huge">Huge</option>
-            </select>
-          </span>
-
-          <span class="ql-formats">
-            <button type="button" class="ql-bold" aria-label="Bold"></button>
-            <button
-              type="button"
-              class="ql-italic"
-              aria-label="Italic"
-            ></button>
-            <button
-              type="button"
-              class="ql-underline"
-              aria-label="Underline"
-            ></button>
-          </span>
-
-          <span class="ql-formats">
-            <select class="ql-color" aria-label="Text Color"></select>
-            <select
-              class="ql-background"
-              aria-label="Background Color"
-            ></select>
-          </span>
-
-          <span class="ql-formats">
-            <button
-              type="button"
-              class="ql-list"
-              value="ordered"
-              aria-label="Ordered List"
-            ></button>
-            <select class="ql-align" aria-label="Text Align">
-              <option selected></option>
-              <option value="center"></option>
-              <option value="right"></option>
-              <option value="justify"></option>
-            </select>
-          </span>
-
-          <span class="ql-formats">
-            <button
-              type="button"
-              class="ql-link"
-              aria-label="Insert Link"
-            ></button>
-            <button
-              type="button"
-              class="ql-clean"
-              aria-label="Clear Formatting"
-            ></button>
-          </span>
-        </ng-template>
-      </p-editor>
-    </div>
-  </div>
-
-  <ng-template pTemplate="footer">
-    <div class="w-full">
-      @if (broadcastFiles.length) {
-        <div class="mb-4 space-y-2">
-          @for (
-            file of broadcastFiles;
-            track file.name + '-' + file.size + '-' + $index
-          ) {
-            <div
-              class="flex items-center justify-between rounded-lg border border-slate-200 bg-slate-50 px-3 py-2"
-            >
-              <div class="min-w-0">
-                <div class="truncate text-sm font-medium text-slate-800">
-                  {{ file.name }}
-                </div>
-                <div class="mt-0.5 text-xs text-slate-400">
-                  {{ formatFileSize(file.size) }}
-                </div>
+    } @else {
+      <div class="space-y-3">
+        @for (reader of broadcastReaders; track reader.userId) {
+          <div
+            class="flex items-center justify-between gap-4 rounded-lg border border-slate-200 bg-white px-4 py-3"
+          >
+            <div class="min-w-0 flex items-center gap-3">
+              <div
+                class="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-slate-200 text-sm font-semibold text-slate-700"
+              >
+                {{
+                  (
+                    (reader.firstName[0] || '') + (reader.lastName[0] || '')
+                  ).toUpperCase()
+                }}
               </div>
 
-              <button
-                aria-label="Remove File"
-                pButton
-                type="button"
-                icon="pi pi-times"
-                class="p-button-text p-button-danger p-button-sm"
-                (click)="removeBroadcastFile($index)"
-              ></button>
+              <div class="min-w-0">
+                <div class="truncate font-medium text-slate-800">
+                  {{ reader.firstName }} {{ reader.lastName }}
+                </div>
+                <div class="truncate text-sm text-slate-500">
+                  {{ reader.email || '-' }}
+                </div>
+                <div class="truncate text-xs text-slate-400">
+                  {{ reader.department || '-' }} • {{ reader.jobTitle || '-' }}
+                </div>
+              </div>
             </div>
-          }
-        </div>
-      }
 
-      <div class="flex w-full items-center">
-        <div class="flex items-center gap-3 text-slate-500">
-          <input
-            #broadcastFileInput
-            type="file"
-            multiple
-            class="hidden"
-            (change)="onBroadcastFilesSelected($event)"
-          />
-
-          <input
-            #broadcastImageInput
-            type="file"
-            accept="image/*"
-            multiple
-            class="hidden"
-            (change)="onBroadcastFilesSelected($event)"
-          />
-
-          <button
-            type="button"
-            class="flex h-9 w-9 items-center justify-center rounded-full transition hover:bg-slate-100"
-            (click)="broadcastFileInput.click()"
-            pTooltip="Attach files"
-            tooltipPosition="top"
-          >
-            <i class="pi pi-paperclip text-base"></i>
-          </button>
-
-          <button
-            type="button"
-            class="flex h-9 w-9 items-center justify-center rounded-full transition hover:bg-slate-100"
-            (click)="broadcastImageInput.click()"
-            pTooltip="Attach images"
-            tooltipPosition="top"
-          >
-            <i class="pi pi-image text-base"></i>
-          </button>
-        </div>
-
-        <div class="ml-auto flex items-center gap-3">
-          <button
-            pButton
-            aria-label="Discard Broadcast"
-            type="button"
-            label="Discard"
-            severity="secondary"
-            [text]="true"
-            (click)="closeBroadcastDialog()"
-          ></button>
-
-          <button
-            pButton
-            aria-label="Send Broadcast"
-            type="button"
-            icon="pi pi-send"
-            label="Send"
-            [loading]="sendingBroadcast"
-            (click)="sendBroadcast()"
-          ></button>
-        </div>
+            <div class="shrink-0 text-sm text-slate-500">
+              {{ reader.readAt | appDateTime }}
+            </div>
+          </div>
+        }
       </div>
-    </div>
-  </ng-template>
+    }
+  </div>
 </p-dialog>

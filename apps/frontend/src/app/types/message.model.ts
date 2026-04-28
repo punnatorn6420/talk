@@ -23,8 +23,8 @@ export interface IMail {
   modifiedAt?: string | null;
   createdBy?: string | null;
   modifiedBy?: string | null;
-
-  attachments?: IMessageAttachment[];
+  userAttachments?: IMessageAttachment[];
+  ceoAttachments?: IMessageAttachment[];
 }
 
 export interface IMessageParams {
