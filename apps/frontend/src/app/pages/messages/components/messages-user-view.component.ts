@@ -143,7 +143,7 @@ export class MessagesUserViewComponent
   }
 
   goToCreateMessage(): void {
-    this.router.navigate(['/admin/messages/new']);
+    this.router.navigate(['/admin/messages/create']);
   }
 
   editMail(mail: IMail, event?: Event): void {
@@ -507,6 +507,6 @@ export class MessagesUserViewComponent
   }
 
   openMessage(item: IMail): void {
-    this.router.navigate(['/admin/messages', item.id, 'edit']);
+    this.router.navigate(['/admin/messages', item.id, 'view']);
   }
 }

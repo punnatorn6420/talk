@@ -164,7 +164,7 @@ export class MessageAdminDetailComponent implements OnInit {
     formData.append('reply', this.replyText?.trim() || '');
 
     this.pendingReplyFiles.forEach((file) => {
-      formData.append('files', file, file.name);
+      formData.append('attachments', file, file.name);
     });
 
     return formData;
@@ -207,7 +207,7 @@ export class MessageAdminDetailComponent implements OnInit {
     formData.append('reply', this.replyText.trim());
 
     this.pendingReplyFiles.forEach((file) => {
-      formData.append('files', file, file.name);
+      formData.append('attachments', file, file.name);
     });
 
     this.messageApi
@@ -270,9 +270,8 @@ export class MessageAdminDetailComponent implements OnInit {
     return this.mail?.reply?.trim() || '<p>-</p>';
   }
 
-  getReplyAttachments(): unknown[] {
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    return (this.mail as any)?.replyAttachments ?? [];
+  getReplyAttachments(): IMessageAttachment[] {
+    return this.mail?.ceoAttachments ?? [];
   }
 
   getAttachmentName(file: unknown): string {
@@ -311,6 +310,14 @@ export class MessageAdminDetailComponent implements OnInit {
   hasOriginalAttachments(): boolean {
     return this.getOriginalAttachments().length > 0;
   }
+
+  // getReplyAttachments(): IMessageAttachment[] {
+  //   return this.mail?.replyAttachments ?? [];
+  // }
+
+  // hasReplyAttachments(): boolean {
+  //   return this.getReplyAttachments().length > 0;
+  // }
 
   downloadAttachment(attachment: IMessageAttachment): void {
     if (!this.mail?.id || !attachment?.id) return;

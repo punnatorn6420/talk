@@ -466,6 +466,15 @@ export class BroadcastAdminFormEditComponent implements OnInit {
   }
 
   private toApiDateTime(date: Date): string {
-    return date.toISOString();
+    const pad = (value: number): string => value.toString().padStart(2, '0');
+
+    const year = date.getFullYear();
+    const month = pad(date.getMonth() + 1);
+    const day = pad(date.getDate());
+    const hour = pad(date.getHours());
+    const minute = pad(date.getMinutes());
+    const second = pad(date.getSeconds());
+
+    return `${year}-${month}-${day}T${hour}:${minute}:${second}`;
   }
 }

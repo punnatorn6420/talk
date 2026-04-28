@@ -155,10 +155,22 @@
 
                   <div class="space-y-2">
                     @for (file of getReplyAttachments(); track $index) {
-                      <a
+                      <!-- <button
+                        type="button"
                         class="flex items-center justify-between rounded-lg border border-slate-200 px-3 py-2 text-sm text-slate-700 transition hover:bg-slate-50"
-                        [href]="getAttachmentUrl(file) || null"
-                        target="_blank"
+                        (click)="downloadAttachment(file)"
+                      >
+                        <div class="min-w-0">
+                          <div class="truncate font-medium">
+                            {{ getAttachmentName(file) }}
+                          </div>
+                        </div>
+                        <i class="pi pi-paperclip text-slate-400"></i>
+                      </button> -->
+                      <button
+                        type="button"
+                        class="flex w-full items-center justify-between rounded-lg border border-slate-200 px-3 py-2 text-left text-sm text-slate-700 transition hover:bg-slate-50"
+                        (click)="downloadAttachment(file)"
                       >
                         <div class="min-w-0">
                           <div class="truncate font-medium">
@@ -166,8 +178,8 @@
                           </div>
                         </div>
 
-                        <i class="pi pi-paperclip text-slate-400"></i>
-                      </a>
+                        <i class="pi pi-download text-slate-400"></i>
+                      </button>
                     }
                   </div>
                 </div>
