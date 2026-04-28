@@ -19,6 +19,7 @@ import { MessageService } from 'primeng/api';
 
 import { _MessageService } from '../../../../service/message.service';
 import { IMail, IMessageAttachment } from '../../../../types/message.model';
+import { SubscriptionDestroyer } from '../../../../shared/core/helper/SubscriptionDestroyer.helper';
 
 type PageMode = 'create' | 'edit' | 'view';
 
@@ -39,7 +40,10 @@ type PageMode = 'create' | 'edit' | 'view';
   providers: [MessageService],
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
-export class MessageFormPageComponent implements OnInit {
+export class MessageFormPageComponent
+  extends SubscriptionDestroyer
+  implements OnInit
+{
   private readonly fb = inject(FormBuilder);
   private readonly messageApi = inject(_MessageService);
   private readonly route = inject(ActivatedRoute);
@@ -99,7 +103,7 @@ export class MessageFormPageComponent implements OnInit {
   loadDetail(id: string): void {
     this.loading = true;
 
-    this.messageApi
+    const obs = this.messageApi
       .getMessageThreadById(id)
       .pipe(
         finalize(() => {
@@ -154,6 +158,7 @@ export class MessageFormPageComponent implements OnInit {
           this.router.navigate(['/admin/messages']);
         },
       });
+    this.AddSubscription(obs);
   }
 
   onFilesSelected(event: FileSelectEvent): void {
@@ -200,32 +205,35 @@ export class MessageFormPageComponent implements OnInit {
     const file = this.existingAttachments[index];
     if (!file) return;
 
-    this.messageApi.deleteMessageAttachment(this.messageId, file.id).subscribe({
-      next: () => {
-        this.existingAttachments = this.existingAttachments.filter(
-          (_, i) => i !== index,
-        );
+    const obs = this.messageApi
+      .deleteMessageAttachment(this.messageId, file.id)
+      .subscribe({
+        next: () => {
+          this.existingAttachments = this.existingAttachments.filter(
+            (_, i) => i !== index,
+          );
 
-        this.userAttachments = this.userAttachments.filter(
-          (item) => item.id !== file.id,
-        );
+          this.userAttachments = this.userAttachments.filter(
+            (item) => item.id !== file.id,
+          );
 
-        this.toast.add({
-          severity: 'success',
-          summary: 'Removed',
-          detail: 'Attachment removed successfully.',
-        });
+          this.toast.add({
+            severity: 'success',
+            summary: 'Removed',
+            detail: 'Attachment removed successfully.',
+          });
 
-        this.cdr.markForCheck();
-      },
-      error: () => {
-        this.toast.add({
-          severity: 'error',
-          summary: 'Delete failed',
-          detail: 'Unable to remove attachment.',
-        });
-      },
-    });
+          this.cdr.markForCheck();
+        },
+        error: () => {
+          this.toast.add({
+            severity: 'error',
+            summary: 'Delete failed',
+            detail: 'Unable to remove attachment.',
+          });
+        },
+      });
+    this.AddSubscription(obs);
   }
 
   submit(): void {
@@ -252,7 +260,7 @@ export class MessageFormPageComponent implements OnInit {
         ? this.messageApi.putMessageThreadWithFiles(this.messageId, formData)
         : this.messageApi.postMessageThreadWithFiles(formData);
 
-    request$
+    const obs = request$
       .pipe(
         finalize(() => {
           this.saving = false;
@@ -284,6 +292,7 @@ export class MessageFormPageComponent implements OnInit {
           });
         },
       });
+    this.AddSubscription(obs);
   }
 
   downloadUserAttachment(file: IMessageAttachment): void {
@@ -300,25 +309,28 @@ export class MessageFormPageComponent implements OnInit {
     messageId: string,
     file: IMessageAttachment,
   ): void {
-    this.messageApi.downloadMessageAttachment(messageId, file.id).subscribe({
-      next: (blob: Blob) => {
-        const url = window.URL.createObjectURL(blob);
-        const anchor = document.createElement('a');
+    const obs = this.messageApi
+      .downloadMessageAttachment(messageId, file.id)
+      .subscribe({
+        next: (blob: Blob) => {
+          const url = window.URL.createObjectURL(blob);
+          const anchor = document.createElement('a');
 
-        anchor.href = url;
-        anchor.download = file.fileName ?? 'attachment';
-        anchor.click();
+          anchor.href = url;
+          anchor.download = file.fileName ?? 'attachment';
+          anchor.click();
 
-        window.URL.revokeObjectURL(url);
-      },
-      error: () => {
-        this.toast.add({
-          severity: 'error',
-          summary: 'Download failed',
-          detail: 'Unable to download attachment.',
-        });
-      },
-    });
+          window.URL.revokeObjectURL(url);
+        },
+        error: () => {
+          this.toast.add({
+            severity: 'error',
+            summary: 'Download failed',
+            detail: 'Unable to download attachment.',
+          });
+        },
+      });
+    this.AddSubscription(obs);
   }
 
   goBack(): void {

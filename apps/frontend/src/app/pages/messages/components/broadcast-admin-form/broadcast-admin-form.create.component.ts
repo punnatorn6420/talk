@@ -25,6 +25,7 @@ import { SelectButtonModule } from 'primeng/selectbutton';
 import { FileSelectEvent, FileUploadModule } from 'primeng/fileupload';
 import { DatePickerModule } from 'primeng/datepicker';
 import { Popover, PopoverModule } from 'primeng/popover';
+import { SubscriptionDestroyer } from '../../../../shared/core/helper/SubscriptionDestroyer.helper';
 
 @Component({
   selector: 'app-broadcast-admin-form-create',
@@ -50,7 +51,7 @@ import { Popover, PopoverModule } from 'primeng/popover';
   providers: [MessageService, ConfirmationService],
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
-export class BroadcastAdminFormCreateComponent {
+export class BroadcastAdminFormCreateComponent extends SubscriptionDestroyer {
   private readonly broadcastApi = inject(_BroadcastService);
   private readonly toast = inject(MessageService);
   private readonly cdr = inject(ChangeDetectorRef);
@@ -82,6 +83,7 @@ export class BroadcastAdminFormCreateComponent {
   };
 
   constructor() {
+    super();
     this.selectDurationPreset('7d');
   }
 
@@ -182,7 +184,7 @@ export class BroadcastAdminFormCreateComponent {
 
     this.saving = true;
 
-    this.broadcastApi
+    const obs = this.broadcastApi
       .createBroadcast(this.buildPayload('Draft'), this.pendingFiles)
       .pipe(
         finalize(() => {
@@ -209,41 +211,80 @@ export class BroadcastAdminFormCreateComponent {
           });
         },
       });
+    this.AddSubscription(obs);
   }
 
   confirmSend(): void {
     /* empty */
   }
 
-  customExpireDate: Date | null = null;
-  minCustomExpireDate: Date = this.getTomorrow();
+  customDisplayDateRange: Date[] | null = null;
+  minCustomDisplayDate: Date = this.getToday();
 
   selectedDisplayDuration: '7d' | '1m' | 'forever' | 'custom' = '7d';
 
-  private getTomorrow(): Date {
-    const tomorrow = new Date();
-    tomorrow.setDate(tomorrow.getDate() + 1);
-    tomorrow.setHours(0, 0, 0, 0);
-    return tomorrow;
+  private getToday(): Date {
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    return today;
   }
 
   get displayDurationLabel(): string {
     switch (this.selectedDisplayDuration) {
       case '7d':
-        return 'Display: 7 Days';
+        return this.formatDisplayRangeLabel(
+          this.form.startDisplayAt,
+          this.form.expireDisplayAt,
+          'Display: 7 Days',
+        );
+
       case '1m':
-        return 'Display: 1 Month';
+        return this.formatDisplayRangeLabel(
+          this.form.startDisplayAt,
+          this.form.expireDisplayAt,
+          'Display: 1 Month',
+        );
+
       case 'forever':
         return 'Display: Forever';
+
       case 'custom': {
-        const displayDate =
-          this.formatDisplayDate(this.customExpireDate) ||
-          this.formatDisplayDate(this.form.expireDisplayAt);
-        return displayDate ? `Expire: ${displayDate}` : 'Select expire date';
+        const start =
+          this.customDisplayDateRange?.[0] ?? this.form.startDisplayAt;
+        const end =
+          this.customDisplayDateRange?.[1] ?? this.form.expireDisplayAt;
+
+        const rangeLabel = this.formatDateRange(start, end);
+
+        return rangeLabel
+          ? `Display: ${rangeLabel}`
+          : 'Select display date range';
       }
+
       default:
         return 'Select duration';
     }
+  }
+
+  private formatDisplayRangeLabel(
+    start: Date | string | null | undefined,
+    end: Date | string | null | undefined,
+    fallback: string,
+  ): string {
+    const rangeLabel = this.formatDateRange(start, end);
+    return rangeLabel ? `${fallback} (${rangeLabel})` : fallback;
+  }
+
+  private formatDateRange(
+    start: Date | string | null | undefined,
+    end: Date | string | null | undefined,
+  ): string {
+    const startLabel = this.formatDisplayDate(start);
+    const endLabel = this.formatDisplayDate(end);
+
+    if (!startLabel || !endLabel) return '';
+
+    return `${startLabel} - ${endLabel}`;
   }
 
   private formatDisplayDate(date: Date | string | null | undefined): string {
@@ -265,7 +306,7 @@ export class BroadcastAdminFormCreateComponent {
     popover?: Popover,
   ): void {
     this.selectedDisplayDuration = value;
-    this.customExpireDate = null;
+    this.customDisplayDateRange = null;
 
     const now = new Date();
     const expire = new Date(now);
@@ -289,14 +330,18 @@ export class BroadcastAdminFormCreateComponent {
     this.cdr.markForCheck();
   }
 
-  selectCustomExpireDate(popover?: Popover): void {
-    if (!this.customExpireDate) return;
+  selectCustomDisplayDateRange(popover?: Popover): void {
+    const startDate = this.customDisplayDateRange?.[0];
+    const expireDate = this.customDisplayDateRange?.[1];
 
-    const now = new Date();
+    if (!startDate || !expireDate) {
+      return;
+    }
 
     this.selectedDisplayDuration = 'custom';
-    this.form.startDisplayAt = this.toApiDateTime(now);
-    this.form.expireDisplayAt = this.toApiDateTime(this.customExpireDate);
+
+    this.form.startDisplayAt = this.toApiDateTime(startDate);
+    this.form.expireDisplayAt = this.toApiDateTime(expireDate);
 
     popover?.hide();
     this.cdr.markForCheck();

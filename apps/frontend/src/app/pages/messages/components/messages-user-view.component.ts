@@ -154,7 +154,7 @@ export class MessagesUserViewComponent
   loadMessages(showToast = false): void {
     this.loading = true;
 
-    this.messageApi
+    const obs = this.messageApi
       .getMessageCriteria(this.messageParams)
       .pipe(
         finalize(() => {
@@ -186,12 +186,13 @@ export class MessagesUserViewComponent
           });
         },
       });
+    this.AddSubscription(obs);
   }
 
   loadBroadcasts(showToast = false): void {
     this.broadcastLoading = true;
 
-    this.broadcastApi
+    const obs = this.broadcastApi
       .getMyBroadcasts(this.broadcastParams)
       .pipe(
         finalize(() => {
@@ -224,6 +225,7 @@ export class MessagesUserViewComponent
           });
         },
       });
+    this.AddSubscription(obs);
   }
 
   onSearch(): void {
@@ -306,7 +308,7 @@ export class MessagesUserViewComponent
         this.sendingId = selectedId;
         this.cdr.markForCheck();
 
-        this.messageApi
+        const obs = this.messageApi
           .putSentMessage(selectedId)
           .pipe(
             finalize(() => {
@@ -332,6 +334,7 @@ export class MessagesUserViewComponent
               });
             },
           });
+        this.AddSubscription(obs);
       },
     });
   }
@@ -357,7 +360,7 @@ export class MessagesUserViewComponent
         this.deletingId = selectedId;
         this.cdr.markForCheck();
 
-        this.messageApi
+        const obs = this.messageApi
           .deleteMessageThread(selectedId)
           .pipe(
             finalize(() => {
@@ -393,6 +396,7 @@ export class MessagesUserViewComponent
               });
             },
           });
+        this.AddSubscription(obs);
       },
     });
   }

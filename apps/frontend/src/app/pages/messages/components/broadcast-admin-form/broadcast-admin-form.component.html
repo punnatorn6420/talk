@@ -23,14 +23,92 @@
       </div>
 
       <div class="flex items-center gap-2">
-        <button
-          aria-label="Cancel"
-          pButton
-          type="button"
-          label="Cancel"
-          class="p-button-text"
-          (click)="goBack()"
-        ></button>
+        <div class="w-full lg:w-auto">
+          <p-popover #durationPopover>
+            <div class="w-[320px] space-y-4 p-1">
+              <div class="text-sm text-slate-700">
+                Choose when this broadcast should expire.
+              </div>
+
+              <div class="grid grid-cols-3 gap-2">
+                <button
+                  aria-label="Select 7 days"
+                  type="button"
+                  class="rounded-xl border px-3 py-2 text-sm font-medium transition"
+                  [ngClass]="
+                    selectedDisplayDuration === '7d'
+                      ? 'border-primary-300 bg-primary-50 text-primary-700'
+                      : 'border-slate-200 bg-white text-slate-600 hover:bg-slate-50'
+                  "
+                  (click)="selectDurationPreset('7d', durationPopover)"
+                >
+                  7 Days
+                </button>
+
+                <button
+                  aria-label="Select 1 month"
+                  type="button"
+                  class="rounded-xl border px-3 py-2 text-sm font-medium transition"
+                  [ngClass]="
+                    selectedDisplayDuration === '1m'
+                      ? 'border-primary-300 bg-primary-50 text-primary-700'
+                      : 'border-slate-200 bg-white text-slate-600 hover:bg-slate-50'
+                  "
+                  (click)="selectDurationPreset('1m', durationPopover)"
+                >
+                  1 Month
+                </button>
+
+                <button
+                  aria-label="Select forever"
+                  type="button"
+                  class="rounded-xl border px-3 py-2 text-sm font-medium transition"
+                  [ngClass]="
+                    selectedDisplayDuration === 'forever'
+                      ? 'border-primary-300 bg-primary-50 text-primary-700'
+                      : 'border-slate-200 bg-white text-slate-600 hover:bg-slate-50'
+                  "
+                  (click)="selectDurationPreset('forever', durationPopover)"
+                >
+                  Forever
+                </button>
+              </div>
+
+              <div class="border-t border-slate-200 pt-4">
+                <div class="mb-4 block text-sm tracking-wide text-slate-700">
+                  Custom display date range
+                </div>
+
+                <p-datepicker
+                  inputId="customDisplayDateRange"
+                  [(ngModel)]="customDisplayDateRange"
+                  selectionMode="range"
+                  [showTime]="false"
+                  [showIcon]="true"
+                  [showOnFocus]="false"
+                  [minDate]="minCustomDisplayDate"
+                  appendTo="body"
+                  class="w-full"
+                  inputStyleClass="w-full"
+                  placeholder="Select display date range"
+                  dateFormat="dd M yy"
+                  (onSelect)="selectCustomDisplayDateRange(durationPopover)"
+                ></p-datepicker>
+              </div>
+            </div>
+          </p-popover>
+
+          <button
+            aria-label="Select Display Duration"
+            type="button"
+            pButton
+            icon="pi pi-calendar-clock "
+            [label]="displayDurationLabel"
+            [raised]="true"
+            class="p-button-text"
+            (click)="durationPopover.toggle($event)"
+          ></button>
+        </div>
 
         @if (isEditMode && canSendCurrentBroadcast) {
           <button
@@ -40,6 +118,7 @@
             icon="pi pi-send"
             label="Send"
             severity="success"
+            [raised]="true"
             [loading]="sending"
             (click)="confirmSend()"
           ></button>
@@ -52,6 +131,7 @@
           icon="pi pi-save"
           [label]="isEditMode ? 'Update' : 'Create Draft'"
           [loading]="saving"
+          [raised]="true"
           (click)="submitForm()"
         ></button>
       </div>
@@ -67,10 +147,15 @@
           }
         </div>
       } @else {
-        <section class="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm">
+        <section
+          class="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm"
+        >
           <div class="space-y-5">
             <div>
-              <label htmlFor="subject" class="mb-2 block text-sm font-medium text-slate-700">
+              <label
+                htmlFor="subject"
+                class="mb-2 block text-sm font-medium text-slate-700"
+              >
                 Subject
               </label>
               <input
@@ -84,7 +169,10 @@
             </div>
 
             <div>
-              <label htmlFor="detail" class="mb-2 block text-sm font-medium text-slate-700">
+              <label
+                htmlFor="detail"
+                class="mb-2 block text-sm font-medium text-slate-700"
+              >
                 Message
               </label>
 
@@ -105,8 +193,16 @@
                   </span>
 
                   <span class="ql-formats">
-                    <button type="button" class="ql-bold" aria-label="Bold"></button>
-                    <button type="button" class="ql-italic" aria-label="Italic"></button>
+                    <button
+                      type="button"
+                      class="ql-bold"
+                      aria-label="Bold"
+                    ></button>
+                    <button
+                      type="button"
+                      class="ql-italic"
+                      aria-label="Italic"
+                    ></button>
                     <button
                       type="button"
                       class="ql-underline"
@@ -116,7 +212,10 @@
 
                   <span class="ql-formats">
                     <select class="ql-color" aria-label="Text Color"></select>
-                    <select class="ql-background" aria-label="Background Color"></select>
+                    <select
+                      class="ql-background"
+                      aria-label="Background Color"
+                    ></select>
                   </span>
 
                   <span class="ql-formats">
@@ -135,7 +234,11 @@
                   </span>
 
                   <span class="ql-formats">
-                    <button type="button" class="ql-link" aria-label="Insert Link"></button>
+                    <button
+                      type="button"
+                      class="ql-link"
+                      aria-label="Insert Link"
+                    ></button>
                     <button
                       type="button"
                       class="ql-clean"
@@ -147,7 +250,9 @@
             </div>
 
             <div class="space-y-4">
-              <div class="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
+              <div
+                class="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between"
+              >
                 <div class="min-w-0 flex-1">
                   <p-fileUpload
                     mode="basic"
@@ -163,98 +268,19 @@
                   >
                   </p-fileUpload>
                 </div>
-
-                <div class="w-full lg:w-auto">
-                  <p-popover #durationPopover>
-                    <div class="w-[320px] space-y-4 p-1">
-                      <div class="text-sm text-slate-700">
-                        Choose when this broadcast should expire.
-                      </div>
-
-                      <div class="grid grid-cols-3 gap-2">
-                        <button
-                          aria-label="Select 7 days"
-                          type="button"
-                          class="rounded-xl border px-3 py-2 text-sm font-medium transition"
-                          [ngClass]="
-                            selectedDisplayDuration === '7d'
-                              ? 'border-primary-300 bg-primary-50 text-primary-700'
-                              : 'border-slate-200 bg-white text-slate-600 hover:bg-slate-50'
-                          "
-                          (click)="selectDurationPreset('7d', durationPopover)"
-                        >
-                          7 Days
-                        </button>
-
-                        <button
-                          aria-label="Select 1 month"
-                          type="button"
-                          class="rounded-xl border px-3 py-2 text-sm font-medium transition"
-                          [ngClass]="
-                            selectedDisplayDuration === '1m'
-                              ? 'border-primary-300 bg-primary-50 text-primary-700'
-                              : 'border-slate-200 bg-white text-slate-600 hover:bg-slate-50'
-                          "
-                          (click)="selectDurationPreset('1m', durationPopover)"
-                        >
-                          1 Month
-                        </button>
-
-                        <button
-                          aria-label="Select forever"
-                          type="button"
-                          class="rounded-xl border px-3 py-2 text-sm font-medium transition"
-                          [ngClass]="
-                            selectedDisplayDuration === 'forever'
-                              ? 'border-primary-300 bg-primary-50 text-primary-700'
-                              : 'border-slate-200 bg-white text-slate-600 hover:bg-slate-50'
-                          "
-                          (click)="selectDurationPreset('forever', durationPopover)"
-                        >
-                          Forever
-                        </button>
-                      </div>
-
-                      <div class="border-t border-slate-200 pt-4">
-                        <div class="mb-4 block text-sm tracking-wide text-slate-700">
-                          Custom expire date
-                        </div>
-
-                        <p-datepicker
-                          inputId="customExpireDate"
-                          [(ngModel)]="customExpireDate"
-                          [showTime]="false"
-                          [showIcon]="true"
-                          [showOnFocus]="false"
-                          [minDate]="minCustomExpireDate"
-                          appendTo="body"
-                          class="w-full"
-                          inputStyleClass="w-full"
-                          placeholder="Select expire date"
-                          dateFormat="dd M yy"
-                          (onSelect)="selectCustomExpireDate(durationPopover)"
-                        ></p-datepicker>
-                      </div>
-                    </div>
-                  </p-popover>
-
-                  <button
-                    aria-label="Select Display Duration"
-                    type="button"
-                    pButton
-                    icon="pi pi-calendar-clock"
-                    [label]="displayDurationLabel"
-                    class="p-button-text"
-                    (click)="durationPopover.toggle($event)"
-                  ></button>
-                </div>
               </div>
 
               @if (existingAttachments.length) {
                 <div class="space-y-2">
-                  <div class="text-sm font-semibold text-slate-800">Existing attachments</div>
+                  <div class="text-sm font-semibold text-slate-800">
+                    Existing attachments
+                  </div>
 
-                  @for (file of existingAttachments; track file.id; let i = $index) {
+                  @for (
+                    file of existingAttachments;
+                    track file.id;
+                    let i = $index
+                  ) {
                     <div
                       class="flex items-center justify-between gap-3 rounded-xl border border-slate-200 bg-white px-3 py-2 transition hover:bg-slate-50"
                     >
@@ -264,10 +290,13 @@
                         class="flex min-w-0 flex-1 items-center text-left"
                         (click)="downloadAttachment(file)"
                       >
-                        <i class="pi pi-paperclip mr-2 shrink-0 text-slate-400"></i>
-                        <span class="truncate text-sm font-medium text-slate-800">{{
-                          file.fileName
-                        }}</span>
+                        <i
+                          class="pi pi-paperclip mr-2 shrink-0 text-slate-400"
+                        ></i>
+                        <span
+                          class="truncate text-sm font-medium text-slate-800"
+                          >{{ file.fileName }}</span
+                        >
                       </button>
 
                       <div class="flex shrink-0 items-center gap-1">
@@ -298,16 +327,25 @@
 
               @if (pendingFiles.length) {
                 <div class="space-y-2">
-                  <div class="text-sm font-semibold text-slate-800">New attachments</div>
+                  <div class="text-sm font-semibold text-slate-800">
+                    New attachments
+                  </div>
 
-                  @for (file of pendingFiles; track file.name + '-' + file.size + '-' + $index) {
+                  @for (
+                    file of pendingFiles;
+                    track file.name + '-' + file.size + '-' + $index
+                  ) {
                     <div
                       class="flex items-center justify-between gap-3 rounded-xl border border-slate-200 bg-white px-3 py-2"
                     >
                       <div class="flex min-w-0 flex-1 items-center">
-                        <i class="pi pi-paperclip mr-2 shrink-0 text-slate-400"></i>
+                        <i
+                          class="pi pi-paperclip mr-2 shrink-0 text-slate-400"
+                        ></i>
                         <div class="min-w-0">
-                          <div class="truncate text-sm font-medium text-slate-800">
+                          <div
+                            class="truncate text-sm font-medium text-slate-800"
+                          >
                             {{ file.name }}
                           </div>
                           <div class="mt-0.5 text-xs text-slate-400">
