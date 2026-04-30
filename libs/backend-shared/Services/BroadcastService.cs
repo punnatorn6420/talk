@@ -173,11 +173,22 @@ namespace NokAir.TalkToCeo.Shared.Services
 
             var isRead = broadcast.Reads.Any(x => x.UserId == userId);
 
+            string detail = string.Empty;
+
+            if (broadcast.Status == BroadcastStatus.Draft)
+            {
+                detail = broadcast.Detail ?? string.Empty;
+            }
+            else
+            {
+                detail = this.aesGcm.Decrypt(broadcast.Detail ?? string.Empty, broadcast.DetailNonce ?? string.Empty, broadcast.DetailTag ?? string.Empty);
+            }
+
             return new BroadcastResponseDto
             {
                 Id = broadcast.Id,
                 Subject = broadcast.Subject,
-                Detail = this.aesGcm.Decrypt(broadcast.Detail ?? string.Empty, broadcast.DetailNonce ?? string.Empty, broadcast.DetailTag ?? string.Empty),
+                Detail = detail,
                 CreatedAt = broadcast.CreatedAt,
                 CreatedBy = broadcast.CreatedBy,
                 ModifiedAt = broadcast.ModifiedAt,
@@ -343,35 +354,51 @@ namespace NokAir.TalkToCeo.Shared.Services
 
             var broadcastIds = broadcasts.Select(x => x.Id).ToList();
 
-            var attachments = await this.broadcastAttachmentRepository.FindAttachmentsByBroadcastIdsAsync(broadcastIds);
+            var attachments = await this.broadcastAttachmentRepository
+                .FindAttachmentsByBroadcastIdsAsync(broadcastIds);
 
             var attachmentLookup = attachments
                 .GroupBy(x => x.BroadcastMessageId)
                 .ToDictionary(g => g.Key, g => g.ToList());
 
-            return broadcasts.Select(x => new BroadcastResponseDto
+            return broadcasts.Select(x =>
             {
-                Id = x.Id,
-                Subject = x.Subject,
-                Detail = this.aesGcm.Decrypt(x.Detail ?? string.Empty, x.DetailNonce ?? string.Empty, x.DetailTag ?? string.Empty),
-                Status = x.Status,
-                StartDisplayDate = x.StartDisplayAt,
-                ExpireDisplayDate = x.ExpireDisplayAt,
-                CreatedAt = x.CreatedAt,
-                CreatedBy = x.Ceo.FirstName + " " + x.Ceo.LastName,
-                IsRead = x.ReadAt != null,
-                ModifiedAt = x.ModifiedAt,
-                ModifiedBy = x.ModifiedBy,
-                Attachments =
-                attachmentLookup.TryGetValue(x.Id, out var value)
-                    ? value.Select(a =>
-                        new MessageAttachmentDto
-                        {
-                            Id = a.Id,
-                            FileName =
-                                Path.GetFileName(a.FilePath),
-                        }).ToList()
-                    : new List<MessageAttachmentDto>(),
+                string detail;
+
+                if (x.Status == BroadcastStatus.Draft)
+                {
+                    detail = x.Detail ?? string.Empty;
+                }
+                else
+                {
+                    detail = this.aesGcm.Decrypt(
+                        x.Detail ?? string.Empty,
+                        x.DetailNonce ?? string.Empty,
+                        x.DetailTag ?? string.Empty);
+                }
+
+                return new BroadcastResponseDto
+                {
+                    Id = x.Id,
+                    Subject = x.Subject,
+                    Detail = detail,
+                    Status = x.Status,
+                    StartDisplayDate = x.StartDisplayAt,
+                    ExpireDisplayDate = x.ExpireDisplayAt,
+                    CreatedAt = x.CreatedAt,
+                    CreatedBy = x.Ceo.FirstName + " " + x.Ceo.LastName,
+                    IsRead = x.ReadAt != null,
+                    ModifiedAt = x.ModifiedAt,
+                    ModifiedBy = x.ModifiedBy,
+                    Attachments =
+                        attachmentLookup.TryGetValue(x.Id, out var value)
+                            ? value.Select(a => new MessageAttachmentDto
+                            {
+                                Id = a.Id,
+                                FileName = Path.GetFileName(a.FilePath),
+                            }).ToList()
+                            : new List<MessageAttachmentDto>(),
+                };
             }).ToList();
         }
 
@@ -422,10 +449,19 @@ namespace NokAir.TalkToCeo.Shared.Services
                 broadcast.StartDisplayAt = dto.StartDisplayAt;
                 broadcast.ExpireDisplayAt = dto.ExpireDisplayAt;
 
-                // Draft → Sent (publish)
                 if (dto.Status == BroadcastStatus.Sent)
                 {
+                    // 🔐 Encrypt Detail
+                    var enc = this.aesGcm.Encrypt(dto.Detail);
+                    broadcast.Detail = enc.Cipher;
+                    broadcast.DetailNonce = enc.Nonce;
+                    broadcast.DetailTag = enc.Tag;
                     broadcast.Status = BroadcastStatus.Sent;
+                }
+                else
+                {
+                    broadcast.Status = BroadcastStatus.Draft;
+                    broadcast.Detail = dto.Detail;
                 }
 
                 broadcast.ModifiedAt = DateTime.Now;

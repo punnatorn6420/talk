@@ -120,13 +120,26 @@ namespace NokAir.TalkToCeo.Shared.Services
 
             var attachments = await this.attachmentRepository.FindAttachmentsByMessageIdAsync(id);
 
+            string detail = string.Empty;
+            string reply = string.Empty;
+
+            if (message.Status == ActionStatus.Draft)
+            {
+                detail = message.Detail ?? string.Empty;
+            }
+            else
+            {
+                detail = this.aesGcm.Decrypt(message.Detail ?? string.Empty, message.DetailNonce ?? string.Empty, message.DetailTag ?? string.Empty);
+                reply = this.aesGcm.Decrypt(message.CeoReply ?? string.Empty, message.CeoReplyNonce ?? string.Empty, message.CeoReplyTag ?? string.Empty);
+            }
+
             return new MessageResponseDto
             {
                 Id = message.Id,
                 Subject = message.Subject,
-                Message = this.aesGcm.Decrypt(message.Detail, message.DetailNonce ?? string.Empty, message.DetailTag ?? string.Empty),
+                Message = detail,
                 Status = message.Status,
-                Reply = this.aesGcm.Decrypt(message.CeoReply ?? string.Empty, message.CeoReplyNonce ?? string.Empty, message.CeoReplyTag ?? string.Empty),
+                Reply = reply,
                 PostedAt = message.PostedAt,
                 CreatedBy = message.CreatedBy,
                 ModifiedBy = message.ModifiedBy,
