@@ -20,6 +20,7 @@ import { MessageService } from 'primeng/api';
 import { _MessageService } from '../../../../service/message.service';
 import { IMail, IMessageAttachment } from '../../../../types/message.model';
 import { SubscriptionDestroyer } from '../../../../shared/core/helper/SubscriptionDestroyer.helper';
+import { AuthService } from '../../../../service/auth.service';
 
 type PageMode = 'create' | 'edit' | 'view';
 
@@ -50,6 +51,7 @@ export class MessageFormPageComponent
   private readonly router = inject(Router);
   private readonly toast = inject(MessageService);
   private readonly cdr = inject(ChangeDetectorRef);
+  private readonly auth = inject(AuthService);
 
   loading = false;
   saving = false;
@@ -74,6 +76,9 @@ export class MessageFormPageComponent
 
   messagedetail: IMail | null = null;
 
+  watermarkImage = '';
+  watermarkText = '';
+
   readonly form = this.fb.nonNullable.group({
     subject: ['', Validators.required],
     detail: ['', Validators.required],
@@ -95,9 +100,29 @@ export class MessageFormPageComponent
 
     this.isEditMode = this.pageMode === 'edit';
 
+    this.setWatermarkText();
+
     if (this.messageId) {
       this.loadDetail(this.messageId);
     }
+  }
+
+  private setWatermarkText(): void {
+    const user = this.auth.getUser();
+
+    const fullName = [user?.firstName, user?.lastName]
+      .filter(Boolean)
+      .join(' ')
+      .trim();
+
+    const displayName = fullName || user?.email || 'Unknown User';
+    this.watermarkText = displayName;
+    this.watermarkImage = this.buildWatermarkImage(`Viewed by ${displayName}`);
+  }
+
+  private buildWatermarkImage(text: string): string {
+    const encodedText = encodeURIComponent(text);
+    return `url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='420' height='240' viewBox='0 0 420 240'%3E%3Ctext x='30' y='90' font-family='Arial, sans-serif' font-size='22' font-weight='700' fill='%2364748b'%3E${encodedText}%3C/text%3E%3C/svg%3E")`;
   }
 
   loadDetail(id: string): void {
