@@ -185,6 +185,8 @@ namespace NokAir.TalkToCeo.Shared.Repositories
                     Id = broadcast.Id,
                     Subject = broadcast.Subject,
                     Detail = broadcast.Detail,
+                    DetailNonce = broadcast.DetailNonce,
+                    DetailTag = broadcast.DetailTag,
                     Status = broadcast.Status,
                     StartDisplayAt = broadcast.StartDisplayAt,
                     ExpireDisplayAt = broadcast.ExpireDisplayAt,

@@ -25,6 +25,16 @@ namespace NokAir.TalkToCeo.Shared.QueryModels.Broadcast
         public string Detail { get; set; } = string.Empty;
 
         /// <summary>
+        /// Gets or sets the nonce value for the message, which can be used for security purposes to prevent replay attacks or ensure the uniqueness of the message. The DetailNonce property is intended to provide an additional layer of protection for messages by associating a unique identifier with each message, allowing the system to verify the authenticity and integrity of the message when it is processed or retrieved. The DetailTag property can be used to categorize or label messages based on specific criteria, such as topic, priority, or department, enabling easier organization and retrieval of messages within the TalkToCeo system.
+        /// </summary>
+        public string? DetailNonce { get; set; } = string.Empty;
+
+        /// <summary>
+        /// Gets or sets the tag associated with the message, which can be used for categorization or labeling purposes. The DetailTag property allows for easy organization and retrieval of messages based on specific criteria, such as topic, priority, or department. By assigning tags to messages, users and the CEO can quickly filter and sort messages within the TalkToCeo system, improving efficiency and enabling more effective communication between users and the CEO.
+        /// </summary>
+        public string? DetailTag { get; set; } = string.Empty;
+
+        /// <summary>
         /// Gets or sets the current status of the broadcast message. This field helps track the lifecycle of the broadcast, such as whether it is in draft, published, or archived state.
         /// </summary>
         public BroadcastStatus Status { get; set; }
