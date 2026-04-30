@@ -1,4 +1,5 @@
 using System;
+using System.Text.RegularExpressions;
 using NokAir.Core.Domain.Entities.InHouse;
 using NokAir.Core.Exceptions;
 using NokAir.TalkToCeo.Shared.Dtos;
@@ -11,7 +12,7 @@ namespace NokAir.TalkToCeo.Shared.Services
     /// <summary>
     /// Implements the broadcast service for the TalkToCeo application. This service is responsible for managing broadcast messages, including creating new broadcasts. The BroadcastService class implements the IBroadcastService interface, providing the actual business logic for handling broadcast messages. The CreateBroadcastAsync method validates the input data, ensures that required fields are present, and creates a new broadcast message in the repository. This implementation allows for separation of concerns and easier maintenance of the codebase.
     /// </summary>
-    public class BroadcastService : IBroadcastService
+    public partial class BroadcastService : IBroadcastService
     {
         private readonly IBroadcastRepository broadcastRepository;
         private readonly IUsersRepository<UserDto> usersRepository;
@@ -19,6 +20,7 @@ namespace NokAir.TalkToCeo.Shared.Services
         private readonly IBroadcastAttachmentRepository broadcastAttachmentRepository;
         private readonly IBroadcastAttachmentService broadcastAttachmentService;
         private readonly TalkToCeoDbContext talkToCeoDbContext;
+        private readonly AesGcmService aesGcm;
 
         /// <summary>
         /// Initializes a new instance of the <see cref="BroadcastService"/> class with the specified broadcast repository. The constructor takes an <see cref="IBroadcastRepository"/> as a parameter, which is used to interact with the underlying data store for managing broadcast messages. This allows the service to perform operations such as creating new broadcast messages and retrieving existing ones. By injecting the repository through the constructor, we can easily manage dependencies and promote better testability of the service class.
@@ -29,13 +31,15 @@ namespace NokAir.TalkToCeo.Shared.Services
         /// <param name="broadcastAttachmentRepository">The broadcast attachment repository used to interact with the underlying data store for broadcast attachment-related operations.</param>
         /// <param name="broadcastAttachmentService">The broadcast attachment service used to manage broadcast attachment-related operations.</param>
         /// <param name="talkToCeoDbContext">The database context used to manage transactions and interact with the underlying data store.</param>
+        /// <param name="aesGcm">The AES-GCM service used for encryption and decryption of broadcast details.</param>
         public BroadcastService(
               IBroadcastRepository broadcastRepository,
               IUsersRepository<UserDto> usersRepository,
               IMessageAttachmentRepository attachmentRepository,
               IBroadcastAttachmentRepository broadcastAttachmentRepository,
               IBroadcastAttachmentService broadcastAttachmentService,
-              TalkToCeoDbContext talkToCeoDbContext)
+              TalkToCeoDbContext talkToCeoDbContext,
+              AesGcmService aesGcm)
         {
             this.broadcastRepository = broadcastRepository;
             this.usersRepository = usersRepository;
@@ -44,6 +48,7 @@ namespace NokAir.TalkToCeo.Shared.Services
             this.broadcastAttachmentService = broadcastAttachmentService;
             this.talkToCeoDbContext = talkToCeoDbContext;
             this.broadcastAttachmentService = broadcastAttachmentService;
+            this.aesGcm = aesGcm;
         }
 
         /// <inheritdoc/>
@@ -88,7 +93,7 @@ namespace NokAir.TalkToCeo.Shared.Services
                 var entity = new BroadcastMessages
                 {
                     Subject = dto.Subject.Trim(),
-                    Detail = dto.Detail.Trim(),
+                    ShotDetail = TrimToFirstWords(dto.Detail, 10),
                     CeoId = ceoId,
                     Status = dto.Status,
                     StartDisplayAt = startDisplayAt,
@@ -99,6 +104,21 @@ namespace NokAir.TalkToCeo.Shared.Services
                     ModifiedBy = userNameAcc,
                     CreatedBy = userNameAcc,
                 };
+
+                if (dto.Status == BroadcastStatus.Sent)
+                {
+                    // 🔐 Encrypt Detail
+                    var enc = this.aesGcm.Encrypt(dto.Detail);
+                    entity.Detail = enc.Cipher;
+                    entity.DetailNonce = enc.Nonce;
+                    entity.DetailTag = enc.Tag;
+                    entity.Status = dto.Status;
+                }
+                else
+                {
+                    entity.Status = dto.Status;
+                    entity.Detail = dto.Detail;
+                }
 
                 var createdEntity = await this.broadcastRepository.AddBroadcastMessageAsync(entity);
 
@@ -157,7 +177,7 @@ namespace NokAir.TalkToCeo.Shared.Services
             {
                 Id = broadcast.Id,
                 Subject = broadcast.Subject,
-                Detail = broadcast.Detail,
+                Detail = this.aesGcm.Decrypt(broadcast.Detail ?? string.Empty, broadcast.DetailNonce ?? string.Empty, broadcast.DetailTag ?? string.Empty),
                 CreatedAt = broadcast.CreatedAt,
                 CreatedBy = broadcast.CreatedBy,
                 ModifiedAt = broadcast.ModifiedAt,
@@ -291,7 +311,7 @@ namespace NokAir.TalkToCeo.Shared.Services
                 {
                     Id = x.Id,
                     Subject = x.Subject,
-                    Detail = x.Detail,
+                    Detail = x.ShotDetail,
                     Status = x.Status,
                     StartDisplayDate = x.StartDisplayAt,
                     ExpireDisplayDate = x.ExpireDisplayAt,
@@ -333,7 +353,7 @@ namespace NokAir.TalkToCeo.Shared.Services
             {
                 Id = x.Id,
                 Subject = x.Subject,
-                Detail = x.Detail,
+                Detail = this.aesGcm.Decrypt(x.Detail ?? string.Empty, x.DetailNonce ?? string.Empty, x.DetailTag ?? string.Empty),
                 Status = x.Status,
                 StartDisplayDate = x.StartDisplayAt,
                 ExpireDisplayDate = x.ExpireDisplayAt,
@@ -495,6 +515,15 @@ namespace NokAir.TalkToCeo.Shared.Services
                 throw new DataValidationException("Message not found");
             }
 
+            // 🔐 Encrypt Detail
+            if (!string.IsNullOrEmpty(entity.Detail))
+            {
+                var enc = this.aesGcm.Encrypt(entity.Detail);
+                entity.Detail = enc.Cipher;
+                entity.DetailNonce = enc.Nonce;
+                entity.DetailTag = enc.Tag;
+            }
+
             entity.Status = BroadcastStatus.Sent;
             entity.PublishedAt = DateTime.Now;
             entity.ModifiedAt = DateTime.Now;
@@ -502,5 +531,33 @@ namespace NokAir.TalkToCeo.Shared.Services
 
             await this.broadcastRepository.UpdateAsync(entity);
         }
+
+        private static string TrimToFirstWords(string? input, int wordLimit)
+        {
+            if (string.IsNullOrWhiteSpace(input))
+            {
+                return string.Empty;
+            }
+
+            // remove html tags
+            var noHtml = MyRegex().Replace(input, string.Empty);
+
+            // split words
+            var words =
+                noHtml
+                    .Split(
+                        ' ',
+                        StringSplitOptions.RemoveEmptyEntries);
+
+            if (words.Length <= wordLimit)
+            {
+                return noHtml;
+            }
+
+            return string.Join(" ", words.Take(wordLimit)) + "...";
+        }
+
+        [GeneratedRegex("<.*?>")]
+        private static partial Regex MyRegex();
     }
 }

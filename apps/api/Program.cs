@@ -99,6 +99,7 @@ builder.Configuration.AddConfiguration(configuration);
 builder.Services.Configure<AppLoggerConfiguration>(builder.Configuration.GetSection("AppLogger"));
 builder.Services.Configure<List<ClientIDAndClientSecretValidation>>(builder.Configuration.GetSection("ClientApplications"));
 builder.Services.Configure<JwtSettingsModel>(builder.Configuration.GetSection("JwtSettings"));
+builder.Services.Configure<EncryptionSettings>(builder.Configuration.GetSection("EncryptionSettings"));
 builder.Services.Configure<FileUploadOptions>(builder.Configuration.GetSection("FileUpload"));
 builder.Services.AddScoped<IResponseFactory, ResponseFactory<BookingLocalize>>();
 
@@ -256,6 +257,19 @@ builder.Services.AddAuthorization(options =>
                     NokAir.TalkToCeo.Shared.Constants.TalkToCeoRole.Admin,
                     NokAir.TalkToCeo.Shared.Constants.TalkToCeoRole.Ceo,
         })));
+});
+
+builder.Services.AddSingleton<AesGcmService>(sp =>
+{
+    var encryptionConfig = builder.Configuration.GetSection("EncryptionSettings").Get<EncryptionSettings>();
+    var key = encryptionConfig?.Key;
+
+    if (string.IsNullOrWhiteSpace(key))
+    {
+        throw new InvalidOperationException("Encryption key is missing");
+    }
+
+    return new AesGcmService(key);
 });
 
 // Add JWT authentication

@@ -332,8 +332,24 @@ namespace NokAir.TalkToCeo.Shared.Repositories
                     .HasColumnName("detail")
                     .IsRequired();
 
+                entity.Property(m => m.DetailNonce)
+                .HasColumnName("detail_nonce");
+
+                entity.Property(m => m.DetailTag)
+                .HasColumnName("detail_tag");
+
+                entity.Property(m => m.ShotDetail)
+                    .HasColumnName("shot_detail")
+                    .IsRequired();
+
                 entity.Property(m => m.CeoReply)
                     .HasColumnName("ceo_reply");
+
+                entity.Property(m => m.CeoReplyNonce)
+                    .HasColumnName("ceo_reply_nonce");
+
+                entity.Property(m => m.CeoReplyTag)
+                    .HasColumnName("ceo_reply_tag");
 
                 entity.Property(m => m.UserId)
                     .HasColumnName("user_id")

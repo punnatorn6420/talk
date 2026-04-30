@@ -18,6 +18,7 @@ namespace NokAir.TalkToCeo.Shared.Services
         private readonly IMessageAttachmentRepository attachmentRepository;
         private readonly IMessageAttachmentService messageAttachmentService;
         private readonly TalkToCeoDbContext talkToCeoDbContext;
+        private readonly AesGcmService aesGcm;
 
         /// <summary>
         /// Initializes a new instance of the <see cref="MessageService"/> class with the specified IMessageRepository and IMessageAttachmentRepository. The constructor takes an IMessageRepository and an IMessageAttachmentRepository as parameters and assigns them to private readonly fields, allowing the service to interact with the repositories for performing data access operations related to messages and their attachments. This setup enables the MessageService to manage message data effectively while maintaining a clear separation of concerns between the service layer and the data access layer of the application.
@@ -26,12 +27,14 @@ namespace NokAir.TalkToCeo.Shared.Services
         /// <param name="attachmentRepository">The message attachment repository.</param>
         /// <param name="messageAttachmentService">The message attachment service.</param>
         /// <param name="talkToCeoDbContext">The database context for the "Talk to CEO" application.</param>
-        public MessageService(IMessageRepository repository, IMessageAttachmentRepository attachmentRepository, IMessageAttachmentService messageAttachmentService, TalkToCeoDbContext talkToCeoDbContext)
+        /// <param name="aesGcm">The AES-GCM encryption service.</param>
+        public MessageService(IMessageRepository repository, IMessageAttachmentRepository attachmentRepository, IMessageAttachmentService messageAttachmentService, TalkToCeoDbContext talkToCeoDbContext, AesGcmService aesGcm)
         {
             this.repository = repository;
             this.attachmentRepository = attachmentRepository;
             this.messageAttachmentService = messageAttachmentService;
             this.talkToCeoDbContext = talkToCeoDbContext;
+            this.aesGcm = aesGcm;
         }
 
         /// <inheritdoc/>
@@ -46,15 +49,30 @@ namespace NokAir.TalkToCeo.Shared.Services
                 var entity = new Messages
                 {
                     Subject = dto.Subject,
-                    Detail = dto.Detail,
+                    ShotDetail = TrimToFirstWords(dto.Detail, 10),
                     PostedAt = DateTime.Now,
-                    Status = dto.Status,
                     UserId = user.Id,
                     CreatedAt = DateTime.Now,
                     ModifiedAt = DateTime.Now,
                     CreatedBy = userName,
                     ModifiedBy = userName,
                 };
+
+                if (dto.Status == ActionStatus.Sent)
+                {
+                    // 🔐 Encrypt Detail
+                    var enc = this.aesGcm.Encrypt(dto.Detail);
+                    entity.Detail = enc.Cipher;
+                    entity.DetailNonce = enc.Nonce;
+                    entity.DetailTag = enc.Tag;
+                    entity.Status = dto.Status;
+                }
+                else
+                {
+                    entity.Status = dto.Status;
+                    entity.Detail = dto.Detail;
+                }
+
                 var messageId = await this.repository.AddMessageAsync(entity);
 
                 if (dto.Attachments != null &&
@@ -106,9 +124,9 @@ namespace NokAir.TalkToCeo.Shared.Services
             {
                 Id = message.Id,
                 Subject = message.Subject,
-                Message = message.Detail,
+                Message = this.aesGcm.Decrypt(message.Detail, message.DetailNonce ?? string.Empty, message.DetailTag ?? string.Empty),
                 Status = message.Status,
-                Reply = message.CeoReply,
+                Reply = this.aesGcm.Decrypt(message.CeoReply ?? string.Empty, message.CeoReplyNonce ?? string.Empty, message.CeoReplyTag ?? string.Empty),
                 PostedAt = message.PostedAt,
                 CreatedBy = message.CreatedBy,
                 ModifiedBy = message.ModifiedBy,
@@ -168,11 +186,25 @@ namespace NokAir.TalkToCeo.Shared.Services
                     throw new DataValidationException("Message not found");
                 }
 
+                entity.ShotDetail = TrimToFirstWords(dto.Detail, 10);
                 entity.Subject = dto.Subject;
-                entity.Detail = dto.Detail;
-                entity.Status = dto.Status;
                 entity.ModifiedAt = DateTime.Now;
                 entity.ModifiedBy = $"{user.FirstName} {user.LastName}".Trim();
+
+                if (dto.Status == ActionStatus.Sent)
+                {
+                    // 🔐 Encrypt Detail
+                    var enc = this.aesGcm.Encrypt(dto.Detail);
+                    entity.Detail = enc.Cipher;
+                    entity.DetailNonce = enc.Nonce;
+                    entity.DetailTag = enc.Tag;
+                    entity.Status = dto.Status;
+                }
+                else
+                {
+                    entity.Status = dto.Status;
+                    entity.Detail = dto.Detail;
+                }
 
                 await this.repository.UpdateAsync(entity);
 
@@ -213,8 +245,12 @@ namespace NokAir.TalkToCeo.Shared.Services
                 throw new DataValidationException("Message not found");
             }
 
+            var enc = this.aesGcm.Encrypt(dto.Reply);
+
+            entity.CeoReply = enc.Cipher;
+            entity.CeoReplyNonce = enc.Nonce;
+            entity.CeoReplyTag = enc.Tag;
             entity.CeoId = user.Id;
-            entity.CeoReply = dto.Reply;
             entity.Status = ActionStatus.Replied;
             entity.ModifiedAt = DateTime.Now;
             entity.ModifiedBy = $"{user.FirstName} {user.LastName}".Trim();
@@ -243,6 +279,15 @@ namespace NokAir.TalkToCeo.Shared.Services
             if (entity == null)
             {
                 throw new DataValidationException("Message not found");
+            }
+
+            // 🔐 Encrypt Detail
+            if (!string.IsNullOrEmpty(entity.Detail))
+            {
+                var enc = this.aesGcm.Encrypt(entity.Detail);
+                entity.Detail = enc.Cipher;
+                entity.DetailNonce = enc.Nonce;
+                entity.DetailTag = enc.Tag;
             }
 
             entity.Status = ActionStatus.Sent;
@@ -315,7 +360,7 @@ namespace NokAir.TalkToCeo.Shared.Services
                             {
                                 Id = x.Id,
                                 Subject = x.Subject,
-                                Message = TrimToFirstWords(x.Detail, 100),
+                                Message = x.ShotDetail,
                                 Status = x.Status,
                                 PostedAt = x.PostedAt,
                                 CreatedBy = x.CreatedBy,
