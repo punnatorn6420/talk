@@ -182,6 +182,11 @@ namespace NokAir.TalkToCeo.Shared.Services
                 throw new DataValidationException("Message not found");
             }
 
+            // ✅ ลบไฟล์
+            await this.messageAttachmentService
+                .RemoveAllAttachmentsByMessageIdAsync(id);
+
+            // ✅ ลบ DB (cascade จะลบ attachments)
             await this.repository.RemoveMessageAsync(message);
         }
 
