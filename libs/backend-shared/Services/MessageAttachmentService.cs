@@ -216,5 +216,23 @@ namespace NokAir.TalkToCeo.Shared.Services
 
             await this.dbContext.SaveChangesAsync();
         }
+
+        /// <inheritdoc/>
+        public async Task RemoveAllAttachmentsByMessageIdAsync(int messageId)
+        {
+            var attachments = await this.attachmentRepository.FindAttachmentsByMessageIdsAsync(new List<int> { messageId });
+
+            foreach (var attachment in attachments)
+            {
+                var fullPath = Path.Combine(
+                    this.env.WebRootPath,
+                    attachment.FilePath);
+
+                if (File.Exists(fullPath))
+                {
+                    File.Delete(fullPath);
+                }
+            }
+        }
     }
 }

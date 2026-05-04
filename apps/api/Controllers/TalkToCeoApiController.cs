@@ -313,7 +313,7 @@ namespace NokAir.TalkToCeo.Api.Controllers
                     throw new DataValidationException("Message not found.");
                 }
 
-                if (result.Reply != null)
+                if (result.Reply != string.Empty)
                 {
                     throw new DataValidationException("Only messages without reply can be replied.");
                 }

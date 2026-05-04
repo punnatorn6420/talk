@@ -35,5 +35,12 @@ namespace NokAir.TalkToCeo.Shared.Services
         /// <param name="attachmentId">The ID of the attachment to be deleted.</param>
         /// <returns>A task representing the asynchronous operation.</returns>
         Task RemoveAttachmentAsync(int messageId, int attachmentId);
+
+        /// <summary>
+        /// Deletes all attachments associated with a specific message, typically used when a message is deleted to ensure that all related attachments are also removed from storage and the database.
+        /// </summary>
+        /// <param name="messageId">The ID of the message whose attachments are to be deleted.</param>
+        /// <returns>A task representing the asynchronous operation.</returns>
+        Task RemoveAllAttachmentsByMessageIdAsync(int messageId);
     }
 }

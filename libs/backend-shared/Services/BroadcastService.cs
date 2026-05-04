@@ -1,5 +1,6 @@
 using System;
 using System.Text.RegularExpressions;
+using Microsoft.AspNetCore.Hosting;
 using NokAir.Core.Domain.Entities.InHouse;
 using NokAir.Core.Exceptions;
 using NokAir.TalkToCeo.Shared.Dtos;
@@ -21,6 +22,7 @@ namespace NokAir.TalkToCeo.Shared.Services
         private readonly IBroadcastAttachmentService broadcastAttachmentService;
         private readonly TalkToCeoDbContext talkToCeoDbContext;
         private readonly AesGcmService aesGcm;
+        private readonly IWebHostEnvironment env;
 
         /// <summary>
         /// Initializes a new instance of the <see cref="BroadcastService"/> class with the specified broadcast repository. The constructor takes an <see cref="IBroadcastRepository"/> as a parameter, which is used to interact with the underlying data store for managing broadcast messages. This allows the service to perform operations such as creating new broadcast messages and retrieving existing ones. By injecting the repository through the constructor, we can easily manage dependencies and promote better testability of the service class.
@@ -32,6 +34,7 @@ namespace NokAir.TalkToCeo.Shared.Services
         /// <param name="broadcastAttachmentService">The broadcast attachment service used to manage broadcast attachment-related operations.</param>
         /// <param name="talkToCeoDbContext">The database context used to manage transactions and interact with the underlying data store.</param>
         /// <param name="aesGcm">The AES-GCM service used for encryption and decryption of broadcast details.</param>
+        /// <param name="env">The web host environment used to access environment-specific information such as the web root path.</param>
         public BroadcastService(
               IBroadcastRepository broadcastRepository,
               IUsersRepository<UserDto> usersRepository,
@@ -39,7 +42,8 @@ namespace NokAir.TalkToCeo.Shared.Services
               IBroadcastAttachmentRepository broadcastAttachmentRepository,
               IBroadcastAttachmentService broadcastAttachmentService,
               TalkToCeoDbContext talkToCeoDbContext,
-              AesGcmService aesGcm)
+              AesGcmService aesGcm,
+              IWebHostEnvironment env)
         {
             this.broadcastRepository = broadcastRepository;
             this.usersRepository = usersRepository;
@@ -49,6 +53,7 @@ namespace NokAir.TalkToCeo.Shared.Services
             this.talkToCeoDbContext = talkToCeoDbContext;
             this.broadcastAttachmentService = broadcastAttachmentService;
             this.aesGcm = aesGcm;
+            this.env = env;
         }
 
         /// <inheritdoc/>
@@ -156,6 +161,29 @@ namespace NokAir.TalkToCeo.Shared.Services
                 throw new DataValidationException("You do not have permission to delete this broadcast.");
             }
 
+            // ✅ ใช้ method ที่คุณมีอยู่แล้ว
+            var attachments = await this.broadcastAttachmentRepository
+                .FindAttachmentsByBroadcastIdAsync(broadcastId);
+
+            // ✅ ลบไฟล์จริง
+            foreach (var attachment in attachments)
+            {
+                try
+                {
+                    var fullPath = Path.Combine(this.env.WebRootPath, attachment.FilePath);
+
+                    if (File.Exists(fullPath))
+                    {
+                        File.Delete(fullPath);
+                    }
+                }
+                catch (Exception)
+                {
+                    // log ไว้ แต่ไม่ throw เพื่อไม่ให้ลบ broadcast fail
+                }
+            }
+
+            // ✅ ลบ DB (cascade จะลบ attachments ให้)
             await this.broadcastRepository.RemoveBroadcastMessageAsync(entity);
         }
 
