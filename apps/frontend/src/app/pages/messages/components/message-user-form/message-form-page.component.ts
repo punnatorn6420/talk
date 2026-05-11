@@ -39,6 +39,21 @@ const trimmedRequiredValidator: ValidatorFn = (
   return (control.value ?? '').trim() ? null : { required: true };
 };
 
+const allowedAttachmentExtensions = new Set([
+  '.jpg',
+  '.jpeg',
+  '.png',
+  '.pdf',
+  '.doc',
+  '.docx',
+  '.xls',
+  '.xlsx',
+]);
+
+const allowedAttachmentExtensionsText = Array.from(
+  allowedAttachmentExtensions,
+).join(', ');
+
 const richTextRequiredValidator: ValidatorFn = (
   control: AbstractControl<string | null>,
 ): ValidationErrors | null => {
@@ -63,6 +78,14 @@ function isEmptyRichText(value: string | null | undefined): boolean {
     .trim();
 
   return text.length === 0;
+}
+
+function getFileExtension(fileName: string): string {
+  const extensionStartIndex = fileName.lastIndexOf('.');
+
+  return extensionStartIndex >= 0
+    ? fileName.slice(extensionStartIndex).toLowerCase()
+    : '';
 }
 
 function getFormDataDebugPayload(formData: FormData): Record<string, unknown> {
@@ -266,6 +289,17 @@ export class MessageFormPageComponent
         continue;
       }
 
+      const extension = getFileExtension(file.name);
+
+      if (!allowedAttachmentExtensions.has(extension)) {
+        this.toast.add({
+          severity: 'warn',
+          summary: 'Unsupported file type',
+          detail: `${file.name} is not supported. Please attach ${allowedAttachmentExtensionsText} files only.`,
+        });
+        continue;
+      }
+
       const duplicated = this.pendingFiles.some(
         (item) =>
           item.name === file.name &&
@@ -388,10 +422,7 @@ export class MessageFormPageComponent
             severity: 'error',
             summary:
               this.pageMode === 'edit' ? 'Update failed' : 'Create failed',
-            detail:
-              this.pageMode === 'edit'
-                ? 'Unable to update your message.'
-                : 'Unable to create your message.',
+            detail: this.getSubmitErrorMessage(error),
           });
         },
       });
@@ -440,6 +471,40 @@ export class MessageFormPageComponent
       fields: getFormDataDebugPayload(formData),
       pendingFileCount: this.pendingFiles.length,
     });
+  }
+
+  private getSubmitErrorMessage(error: HttpErrorResponse): string {
+    const fallback =
+      this.pageMode === 'edit'
+        ? 'Unable to update your message.'
+        : 'Unable to create your message.';
+
+    const serverMessage = this.getServerErrorMessage(error.error);
+
+    return serverMessage || fallback;
+  }
+
+  private getServerErrorMessage(errorBody: unknown): string {
+    if (!errorBody) return '';
+
+    if (typeof errorBody === 'string') return errorBody;
+
+    if (typeof errorBody !== 'object') return '';
+
+    const body = errorBody as {
+      message?: unknown;
+      error?: { userMessage?: unknown; developerMessage?: unknown };
+    };
+
+    if (typeof body.message === 'string') return body.message;
+    if (typeof body.error?.userMessage === 'string') {
+      return body.error.userMessage;
+    }
+    if (typeof body.error?.developerMessage === 'string') {
+      return body.error.developerMessage;
+    }
+
+    return '';
   }
 
   private logSubmitError(error: HttpErrorResponse): void {
