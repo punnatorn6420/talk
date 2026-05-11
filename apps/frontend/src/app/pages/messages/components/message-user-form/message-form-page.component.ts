@@ -4,14 +4,23 @@ import {
   ChangeDetectorRef,
   Component,
   OnInit,
+  ViewChild,
   inject,
 } from '@angular/core';
-import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
+import {
+  AbstractControl,
+  FormBuilder,
+  ReactiveFormsModule,
+  ValidationErrors,
+  ValidatorFn,
+  Validators,
+} from '@angular/forms';
+import { HttpErrorResponse } from '@angular/common/http';
 import { ActivatedRoute, Router } from '@angular/router';
 import { finalize } from 'rxjs';
 
 import { ButtonModule } from 'primeng/button';
-import { EditorModule } from 'primeng/editor';
+import { Editor, EditorModule } from 'primeng/editor';
 import { FileUploadModule, FileSelectEvent } from 'primeng/fileupload';
 import { InputTextModule } from 'primeng/inputtext';
 import { ToastModule } from 'primeng/toast';
@@ -23,6 +32,83 @@ import { SubscriptionDestroyer } from '../../../../shared/core/helper/Subscripti
 import { AuthService } from '../../../../service/auth.service';
 
 type PageMode = 'create' | 'edit' | 'view';
+
+const trimmedRequiredValidator: ValidatorFn = (
+  control: AbstractControl<string | null>,
+): ValidationErrors | null => {
+  return (control.value ?? '').trim() ? null : { required: true };
+};
+
+const allowedAttachmentExtensions = new Set([
+  '.jpg',
+  '.jpeg',
+  '.png',
+  '.pdf',
+  '.doc',
+  '.docx',
+  '.xls',
+  '.xlsx',
+]);
+
+const allowedAttachmentExtensionsText = Array.from(
+  allowedAttachmentExtensions,
+).join(', ');
+
+const richTextRequiredValidator: ValidatorFn = (
+  control: AbstractControl<string | null>,
+): ValidationErrors | null => {
+  return isEmptyRichText(control.value) ? { required: true } : null;
+};
+
+function isEmptyRichText(value: string | null | undefined): boolean {
+  const html = (value ?? '').trim();
+
+  if (!html) return true;
+
+  const hasEmbeddedContent = /<(img|iframe|video|audio|object|embed)\b/i.test(
+    html,
+  );
+  if (hasEmbeddedContent) return false;
+
+  const text = html
+    .replace(/<[^>]*>/g, '')
+    .replace(/&nbsp;/gi, ' ')
+    .replace(/&#160;/g, ' ')
+    .replace(/[\u200B-\u200D\uFEFF]/g, '')
+    .trim();
+
+  return text.length === 0;
+}
+
+function getFileExtension(fileName: string): string {
+  const extensionStartIndex = fileName.lastIndexOf('.');
+
+  return extensionStartIndex >= 0
+    ? fileName.slice(extensionStartIndex).toLowerCase()
+    : '';
+}
+
+function getFormDataDebugPayload(formData: FormData): Record<string, unknown> {
+  const payload: Record<string, unknown> = {};
+
+  formData.forEach((value, key) => {
+    const debugValue =
+      value instanceof File
+        ? { name: value.name, size: value.size, type: value.type }
+        : value;
+
+    if (Object.prototype.hasOwnProperty.call(payload, key)) {
+      payload[key] = Array.isArray(payload[key])
+        ? [...payload[key], debugValue]
+        : [payload[key], debugValue];
+      return;
+    }
+
+    payload[key] = debugValue;
+  });
+
+  return payload;
+}
 
 @Component({
   selector: 'app-message-form-page',
@@ -68,6 +154,8 @@ export class MessageFormPageComponent
 
   private readonly maxFileSize = 10 * 1024 * 1024;
 
+  @ViewChild('detailEditor') private detailEditor?: Editor;
+
   status = 'draft';
 
   reply = '';
@@ -80,8 +168,8 @@ export class MessageFormPageComponent
   watermarkText = '';
 
   readonly form = this.fb.nonNullable.group({
-    subject: ['', Validators.required],
-    detail: ['', Validators.required],
+    subject: ['', [Validators.required, trimmedRequiredValidator]],
+    detail: ['', [Validators.required, richTextRequiredValidator]],
   });
 
   ngOnInit(): void {
@@ -201,6 +289,17 @@ export class MessageFormPageComponent
         continue;
       }
 
+      const extension = getFileExtension(file.name);
+
+      if (!allowedAttachmentExtensions.has(extension)) {
+        this.toast.add({
+          severity: 'warn',
+          summary: 'Unsupported file type',
+          detail: `${file.name} is not supported. Please attach ${allowedAttachmentExtensionsText} files only.`,
+        });
+        continue;
+      }
+
       const duplicated = this.pendingFiles.some(
         (item) =>
           item.name === file.name &&
@@ -261,22 +360,33 @@ export class MessageFormPageComponent
     this.AddSubscription(obs);
   }
 
-  submit(): void {
+  submit(event?: SubmitEvent): void {
+    event?.preventDefault();
+
     if (this.isReadonly) return;
+
+    this.blurActiveElement();
+    this.syncFormControlsBeforeSubmit();
 
     if (this.form.invalid || this.saving) {
       this.form.markAllAsTouched();
+      this.cdr.markForCheck();
       return;
     }
 
+    const subject = this.form.controls.subject.value.trim();
+    const detail = this.normalizeDetailHtml(this.form.controls.detail.value);
+
     const formData = new FormData();
-    formData.append('subject', this.form.controls.subject.value.trim());
-    formData.append('detail', this.form.controls.detail.value.trim());
+    formData.append('subject', subject);
+    formData.append('detail', detail);
     formData.append('status', 'draft');
 
     this.pendingFiles.forEach((file) => {
       formData.append('attachments', file, file.name);
     });
+
+    this.logFormDataBeforeSubmit(formData);
 
     this.saving = true;
 
@@ -305,19 +415,107 @@ export class MessageFormPageComponent
 
           this.navigateToList();
         },
-        error: () => {
+        error: (error: HttpErrorResponse) => {
+          this.logSubmitError(error);
+
           this.toast.add({
             severity: 'error',
             summary:
               this.pageMode === 'edit' ? 'Update failed' : 'Create failed',
-            detail:
-              this.pageMode === 'edit'
-                ? 'Unable to update your message.'
-                : 'Unable to create your message.',
+            detail: this.getSubmitErrorMessage(error),
           });
         },
       });
     this.AddSubscription(obs);
+  }
+
+  private blurActiveElement(): void {
+    if (typeof document === 'undefined') return;
+
+    const activeElement = document.activeElement;
+
+    if (activeElement instanceof HTMLElement) {
+      activeElement.blur();
+    }
+  }
+
+  private syncFormControlsBeforeSubmit(): void {
+    this.form.controls.subject.setValue(
+      this.form.controls.subject.value.trim(),
+    );
+    this.syncDetailControlFromEditor();
+  }
+
+  private syncDetailControlFromEditor(): void {
+    const quill = this.detailEditor?.getQuill();
+
+    quill?.update?.('user');
+
+    const editorHtml = quill?.root?.innerHTML;
+
+    if (typeof editorHtml !== 'string') return;
+
+    const detail = this.normalizeDetailHtml(editorHtml);
+    this.form.controls.detail.setValue(detail);
+    this.form.controls.detail.updateValueAndValidity();
+  }
+
+  private normalizeDetailHtml(value: string | null | undefined): string {
+    return (value ?? '').trim();
+  }
+
+  private logFormDataBeforeSubmit(formData: FormData): void {
+    console.debug('[MessageForm] submit payload', {
+      mode: this.pageMode,
+      messageId: this.messageId,
+      fields: getFormDataDebugPayload(formData),
+      pendingFileCount: this.pendingFiles.length,
+    });
+  }
+
+  private getSubmitErrorMessage(error: HttpErrorResponse): string {
+    const fallback =
+      this.pageMode === 'edit'
+        ? 'Unable to update your message.'
+        : 'Unable to create your message.';
+
+    const serverMessage = this.getServerErrorMessage(error.error);
+
+    return serverMessage || fallback;
+  }
+
+  private getServerErrorMessage(errorBody: unknown): string {
+    if (!errorBody) return '';
+
+    if (typeof errorBody === 'string') return errorBody;
+
+    if (typeof errorBody !== 'object') return '';
+
+    const body = errorBody as {
+      message?: unknown;
+      error?: { userMessage?: unknown; developerMessage?: unknown };
+    };
+
+    if (typeof body.message === 'string') return body.message;
+    if (typeof body.error?.userMessage === 'string') {
+      return body.error.userMessage;
+    }
+    if (typeof body.error?.developerMessage === 'string') {
+      return body.error.developerMessage;
+    }
+
+    return '';
+  }
+
+  private logSubmitError(error: HttpErrorResponse): void {
+    console.error('[MessageForm] submit failed', {
+      mode: this.pageMode,
+      messageId: this.messageId,
+      status: error.status,
+      statusText: error.statusText,
+      message: error.message,
+      error: error.error,
+    });
   }
 
   downloadUserAttachment(file: IMessageAttachment): void {
@@ -347,7 +545,9 @@ export class MessageFormPageComponent
 
           window.URL.revokeObjectURL(url);
         },
-        error: () => {
+        error: (error: HttpErrorResponse) => {
+          this.logSubmitError(error);
+
           this.toast.add({
             severity: 'error',
             summary: 'Download failed',

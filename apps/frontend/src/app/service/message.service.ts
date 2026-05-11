@@ -8,7 +8,6 @@ import {
   IMailResponse,
   IMessageParams,
   IMessageRequest,
-  IReplyRequest,
 } from '../types/message.model';
 
 @Injectable({ providedIn: 'root' })

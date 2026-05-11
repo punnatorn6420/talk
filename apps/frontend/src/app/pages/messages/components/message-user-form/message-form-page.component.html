@@ -32,7 +32,7 @@
       @if (loading) {
         <div class="py-16 text-center text-slate-500">Loading...</div>
       } @else {
-        <form [formGroup]="form" class="space-y-6">
+        <form [formGroup]="form" class="space-y-6" (ngSubmit)="submit($event)">
           <div>
             <label
               htmlFor="subject"
@@ -83,6 +83,7 @@
               ></div>
             } @else {
               <p-editor
+                #detailEditor
                 formControlName="detail"
                 [style]="{ height: '320px' }"
                 class="message-editor"
@@ -178,7 +179,7 @@
                   [multiple]="true"
                   [customUpload]="true"
                   [auto]="false"
-                  accept="image/*,.pdf,.doc,.docx,.xls,.xlsx,.txt"
+                  accept=".jpg,.jpeg,.png,.pdf,.doc,.docx,.xls,.xlsx"
                   [maxFileSize]="10000000"
                   (onSelect)="onFilesSelected($event)"
                 ></p-fileUpload>
@@ -370,12 +371,11 @@
               <button
                 aria-label="Save as Draft"
                 pButton
-                type="button"
+                type="submit"
                 [label]="pageMode === 'edit' ? 'Update Draft' : 'Save Draft'"
                 icon="pi pi-save"
                 class="max-sm:w-full"
                 [loading]="saving"
-                (click)="submit()"
               ></button>
             </div>
           }
